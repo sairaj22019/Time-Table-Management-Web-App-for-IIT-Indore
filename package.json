@@ -2,6 +2,7 @@
   "name": "iitisoc",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -13,6 +14,8 @@
     "@tabler/icons-react": "^3.33.0",
     "@tailwindcss/postcss": "^4.1.8",
     "clsx": "^2.1.1",
+    "dotenv": "^16.5.0",
+    "mongoose": "^8.15.1",
     "motion": "^12.15.0",
     "next": "15.3.3",
     "postcss": "^8.5.4",
