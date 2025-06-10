@@ -22,5 +22,5 @@ const ProfessorSchema=new Schema({
     }]
 },{timestamps:true,minimize:false})
 
-const Professor=models?.Professor || model('Proffesor',ProfessorSchema);
+const Professor=models?.Professor || model('Professor',ProfessorSchema);
 export default Professor;

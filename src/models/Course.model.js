@@ -11,11 +11,11 @@ const courseSchema = new Schema({
   schedule: [
     {
       start: {
-        time: Date,
+        type: Date,
         required: [true, "Start time is required"],
       },
       end: {
-        time: Date,
+        type: Date,
         required: [true, "End time is required"],
       },
       day: [{
