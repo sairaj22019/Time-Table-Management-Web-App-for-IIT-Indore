@@ -41,7 +41,7 @@ export async function POST(request) {
     if (
       user.verifyOtp !== otp ||
       !user.verifyOtpExpiry ||
-      new Date()>user.verifycodeExpiry
+      new Date()>user.verifyOtpExpiry
     ){
       return Response.json(
         {

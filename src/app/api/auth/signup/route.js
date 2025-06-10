@@ -34,7 +34,7 @@ export async function POST(request){
                 },{status:400})
             }else{
                 ExistingUserByEmail.password = password
-                ExistingUserByEmail.verifyOtp = verifycode
+                ExistingUserByEmail.verifyOtp = verifyOtp
                 ExistingUserByEmail.verifyOtpExpiry = new Date(Date.now() + 3600000)
                 await ExistingUserByEmail.save()
             }
