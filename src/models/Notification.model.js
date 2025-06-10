@@ -1,0 +1,22 @@
+import mongoose,{Schema,model,models} from 'mongoose'
+
+ 
+const notificationSchema = new mongoose.Schema({
+  message: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ['poll', 'system', 'user-report'],
+    default: 'system',
+  },
+  read: {
+    type: Boolean,
+    default: false,
+  },
+  
+},{timestamps:true});
+
+const Notification=models?.Notification || model("Notification",notificationSchema);
+export default Notification;
