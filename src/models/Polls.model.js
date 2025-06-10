@@ -36,6 +36,14 @@ const PollSchema = new Schema({
     type:String,
     required:[true,"Reason for the poll is required"],
   },
+  context:{
+    type:String,
+    required:[true,"Context of the poll is required"],
+  },
+  isApproved:{
+    type:Boolean,
+    default:false,
+  }
   
 }, { timestamps: true, minimize: false });
 

@@ -12,7 +12,6 @@ const AdminSchema=new Schema({
          ref:"Polls",
        }
     ],
-
     
 })
 

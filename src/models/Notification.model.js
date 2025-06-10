@@ -8,10 +8,10 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['poll', 'system', 'user-report'],
-    default: 'system',
+    enum: ['poll', 'poll update', 'timetable'],
+    default: 'timetable',
   },
-  read: {
+  isRead: {
     type: Boolean,
     default: false,
   },

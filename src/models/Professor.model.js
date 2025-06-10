@@ -16,6 +16,10 @@ const ProfessorSchema=new Schema({
         type:String,
         required:[true,"Department is required"],
     },
+    activePolls:[{
+        type:mongoose.Schema.Types.ObjectId,  
+        ref:"Polls",
+    }]
 },{timestamps:true,minimize:false})
 
 const Professor=models?.Professor || model('Proffesor',ProfessorSchema);
