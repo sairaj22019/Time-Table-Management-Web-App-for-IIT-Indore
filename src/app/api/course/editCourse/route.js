@@ -3,17 +3,18 @@ import Course from "@/models/Course.model";
 import { connectDB } from "@/dbConnection/ConnectDB";
 
 function saveTime(timeString) {
-  let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
+  let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(':');
   let hours = parseInt(hourStr, 10);
   let minutes = parseInt(minuteStr, 10);
 
-  if (meridian === "pm" && hours !== 12) hours += 12;
-  if (meridian === "am" && hours === 12) hours = 0;
+  if (meridian === 'pm' && hours !== 12) hours += 12;
+  if (meridian === 'am' && hours === 12) hours = 0;
 
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0); // hour, minute, second, ms
+  // Set a fixed date: Jan 1, 2000
+  const fixedDate = new Date(2000, 0, 1, hours, minutes, 0, 0); 
+  //                year, month (0-indexed), day, hr, min, sec, ms
 
-  return date;
+  return fixedDate;
 }
 
 export async function POST(req) {
