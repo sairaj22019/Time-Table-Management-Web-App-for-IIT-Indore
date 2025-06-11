@@ -19,6 +19,10 @@ const ProfessorSchema=new Schema({
     activePolls:[{
         type:mongoose.Schema.Types.ObjectId,  
         ref:"Polls",
+    }],
+    notifications:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Notification",
     }]
 },{timestamps:true,minimize:false})
 

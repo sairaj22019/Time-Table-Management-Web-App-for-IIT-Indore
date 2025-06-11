@@ -6,6 +6,8 @@ import Professor from "@/models/Professor.model";
 import { propEffect } from "motion";
 import moment from "moment-timezone";
 import User from "@/models/User.model";
+import Student from "@/models/Student.model";
+
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(':');
   let hours = parseInt(hourStr, 10);
@@ -20,6 +22,71 @@ function saveTime(timeString) {
 
   return fixedDate;
 }
+
+async function addCourseToStudents(students, courseId, rollNumbers) {
+  const allStudentIds = new Set();
+
+  // Step 1: By department + year
+  for (let i = 0; i < students.departments.length; i++) {
+    const dept = students.departments[i];
+    const year = students.year;
+
+    try {
+      const updatedStudents = await Student.find({
+        department: dept,
+        year: year,
+        enrolledClasses: { $ne: courseId },
+      });
+
+      const ids = updatedStudents.map((s) => s._id);
+      ids.forEach(id => allStudentIds.add(id));
+
+      await Student.updateMany(
+        { _id: { $in: ids } },
+        { $push: { enrolledClasses: courseId } }
+      );
+    } catch (err) {
+      console.error(`Error updating department ${dept} (year ${year}):`, err);
+    }
+  }
+
+  // Step 2: By roll numbers
+  for (let i = 0; i < rollNumbers.length; i++) {
+    const roll = rollNumbers[i];
+    try {
+      const student = await Student.findOne({
+        rollno: roll,
+        enrolledClasses: { $ne: courseId },
+      });
+
+      if (student) {
+        allStudentIds.add(student._id);
+        await Student.updateOne(
+          { _id: student._id },
+          { $push: { enrolledClasses: courseId } }
+        );
+      }
+    } catch (err) {
+      console.error(`Error updating roll number ${roll}:`, err);
+    }
+  }
+
+  // Step 3: Push all collected student IDs into the Course.enrolledStudents
+try {
+  await Course.updateOne(
+    { _id: courseId },
+    {
+      $addToSet: {
+        enrolledStudents: { $each: Array.from(allStudentIds) },
+      },
+    }
+  );
+} catch (err) {
+  console.error("Error updating course with enrolled students:", err);
+}
+
+}
+
 
 
 
@@ -41,15 +108,17 @@ export async function POST(req) {
   }
 
   try {
-    const { title, schedule, profName, profEmail, credits } = await req.json();
+    const { title, schedule, profName, profEmail, credits,students } = await req.json();
     if (
       !title ||
       !schedule ||
       !profName ||
       !profEmail ||
       !credits ||
-      !typeof schedule == Array
+      !typeof schedule == Array ||
+      !students
     ) {
+      console.log(typeof students)
       return NextResponse.json(
         {
           success: false,
@@ -73,19 +142,23 @@ export async function POST(req) {
       profName: profName,
       profEmail: profEmail,
       credits: credits,
-      prof: null,
+      prof: Array(profEmail.length),
     });
-    const user = await User.findOne({ email: profEmail });
+    for(let i=0;i<profEmail.length;i++){
 
-    if (user) {
-      const prof = await Professor.findOne({ userId: user._id });
-      if (!prof) {
-        newCourse.prof = null;
-      } else {
-        newCourse.prof = prof._id;
-      }
-    } 
+      const user = await User.findOne({ email: profEmail });
+  
+      if (user) {
+        const prof= await Professor.findOne({ userId: user._id });
+        if (!prof) {
+          newCourse.prof[i] = null;
+        } else {
+          newCourse.prof[i] = prof._id;
+        }
+      } 
+    }
     await newCourse.save();
+    await addCourseToStudents(students,newCourse._id,students.backlogs);
     return NextResponse.json(
       {
         success: true,

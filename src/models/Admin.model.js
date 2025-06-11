@@ -12,6 +12,12 @@ const AdminSchema=new Schema({
          ref:"Polls",
        }
     ],
+    notifications:[
+      {
+        type:Schema.Types.ObjectId,
+        ref:"Notification"
+      }
+    ]
     
 })
 

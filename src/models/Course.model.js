@@ -37,23 +37,26 @@ const courseSchema = new Schema({
       }
     },
   ],
-  prof:{
-    //So this will be checked in the backend if it is there we use it or just leave it empty.
-    //Abniav-> not on the user interface.
+  prof:[{
     type:mongoose.Schema.Types.ObjectId,
     ref:"Professor",
-  },
-  profName:{
+  }],
+  profName:[{
     type:String,
-  },
-  profEmail:{
+  }],
+  profEmail:[{
     type:String,
-  },
+  }],
   credits:{
     type:Number,
     required:[true,"Credits of the course is required"],
-  }
-},{timestamps:true});
+  },
+  enrolledStudents:[{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"Student",
+    required:[true,"Student list is required"]
+  }]
+},{timestamps:true,minimize:false});
 
 
 
