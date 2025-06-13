@@ -59,7 +59,7 @@ export default function OTPPage() {
 
       if (result.success) {
         setSuccessMsg(result.message)
-        setTimeout(() => router.push('/login'), 2000)
+        setTimeout(() => router.push('/login'), 1500)
       } else {
         setErrorMsg( 'Invalid OTP')
       }

@@ -10,9 +10,9 @@ export default function WelcomePage() {
   return (
     <SessionWrapper>
       <WelcomeContent />
-      <button onClick={() => signOut({ callbackUrl: '/' })}>
-      Logout
-    </button>
+      <button onClick={() => signOut({ callbackUrl: '/login' })}>
+        Logout
+      </button>
     </SessionWrapper>
   )
 }

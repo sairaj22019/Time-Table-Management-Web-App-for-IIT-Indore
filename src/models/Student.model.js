@@ -1,0 +1,32 @@
+import mongoose, { Schema, model, models } from "mongoose";
+
+const StudentSchema=new Schema({
+    userId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User",
+        required:[true,"User Id is required"],
+    },
+    enrolledClasses:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Courses",
+        }
+    ],
+    year:{
+        type: Number,
+        enum:[1,2,3,4,5,6],
+        required:[true,"Student Year is required"],
+    },
+    department:{
+        type:String,
+        required:[true,"Student department is required"],
+    },
+    rollno:{
+        type:String,
+        unique:true,
+        required:[true,"Roll number is required"],
+    }
+},{timestamps:true,minimize:false});
+
+const Student=models?.Student || model('Student',StudentSchema);
+export default Student;

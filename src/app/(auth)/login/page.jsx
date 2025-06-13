@@ -31,27 +31,60 @@ export default function LoginPage() {
     },
   })
 
+  // const onSubmit = async (data) => {
+  //   setErrorMsg('')
+  //   try {
+  //     const result = await signIn('credentials', {
+  //       redirect: false,
+  //       email: data.email,
+  //       password: data.password,
+  //     })
+
+  //     if (result?.error) {
+  //       setErrorMsg(result.error)
+  //     } else {
+  //       router.push('/complete-profile')
+  //     }
+  //   } catch (error) {
+  //     setErrorMsg('Something went wrong. Please try again.')
+  //   }
+  // }
   const onSubmit = async (data) => {
-    setErrorMsg('')
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: data.email,
-        password: data.password,
-      })
+  setErrorMsg('')
+  try {
+    const result = await signIn('credentials', {
+      redirect: false,
+      email: data.email,
+      password: data.password,
+    })
 
-      if (result?.error) {
-        setErrorMsg(result.error)
+    if (result?.error) {
+      setErrorMsg(result.error)
+    } else {
+      // Fetch user profile
+      const res = await fetch(`/api/auth/profile?email=${encodeURIComponent(data.email)}`)
+      const profile = await res.json()
+
+      const { username, role, department } = profile || {}
+
+      const isStudent = role === 'student'
+      const studentFieldsMissing = !profile?.rollno || !profile?.year
+      const commonFieldsMissing = !username || !role || !department
+
+      if (commonFieldsMissing || (isStudent && studentFieldsMissing)) {
+        router.push('/complete-profile')
       } else {
-        router.push('/') 
+        router.push('/welcome')
       }
-    } catch (error) {
-      setErrorMsg('Something went wrong. Please try again.')
     }
+  } catch (error) {
+    setErrorMsg('Something went wrong. Please try again.')
   }
+}
 
-  const handleGoogleLogin = () => {
-    signIn('google', { callbackUrl: '/welcome' })
+
+  const handleGoogleLogin = async () => {
+    signIn('google', { callbackUrl: '/profile' })
       .catch(() => {
         setErrorMsg('Failed to sign in with Google.')
       })
