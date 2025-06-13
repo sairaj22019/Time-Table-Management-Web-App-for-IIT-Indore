@@ -18,7 +18,7 @@ const courseSchema = new Schema({
         type: Date,
         required: [true, "End time is required"],
       },
-      day: [{
+      day: {
         type: String,
         enum: [
           "Monday",
@@ -30,7 +30,7 @@ const courseSchema = new Schema({
           "Sunday",
         ],
         required: [true,"Day of the classes is required"],
-      }],
+      },
       room:{
         type:String,
         required:[true,"Room of the class is required"],

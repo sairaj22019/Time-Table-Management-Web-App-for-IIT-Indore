@@ -122,15 +122,15 @@ export default function CompleteProfilePage() {
             required
           >
             <option value="">Select Department</option>
-            <option value="Chemical Engineering">Chemical Engineering (4 Years, Bachelor of Technology)</option>
-            <option value="Civil Engineering">Civil Engineering (4 Years, Bachelor of Technology)</option>
-            <option value="Computer Science and Engineering">Computer Science and Engineering (4 Years, Bachelor of Technology)</option>
-            <option value="Electrical Engineering">Electrical Engineering (4 Years, Bachelor of Technology)</option>
-            <option value="Engineering Physics">Engineering Physics (4 Years, Bachelor of Technology)</option>
-            <option value="Space Sciences and Engineering">Space Sciences and Engineering (4 Years, Bachelor of Technology)</option>
-            <option value="Mathematics and Computing">Mathematics and Computing (4 Years, Bachelor of Technology)</option>
-            <option value="Mechanical Engineering">Mechanical Engineering (4 Years, Bachelor of Technology)</option>
-            <option value="Metallurgical Engineering and Materials Science">Metallurgical Engineering and Materials Science (4 Years, Bachelor of Technology)</option>
+            <option value="che">Chemical Engineering (4 Years, Bachelor of Technology)</option>
+            <option value="ce">Civil Engineering (4 Years, Bachelor of Technology)</option>
+            <option value="cse">Computer Science and Engineering (4 Years, Bachelor of Technology)</option>
+            <option value="ee">Electrical Engineering (4 Years, Bachelor of Technology)</option>
+            <option value="ep">Engineering Physics (4 Years, Bachelor of Technology)</option>
+            <option value="sse">Space Sciences and Engineering (4 Years, Bachelor of Technology)</option>
+            <option value="mc">Mathematics and Computing (4 Years, Bachelor of Technology)</option>
+            <option value="me">Mechanical Engineering (4 Years, Bachelor of Technology)</option>
+            <option value="mems">Metallurgical Engineering and Materials Science (4 Years, Bachelor of Technology)</option>
           </select>
         )}
 

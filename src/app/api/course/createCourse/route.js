@@ -9,99 +9,82 @@ import User from "@/models/User.model";
 import Student from "@/models/Student.model";
 
 function saveTime(timeString) {
-  let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(':');
+  let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
   let hours = parseInt(hourStr, 10);
   let minutes = parseInt(minuteStr, 10);
 
-  if (meridian === 'pm' && hours !== 12) hours += 12;
-  if (meridian === 'am' && hours === 12) hours = 0;
+  if (meridian === "pm" && hours !== 12) hours += 12;
+  if (meridian === "am" && hours === 12) hours = 0;
 
   // Set a fixed date: Jan 1, 2000
-  const fixedDate = new Date(2000, 0, 1, hours, minutes, 0, 0); 
+  const fixedDate = new Date(2000, 0, 1, hours, minutes, 0, 0);
   //                year, month (0-indexed), day, hr, min, sec, ms
 
   return fixedDate;
 }
 
 async function addCourseToStudents(students, courseId, rollNumbers) {
-  const allStudentIds = new Set();
+  try {
+    let s = [];
 
-  // Step 1: By department + year
-  for (let i = 0; i < students.departments.length; i++) {
-    const dept = students.departments[i];
-    const year = students.year;
-
-    try {
-      const updatedStudents = await Student.find({
-        department: dept,
-        year: year,
-        enrolledClasses: { $ne: courseId },
+    // Step 1: Add students by department and year
+    for (const department of students.departments) {
+      const allStudents = await Student.find({
+        department: department,
+        year: students.year,
       });
 
-      const ids = updatedStudents.map((s) => s._id);
-      ids.forEach(id => allStudentIds.add(id));
-
-      await Student.updateMany(
-        { _id: { $in: ids } },
-        { $push: { enrolledClasses: courseId } }
-      );
-    } catch (err) {
-      console.error(`Error updating department ${dept} (year ${year}):`, err);
-    }
-  }
-
-  // Step 2: By roll numbers
-  for (let i = 0; i < rollNumbers.length; i++) {
-    const roll = rollNumbers[i];
-    try {
-      const student = await Student.findOne({
-        rollno: roll,
-        enrolledClasses: { $ne: courseId },
-      });
-
-      if (student) {
-        allStudentIds.add(student._id);
-        await Student.updateOne(
-          { _id: student._id },
-          { $push: { enrolledClasses: courseId } }
-        );
+      for (const student of allStudents) {
+        if (!student.enrolledClasses.includes(courseId)) {
+          student.enrolledClasses.push(courseId);
+          await student.save(); // ✅ Save changes
+          s.push(student._id); // ✅ Only store ObjectIds
+        }
       }
-    } catch (err) {
-      console.error(`Error updating roll number ${roll}:`, err);
     }
-  }
 
-  // Step 3: Push all collected student IDs into the Course.enrolledStudents
-try {
-  await Course.updateOne(
-    { _id: courseId },
-    {
-      $addToSet: {
-        enrolledStudents: { $each: Array.from(allStudentIds) },
+    // Step 2: Add students by roll number
+    for (const rollno of rollNumbers) {
+      const student = await Student.findOne({ rollno: rollno });
+
+      if (student && !student.enrolledClasses.includes(courseId)) {
+        student.enrolledClasses.push(courseId);
+        await student.save(); // ✅ Save
+        s.push(student._id); // ✅ Only store ObjectId
+      }
+    }
+
+    return s; // ✅ Array of ObjectIds
+  } catch (error) {
+    console.error("Error in addCourseToStudents:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Error in registering students",
       },
-    }
-  );
-} catch (err) {
-  console.error("Error updating course with enrolled students:", err);
+      {
+        status: 401,
+      }
+    );
+  }
 }
-
-}
-
 
 function isOverlap(scheduleA, scheduleB) {
-  // Check if there's a common day
-  const daysOverlap = scheduleA.day.some(day => scheduleB.day.includes(day));
-  if (!daysOverlap) return false;
+  // console.log(`scheduleA: ${scheduleA}`);
+  // console.log(`scheduleB; ${scheduleB}`);
+  // console.log(scheduleA.day==scheduleB.day);
+  console.log(scheduleA.start.getTime()==scheduleB.start.getTime());
+  // console.log(scheduleA.end==scheduleB.end);
+  if (scheduleA.day == scheduleB.day && scheduleA.room == scheduleB.room) {
+    if 
+      (scheduleA.start.getTime() == scheduleB.start.getTime()) {
+        console.log("Hey! i am inside the inner if statement")
+      return true; // Collision found
+    }
+  }
 
-  // Check if same room
-  if (scheduleA.room !== scheduleB.room) return false;
-
-  // Time overlap check
-  return (
-    scheduleA.start < scheduleB.end && scheduleB.start < scheduleA.end
-  );
+  return false; // No collision
 }
-
 
 async function checkCollision(newCourse) {
   try {
@@ -111,11 +94,12 @@ async function checkCollision(newCourse) {
     for (const existingCourse of allCourses) {
       for (const existingSchedule of existingCourse.schedule) {
         for (const newSchedule of newCourse.schedule) {
+          // console.log(isOverlap(existingSchedule, newSchedule))
           if (isOverlap(existingSchedule, newSchedule)) {
             collisions.push({
               courseId: existingCourse._id,
               title: existingCourse.title,
-              conflictingSchedule: existingSchedule
+              conflictingSchedule: existingSchedule,
             });
           }
         }
@@ -128,8 +112,6 @@ async function checkCollision(newCourse) {
     return [];
   }
 }
-
-
 
 export async function POST(req) {
   try {
@@ -148,17 +130,18 @@ export async function POST(req) {
   }
 
   try {
-    const { title, schedule, profName, profEmail, credits,students } = await req.json();
+    const { title, schedule, profName, profEmail, credits, students } =
+      await req.json();
+    // console.log(typeof schedule);
     if (
       !title ||
       !schedule ||
       !profName ||
       !profEmail ||
       !credits ||
-      !typeof schedule == Array ||
       !students
     ) {
-      console.log(typeof students)
+      // console.log(typeof students);
       return NextResponse.json(
         {
           success: false,
@@ -170,11 +153,11 @@ export async function POST(req) {
         }
       );
     }
-    
+
     for (let i = 0; i < schedule.length; i++) {
-      schedule[i].start =  saveTime(schedule[i].start);
-      schedule[i].end =  saveTime(schedule[i].end);
-      schedule[i].day =  schedule[i].day;
+      schedule[i].start = saveTime(schedule[i].start);
+      schedule[i].end = saveTime(schedule[i].end);
+      schedule[i].day = schedule[i].day;
     }
     const newCourse = new Course({
       title: title,
@@ -183,32 +166,41 @@ export async function POST(req) {
       profEmail: profEmail,
       credits: credits,
       prof: Array(profEmail.length),
+      enrolledStudents: Array(),
     });
-    for(let i=0;i<profEmail.length;i++){
+    for (let i = 0; i < profEmail.length; i++) {
+      const user = await User.findOne({ email: profEmail[i] });
 
-      const user = await User.findOne({ email: profEmail });
-  
       if (user) {
-        const prof= await Professor.findOne({ userId: user._id });
+        const prof = await Professor.findOne({ userId: user._id });
         if (!prof) {
           newCourse.prof[i] = null;
         } else {
           newCourse.prof[i] = prof._id;
         }
-      } 
+      }
     }
-    const collidingCourses=await  checkCollision(newCourse)
-    if(collidingCourses.length!=0){
-      return NextResponse.json({
-        success:false,
-        message:"Multiple courses are in the same time slot",
-        collidingCourses:collidingCourses,
-      },{
-        stats:400,
-      })
+    const collidingCourses = await checkCollision(newCourse);
+    if (collidingCourses.length != 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Multiple courses are in the same time slot",
+          collidingCourses: collidingCourses,
+        },
+        {
+          status: 400,
+        }
+      );
     }
     await newCourse.save();
-    await addCourseToStudents(students,newCourse._id,students.backlogs);
+    newCourse.enrolledStudents = await addCourseToStudents(
+      students,
+      newCourse._id,
+      students.backlogs
+    );
+    await newCourse.save();
+
     return NextResponse.json(
       {
         success: true,

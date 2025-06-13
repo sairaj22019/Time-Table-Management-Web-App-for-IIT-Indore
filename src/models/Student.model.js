@@ -13,7 +13,7 @@ const StudentSchema=new Schema({
         }
     ],
     year:{
-        type:String,
+        type:Number,
         enum:[1,2,3,4,5,6],
         required:[true,"Student Year is required"],
     },
