@@ -88,6 +88,46 @@ try {
 }
 
 
+function isOverlap(scheduleA, scheduleB) {
+  // Check if there's a common day
+  const daysOverlap = scheduleA.day.some(day => scheduleB.day.includes(day));
+  if (!daysOverlap) return false;
+
+  // Check if same room
+  if (scheduleA.room !== scheduleB.room) return false;
+
+  // Time overlap check
+  return (
+    scheduleA.start < scheduleB.end && scheduleB.start < scheduleA.end
+  );
+}
+
+
+async function checkCollision(newCourse) {
+  try {
+    const allCourses = await Course.find({});
+    const collisions = [];
+
+    for (const existingCourse of allCourses) {
+      for (const existingSchedule of existingCourse.schedule) {
+        for (const newSchedule of newCourse.schedule) {
+          if (isOverlap(existingSchedule, newSchedule)) {
+            collisions.push({
+              courseId: existingCourse._id,
+              title: existingCourse.title,
+              conflictingSchedule: existingSchedule
+            });
+          }
+        }
+      }
+    }
+
+    return collisions;
+  } catch (error) {
+    console.error("Error checking collisions:", error);
+    return [];
+  }
+}
 
 
 
@@ -156,6 +196,16 @@ export async function POST(req) {
           newCourse.prof[i] = prof._id;
         }
       } 
+    }
+    const collidingCourses=await  checkCollision(newCourse)
+    if(collidingCourses.length!=0){
+      return NextResponse.json({
+        success:false,
+        message:"Multiple courses are in the same time slot",
+        collidingCourses:collidingCourses,
+      },{
+        stats:400,
+      })
     }
     await newCourse.save();
     await addCourseToStudents(students,newCourse._id,students.backlogs);
