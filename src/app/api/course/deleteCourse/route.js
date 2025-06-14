@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Course from "@/models/Course.model";
 import { connectDB } from "@/dbConnection/ConnectDB";
+import Student from "@/models/Student.model";
+import Professor from "@/models/Professor.model";
 
 export async function POST(req) {
   try {
@@ -33,7 +35,6 @@ export async function POST(req) {
         );
       }
       const deletedCourse = await Course.findByIdAndDelete(id);
-
       if (!deletedCourse) {
         return NextResponse.json(
           {
@@ -46,6 +47,27 @@ export async function POST(req) {
           }
         );
       }
+      for(const student of deletedCourse.enrolledStudents){
+        const s=await Student.findById(student);
+        if(!s){
+          continue;
+        }else{
+          const index=s.enrolledClasses.indexOf(deletedCourse._id);
+          s.enrolledClasses.splice(index,1);
+        }
+        await s.save();
+      }
+      for(const prof of deletedCourse.prof){
+        const p=await Professor.findById(prof);
+        if(!p){
+          continue;
+        }else{
+          const index=p.teachingClasses.indexOf(deletedCourse._id);
+          p.teachingClasses.splice(index,1);
+        }
+        p.save();
+      }
+      
 
       return NextResponse.json(
         {

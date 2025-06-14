@@ -18,15 +18,15 @@ function saveTime(timeString) {
 }
 
 function isOverlap(scheduleA, scheduleB) {
-  // Check if there's a common day
-  const daysOverlap = scheduleA.day.some((day) => scheduleB.day.includes(day));
-  if (!daysOverlap) return false;
+  console.log(scheduleA.start.getTime()==scheduleB.start.getTime());
+  if (scheduleA.day == scheduleB.day && scheduleA.room == scheduleB.room) {
+    if 
+      (scheduleA.start.getTime() == scheduleB.start.getTime()) {
+      return true; 
+    }
+  }
 
-  // Check if same room
-  if (scheduleA.room !== scheduleB.room) return false;
-
-  // Time overlap check
-  return scheduleA.start < scheduleB.end && scheduleB.start < scheduleA.end;
+  return false;
 }
 
 async function checkCollision(schedules) {

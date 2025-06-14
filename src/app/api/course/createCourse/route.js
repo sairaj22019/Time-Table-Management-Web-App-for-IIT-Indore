@@ -70,20 +70,15 @@ async function addCourseToStudents(students, courseId, rollNumbers) {
 }
 
 function isOverlap(scheduleA, scheduleB) {
-  // console.log(`scheduleA: ${scheduleA}`);
-  // console.log(`scheduleB; ${scheduleB}`);
-  // console.log(scheduleA.day==scheduleB.day);
   console.log(scheduleA.start.getTime()==scheduleB.start.getTime());
-  // console.log(scheduleA.end==scheduleB.end);
   if (scheduleA.day == scheduleB.day && scheduleA.room == scheduleB.room) {
     if 
       (scheduleA.start.getTime() == scheduleB.start.getTime()) {
-        console.log("Hey! i am inside the inner if statement")
-      return true; // Collision found
+      return true; 
     }
   }
 
-  return false; // No collision
+  return false;
 }
 
 async function checkCollision(newCourse) {
@@ -199,6 +194,12 @@ export async function POST(req) {
       newCourse._id,
       students.backlogs
     );
+    for(const profid of newCourse.prof){
+      const prof=await Professor.findById(profid);
+      if(!prof) continue;
+      prof.teachingClasses.push(newCourse._id);
+      await prof.save();
+    }
     await newCourse.save();
 
     return NextResponse.json(
