@@ -28,7 +28,7 @@ const StudentSchema=new Schema({
     },
     notifications:[{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Notifications",
+        ref:"Notification",
     }]
 },{timestamps:true,minimize:false});
 

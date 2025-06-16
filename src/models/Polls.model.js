@@ -1,12 +1,16 @@
 import mongoose, { Schema, model, models } from 'mongoose';
 
 const PollSchema = new Schema({
-  day: {
-    type: String,
-    enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    required: true,
-  },
   timeRanges: [{
+    date:{
+      type:Date,
+      required:true,
+    },
+    day: {
+      type: String,
+      enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      required: true,
+    },
     start: {
       type: Date,
       required: true,
@@ -18,15 +22,15 @@ const PollSchema = new Schema({
     votes:{
       type:Number,
       default:0,
-    }
+    },
+    lectureHall: {
+      type: String,
+      required: true,
+    },
   }],
-  lectureHall: {
-    type: String,
-    required: true,
-  },
   course: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Courses",
+    ref: "Course",
   },
   prof: {
     type: mongoose.Schema.Types.ObjectId,

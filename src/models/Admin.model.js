@@ -9,7 +9,7 @@ const AdminSchema=new Schema({
     polls:[
        {
          type:Schema.Types.ObjectId,
-         ref:"Polls",
+         ref:"Poll",
        }
     ],
     notifications:[

@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['poll', 'poll update', 'timetable'],
+    enum: ['poll', 'poll update', 'timetable','general message'],
     default: 'timetable',
   },
   isRead: {
