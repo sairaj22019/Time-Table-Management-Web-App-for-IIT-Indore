@@ -192,7 +192,7 @@ export async function POST(req) {
     newCourse.enrolledStudents = await addCourseToStudents(
       students,
       newCourse._id,
-      students.backlogs
+      students.rollnos
     );
     for(const profid of newCourse.prof){
       const prof=await Professor.findById(profid);

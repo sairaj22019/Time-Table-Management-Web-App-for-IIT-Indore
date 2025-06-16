@@ -9,7 +9,7 @@ const StudentSchema=new Schema({
     enrolledClasses:[
         {
             type:mongoose.Schema.Types.ObjectId,
-            ref:"Courses",
+            ref:"Course",
         }
     ],
     year:{

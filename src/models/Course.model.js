@@ -8,6 +8,10 @@ const courseSchema = new Schema({
     type: String,
     required: true,
   },
+  courseCode:{
+    type:String,
+    required:true,
+  },
   schedule: [
     {
       start: {

@@ -133,7 +133,7 @@ export async function POST(req) {
         }
       } 
     }
-    await addCourseToStudents(students,editedCourse._id,students.backlogs);
+    await addCourseToStudents(students,editedCourse._id,students.rollnos);
       
       return NextResponse.json({
         success:true,
