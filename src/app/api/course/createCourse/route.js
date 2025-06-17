@@ -125,12 +125,12 @@ export async function POST(req) {
   }
 
   try {
-    const { title, schedule, profName, profEmail, credits, students } =
-      await req.json();
+    const { title, courseCode, schedule, profName, profEmail, credits, students } =await req.json();
     // console.log(typeof schedule);
     if (
       !title ||
       !schedule ||
+      !courseCode ||
       !profName ||
       !profEmail ||
       !credits ||
@@ -156,6 +156,7 @@ export async function POST(req) {
     }
     const newCourse = new Course({
       title: title,
+      courseCode:courseCode,
       schedule: schedule,
       profName: profName,
       profEmail: profEmail,
