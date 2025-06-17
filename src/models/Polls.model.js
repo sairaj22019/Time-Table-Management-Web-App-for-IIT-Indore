@@ -1,7 +1,7 @@
 import mongoose, { Schema, model, models } from 'mongoose';
 
 const PollSchema = new Schema({
-  timeRanges: [{
+  options: [{
     date:{
       type:Date,
       required:true,
@@ -19,15 +19,14 @@ const PollSchema = new Schema({
       type: Date,
       required: true,
     },
-    votes:{
-      type:Number,
-      default:0,
-    },
-    lectureHall: {
+    room: {
       type: String,
       required: true,
     },
   }],
+  votes:{
+    type:Object,
+  },
   course: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Course",
@@ -51,14 +50,14 @@ const PollSchema = new Schema({
   
 }, { timestamps: true, minimize: false });
 
-PollSchema.pre("save", function (next) {
-  for (const range of this.timeRanges) {
-    if (range.start >= range.end) {
-      return next(new Error("Each end time must be after start time in timeRanges"));
-    }
-  }
-  next();
-});
+// PollSchema.pre("save", function (next) {
+//   for (const range of this.timeRanges) {
+//     if (range.start >= range.end) {
+//       return next(new Error("Each end time must be after start time in timeRanges"));
+//     }
+//   }
+//   next();
+// });
 
 const Poll = models?.Poll || model("Poll", PollSchema);
 export default Poll;
