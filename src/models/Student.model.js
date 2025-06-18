@@ -17,6 +17,13 @@ const StudentSchema=new Schema({
         enum:[1,2,3,4,5,6],
         required:[true,"Student Year is required"],
     },
+    semester:{
+        type:String,
+    },
+    scheduleGrid:{
+        type:[[String]],
+        default:null
+    },
     department:{
         type:String,
         required:[true,"Student department is required"],
