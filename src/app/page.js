@@ -1236,10 +1236,10 @@ export default function EnhancedLandingPage() {
         </div>
       </motion.nav>
 
-      <div className="pt-32" />
+      <div className="pt-12" />
 
       {/* Enhanced Hero Section */}
-      <section className="relative min-h-screen flex items-start justify-center px-4">
+      <section className="relative min-h-screen flex items-center justify-center px-4">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -100 }}
