@@ -15,6 +15,9 @@ const courseSchema = new Schema({
   slots:{
     type:[String],
   },
+  studentYear:{
+    type:Number,
+  },
   schedule: [
     {
       start: {

@@ -71,6 +71,7 @@ export async function POST(req) {
       courseCode,
       slots,
       forSemester,
+      studentYear,
       profName,
       courseCoordinator,
       profEmail,
@@ -82,6 +83,7 @@ export async function POST(req) {
       !courseCode ||
       !slots ||
       !forSemester ||
+      !studentYear ||
       !profName ||
       !courseCoordinator ||
       !profEmail ||
@@ -101,6 +103,7 @@ export async function POST(req) {
       courseCode: courseCode,
       slots: slots,
       forSemester:forSemester,
+      studentYear:studentYear,
       profName: profName,
       courseCoordinator: courseCoordinator,
       profEmail: profEmail,
