@@ -340,11 +340,26 @@ export default function CompleteProfilePage() {
               )}
 
               {role === 'professor' && (
-                <Input
-                  placeholder="Department"
+                <select
+                  className="w-full border border-gray-300 rounded p-2 text-sm"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                />
+                  required
+                >
+                  <option value="">Select Department</option>
+                  <option value="che">Chemistry</option>
+                  <option value="ce">Civil Engineering</option>
+                  <option value="cse">Computer Science and Engineering</option>
+                  <option value="ee">Electrical Engineering</option>
+                  <option value="ep">Engineering Physics</option>
+                  <option value="hs">Humanities and Social Sciences</option>
+                  <option value="phy">Physics</option>
+                  <option value="ma">Maths</option>
+                  <option value="bse">Biosciences and Biomedical Engineering</option>
+                  <option value="me">Mechanical Engineering</option>
+                  <option value="mems">Metallurgical Engineering & Materials Science</option>
+                  <option value="sse">Department of Astronomy, Astrophysics and Space Engineering</option>
+                </select>
               )}
 
               {role === 'student' && (
