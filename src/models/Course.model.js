@@ -15,8 +15,21 @@ const courseSchema = new Schema({
   slots:{
     type:[String],
   },
+  lectures:{
+    type:Number,
+  },
+  tutorials:{
+    type:Number,
+  },
+  practicals:{
+    type:Number,
+  },
   studentYear:{
     type:Number,
+  },
+  room:{
+    type:String,
+    default:"empty",
   },
   schedule: [
     {

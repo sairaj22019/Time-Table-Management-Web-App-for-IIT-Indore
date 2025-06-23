@@ -125,12 +125,15 @@ export async function POST(req) {
   }
 
   try {
-    const { title, courseCode, schedule,studentYear, forSemester, profName,courseCoordinator, profEmail, credits, students } =await req.json();
+    const { title, courseCode,lectures,tutorials,practicals, schedule,studentYear, forSemester, profName,courseCoordinator, profEmail, credits, students } =await req.json();
     // console.log(typeof schedule);
     if (
       !title ||
       !schedule ||
       !courseCode ||
+      !lectures ||
+      !tutorials ||
+      !practicals ||
       !forSemester ||
       !studentYear ||
       !profName ||
@@ -162,6 +165,9 @@ export async function POST(req) {
       courseCode:courseCode,
       studentYear:studentYear,
       schedule: schedule,
+      lectures:lectures,
+      tutorials:tutorials,
+      practicals:practicals,
       profName: profName,
       forSemester:forSemester,
       courseCoordinator:courseCoordinator,
