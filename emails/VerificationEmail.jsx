@@ -11,7 +11,7 @@ import {
   Container,
 } from '@react-email/components';
 
-export default function VerificationEmail({ username, otp }) {
+export default function VerificationEmail({ otp }) {
   return (
     <Html lang="en" dir="ltr">
       <Head>
@@ -34,7 +34,7 @@ export default function VerificationEmail({ username, otp }) {
         <Section>
           <Row>
             <Heading as="h2" style={styles.heading}>
-              Hello {username},
+              Welcome to CampusSync,
             </Heading>
           </Row>
 

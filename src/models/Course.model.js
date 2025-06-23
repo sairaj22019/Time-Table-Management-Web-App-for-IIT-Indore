@@ -8,15 +8,22 @@ const courseSchema = new Schema({
     type: String,
     required: true,
   },
+  courseCode:{
+    type:String,
+    required:true,
+  },
+  slots:{
+    type:[String],
+  },
   schedule: [
     {
       start: {
         type: Date,
-        required: [true, "Start time is required"],
+        // required: [true, "Start time is required"],
       },
       end: {
         type: Date,
-        required: [true, "End time is required"],
+        // required: [true, "End time is required"],
       },
       day: {
         type: String,
@@ -29,21 +36,28 @@ const courseSchema = new Schema({
           "Saturday",
           "Sunday",
         ],
-        required: [true,"Day of the classes is required"],
+        // required: [true,"Day of the classes is required"],
       },
       room:{
         type:String,
-        required:[true,"Room of the class is required"],
+        // required:[true,"Room of the class is required"],
       }
     },
   ],
+  forSemester:{
+    type:String,
+    required:true,
+  },
   prof:[{
     type:mongoose.Schema.Types.ObjectId,
     ref:"Professor",
   }],
-  profName:[{
+  profName:[{//this stands for course instructors
     type:String,
   }],
+  courseCoordinator:{
+    type:String,
+  },
   profEmail:[{
     type:String,
   }],

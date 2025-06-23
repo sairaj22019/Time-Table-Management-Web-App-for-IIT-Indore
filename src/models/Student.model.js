@@ -1,5 +1,4 @@
 import mongoose, { Schema, model, models } from "mongoose";
-import Notification from "./Notification.model";
 
 const StudentSchema=new Schema({
     userId:{
@@ -17,6 +16,13 @@ const StudentSchema=new Schema({
         type:Number,
         enum:[1,2,3,4,5,6],
         required:[true,"Student Year is required"],
+    },
+    semester:{
+        type:String,
+    },
+    scheduleGrid:{
+        type:[[String]],
+        default:null
     },
     department:{
         type:String,

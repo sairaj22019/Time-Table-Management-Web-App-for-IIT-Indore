@@ -19,10 +19,6 @@ const userSchema = new Schema(
       required: function () {
         return !this.googleProvider;
       },
-    //   match: [
-    //     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
-    //     "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
-    //   ],
     },
     googleProvider: {
       type: Boolean,
@@ -43,7 +39,6 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: ["student", "professor", "admin"],
-      required: true,
     },
   },
   {

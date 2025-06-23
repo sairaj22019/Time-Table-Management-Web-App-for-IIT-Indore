@@ -364,7 +364,7 @@ export default function EnhancedLandingPage() {
         </div>
       </motion.nav>
 
-      <div className="pt-32" />
+      <div className="pt-48" />
 
       {/* Enhanced Hero Section */}
       <section className="relative min-h-screen flex items-start justify-center px-4">
