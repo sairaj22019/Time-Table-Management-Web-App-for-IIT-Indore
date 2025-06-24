@@ -1,8 +1,8 @@
 import { connectDB } from "@/dbConnection/ConnectDB";
-import Student from "@/models/Student.model";
-import User from "@/models/User.model";
 import { NextResponse } from "next/server";
-import Course from "@/models/Course.model";
+import User from "@/models/User.model";
+import Student from "@/models/Student.model";
+import Notification from "@/models/Notification.model";
 
 export async function POST(req){
     try {
@@ -36,11 +36,17 @@ export async function POST(req){
                 message:"No student found with the given Mail ID",
             },{status:404});
         }
-        console.log(student);
-        await student.populate("enrolledClasses");
+        await student.populate("notifications");
+        for(const item of student.notifications){
+            if(item.type=="poll"){
+                const n=await Notification.findById(item.message);
+                item.message=n;
+                await item.save();
+            }
+        }
         return NextResponse.json({
             success:true,
-            message:"Student Courses fetched successfully",
+            message:"Student Notifications fetched successfully",
             student:student,
         },{status:200});
     } catch (error) {
