@@ -4,7 +4,7 @@ import User from "@/models/User.model";
 export async function POST(request) {
   await connectDB();
   try {
-    const { email, otp } = await request.json();
+    const {email, otp} = await request.json();
 
     if (!email || !otp) {
       return Response.json(
@@ -12,11 +12,11 @@ export async function POST(request) {
           success: false,
           message: "Email and OTP are required",
         },
-        { status: 400 }
+        {status: 400}
       );
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({email});
 
     if (!user) {
       return Response.json(
@@ -24,7 +24,7 @@ export async function POST(request) {
           success: false,
           message: "User not found",
         },
-        { status: 404 }
+        {status: 404}
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(request) {
           success: false,
           message: "User is already verified",
         },
-        { status: 400 }
+        {status: 400}
       );
     }
 
@@ -48,7 +48,7 @@ export async function POST(request) {
           success: false,
           message: "Invalid or expired OTP",
         },
-        { status: 400 }
+        {status: 400}
       );
     }
 
@@ -63,16 +63,16 @@ export async function POST(request) {
         success: true,
         message: "Email verified successfully",
       },
-      { status: 200 }
+      {status: 200}
     );
-  } catch (error) {
+  } catch (error){
     console.error("Error verifying OTP", error);
     return Response.json(
       {
         success: false,
         message: "Error verifying OTP",
       },
-      { status: 500 }
+      {status: 500}
     );
   }
 }

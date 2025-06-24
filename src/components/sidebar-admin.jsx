@@ -37,8 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@radix-ui/react-dropdown-menu"
-import TimetablePage from "@/app/admin/grid/page"
-
+import TimetablePage from "@/app/admin/createGrid/page"
 const MotionLink = motion(Link)
 
 const items = [
@@ -46,7 +45,7 @@ const items = [
   { title: "Inbox", url: "/admin/inbox", icon: Inbox },
   { title: "allCourses", url: "/admin/courses", icon: Calendar },
   { title: "createcourse", url: "/admin/createCourse", icon: CalendarDays },
-  { title: "createGrid", url: "/admin/grid", icon: Calendar },
+  { title: "createGrid", url: "/admin/createGrid", icon: Calendar },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ]
 
