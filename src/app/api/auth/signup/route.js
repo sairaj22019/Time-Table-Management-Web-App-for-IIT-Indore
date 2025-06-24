@@ -1,28 +1,15 @@
-import { connectDB } from "@/dbConnection/ConnectDB";
+import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/User.model";
-import { sendVerificationEmail } from "@/helpers/sendOTPEmail";
+import { connectDB } from "@/dbConnection/ConnectDB";
+import{ sendVerificationEmail} from "@/helpers/sendOTPEmail";
 import { generateOTP } from "@/helpers/generateOTP";
 
 export async function POST(request){
     await connectDB()
 
     try {
-        const {username , email , password , role} = await request.json()
-        const ExistingUserVerifiedByUsername = await User.findOne({
-            username,
-            isVerified:true,
-        })
-        if(ExistingUserVerifiedByUsername){
-            return Response.json(
-                {
-                    success:false,
-                    message:"Username is already taken",
-                },
-                {
-                    status: 400
-                }
-            )
-        }
+        const {email , password} = await request.json()
+
         const ExistingUserByEmail = await User.findOne({email})
         const verifyOtp = generateOTP();
 
@@ -43,20 +30,18 @@ export async function POST(request){
             expiryDate.setHours(expiryDate.getHours()+1)
 
             const newUser = new User({
-                    username,
                     email,
                     password,
                     googleProvider:false,
                     verifyOtp,
                     verifyOtpExpiry:expiryDate,
                     isVerified : false,
-                    role
             })
             await newUser.save()
         }
 
         // send verification email
-        const EmailResponse = await sendVerificationEmail(email,username,verifyOtp)
+        const EmailResponse = await sendVerificationEmail(email,verifyOtp)
         if(!EmailResponse.success){
             return Response.json({
                 success : false,

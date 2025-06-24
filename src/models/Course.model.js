@@ -18,10 +18,6 @@ const courseSchema = new Schema({
   lectures:{
     type:Number,
   },
-  room:{
-    type:String,
-    default:"empty",
-  },
   tutorials:{
     type:Number,
   },
@@ -30,6 +26,10 @@ const courseSchema = new Schema({
   },
   studentYear:{
     type:Number,
+  },
+  room:{
+    type:String,
+    default:"empty",
   },
   schedule: [
     {

@@ -9295,7 +9295,7 @@ export default function CreateCoursePage() {
       console.log("Course created:", result.course)
 
       // Redirect to courses page or reset form
-      router.push("admin/courses")
+      router.push("courses")
     } catch (error) {
       console.error("Course creation error:", error)
       setErrorMsg(error.message || "Something went wrong. Please try again.")

@@ -15,7 +15,6 @@ export async function POST(req){
     }
     try {
         const {grid,semester,year}=await req.json();
-        console.log(grid,semester,year);
         if(!grid || !semester || !year){
             return NextResponse.json({
                 success:false,
