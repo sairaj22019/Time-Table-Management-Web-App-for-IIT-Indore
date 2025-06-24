@@ -424,7 +424,7 @@ export default function InboxPage() {
                   transition={{ duration: 0.2 }}
                 >
                   <Card
-                    className={`shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-0 pb-2 ${
+                    className={`shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-2 pb-6 ${
                       !notification.isRead ? "border-blue-200 bg-blue-50/30" : "border-gray-100"
                     }`}
                   >

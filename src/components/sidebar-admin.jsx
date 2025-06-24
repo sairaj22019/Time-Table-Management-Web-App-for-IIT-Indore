@@ -525,7 +525,7 @@
 
 
 "use client"
-import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, GraduationCap } from "lucide-react"
+import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, GraduationCap, CalendarPlus, BookPlus } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 
@@ -577,12 +577,12 @@ const items = [
   {
     title: "Create Grid",
     url: "/admin/grid",
-    icon: CalendarDays,
+    icon: CalendarPlus,
   },
   {
     title: "Create Course",
     url: "/admin/createCourse",
-    icon: Settings,
+    icon: BookPlus,
   },
 ]
 
