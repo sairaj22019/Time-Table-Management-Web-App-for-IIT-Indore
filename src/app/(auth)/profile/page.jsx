@@ -21,12 +21,14 @@ export default function CheckProfilePage() {
         const res = await fetch(`/api/auth/profile?email=${session.user.email}`)
         const data = await res.json()
 
-        if (
-          data.role &&
-          ((data.role === 'student' && data.rollno) ||
-           (data.role === 'professor' && data.department))
-        ) {
-          router.push('/welcome')
+        if (data.role) {
+          if (data.role === 'student' && data.rollno) {
+            router.push('/student')
+          } else if (data.role === 'professor' && data.department) {
+            router.push('/professor')
+          } else {
+            router.push('/complete-profile')
+          }
         } else {
           router.push('/complete-profile')
         }

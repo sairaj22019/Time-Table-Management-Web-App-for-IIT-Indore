@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { FcGoogle } from 'react-icons/fc'
-import { HiMail, HiLockClosed, HiUser, HiEye, HiEyeOff } from 'react-icons/hi'
+import { HiMail, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi'
 import { motion } from 'framer-motion'
 
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,11 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
 const formSchema = z.object({
-  username: z.string().min(2, 'Name must be at least 2 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['student', 'professor', 'admin'], {
-    required_error: 'Please select a role',
-  }),
   email: z.string().email('Invalid email'),
 })
 
@@ -34,10 +30,8 @@ export default function SignUpPage() {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: '',
       email: '',
       password: '',
-      role: '',
     },
   })
 
@@ -105,51 +99,6 @@ export default function SignUpPage() {
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <motion.div
-                        initial={false}
-                        animate={{ scale: form.formState.errors.username ? 1.03 : 1 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className="relative">
-                          <HiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                          <Input placeholder="Your full name" className="pl-10" {...field} />
-                        </div>
-                      </motion.div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <div className="flex gap-4">
-                        {['student', 'professor', 'admin'].map((option) => (
-                          <label key={option} className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              value={option}
-                              checked={field.value === option}
-                              onChange={() => field.onChange(option)}
-                            />
-                            <span className="capitalize text-sm">{option}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="email"

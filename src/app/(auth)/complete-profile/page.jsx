@@ -28,18 +28,23 @@ export default function CompleteProfilePage() {
       return
     }
 
-    const checkProfileCompletion = async () => {
-      try {
-        const res = await fetch(`/api/auth/profile?email=${session.user.email}`)
-        const data = await res.json()
+  const checkProfileCompletion = async () => {
+        try {
+          const res = await fetch(`/api/auth/profile?email=${session.user.email}`)
+          const data = await res.json()
 
-        if (data.role && ((data.role === "student" && data.rollno) || (data.role === "professor" && data.department))) {
-          router.push("/welcome")
+          if(data.role){
+            if (data.role === 'student' && data.rollno) {
+              router.push('/student')
+            } else if (data.role === 'professor' && data.department) {
+              router.push('/professor')
+            }
+          }
+        } catch (err) {
+          console.error('Profile check failed', err)
         }
-      } catch (err) {
-        console.error("Profile check failed", err)
       }
-    }
+
 
     checkProfileCompletion()
   }, [session, router])
@@ -69,14 +74,18 @@ export default function CompleteProfilePage() {
         }),
       })
 
-      const data = await res.json()
+       const data = await res.json()
       if (data.success) {
-        router.push("/welcome")
+        if (role === 'student') {
+        router.push('/student')
+      } else if (role === 'professor') {
+        router.push('/professor')
+      }
       } else {
-        setError(data.message || "Something went wrong.")
+        setError(data.message || 'Something went wrong.')
       }
     } catch (err) {
-      setError("Server error.")
+      setError('Server error.')
     } finally {
       setLoading(false)
     }
