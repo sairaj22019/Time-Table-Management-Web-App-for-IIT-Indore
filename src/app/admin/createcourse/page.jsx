@@ -1,19 +1,17 @@
-
 "use client"
-
 import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { HiPlus, HiTrash, HiAcademicCap, HiUser, HiMail, HiX } from "react-icons/hi"
+import { Plus, Trash2, GraduationCap, User, Mail, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 
@@ -26,24 +24,36 @@ const scheduleSchema = z.object({
   room: z.string().min(1, "Room is required"),
 })
 
+// Add room input state variable after slotError
+// const [roomInput, setRoomInput] = useState("")
+
+// Update the formSchema to handle slots with room for year > 1
+const slotSchema = z.string().min(1, "Slot is required")
+
 const professorSchema = z.object({
-  name: z.string().min(2, "Professor name must be at least 2 characters"),
+  name: z.string().min(1, "Professor name is required"),
   email: z.string().email("Invalid email address"),
 })
 
+// Update the main form schema to use slotSchema array for year > 1
 const formSchema = z
   .object({
-    title: z.string().min(2, "Course title must be at least 2 characters"),
+    title: z.string().min(1, "Course title is required"),
     year: z.string().min(1, "Year is required"),
-    courseCode: z.string().min(2, "Course code is required"),
+    courseCode: z.string().min(1, "Course code is required"),
     semesterYear: z.string().min(1, "Semester year is required"),
     duration: z.string().min(1, "Duration is required"),
-    credits: z.number().min(0.5, "Credits must be at least 0.5").max(20, "Credits cannot exceed 20"),
-    courseCoordinator: z.string().min(2, "Course coordinator is required"),
+    L: z.number().min(0, "L must be 0 or greater").max(10, "L cannot exceed 10"),
+    T: z.number().min(0, "T must be 0 or greater").max(10, "T cannot exceed 10"),
+    P: z.number().min(0, "P must be 0 or greater").max(10, "P cannot exceed 10"),
+    C: z.number().min(0, "C must be 0 or greater").max(20, "C cannot exceed 20"),
+    courseCoordinator: z.string().min(1, "Course coordinator is required"),
     professors: z.array(professorSchema).min(1, "At least one professor is required"),
     selectedDepartments: z.array(z.string()),
     rollNumbers: z.array(z.string()),
     schedule: z.array(scheduleSchema).optional(),
+    slots: z.array(slotSchema).optional(),
+    room: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -52,6 +62,19 @@ const formSchema = z
     {
       message: "Either select at least one department or add at least one roll number",
       path: ["selectedDepartments"],
+    },
+  )
+  .refine(
+    (data) => {
+      // If year > 1, slots and room are required
+      if (Number.parseInt(data.year) > 1) {
+        return data.slots && data.slots.length > 0 && data.room && data.room.trim().length > 0
+      }
+      return true
+    },
+    {
+      message: "Slots and room are required for students in year 2 and above",
+      path: ["slots"],
     },
   )
 
@@ -67,6 +90,19 @@ const departments = [
   "Metallurgical Engineering & Materials Science",
 ]
 
+// Department mapping: full name to abbreviation
+const departmentMapping = {
+  "Chemical Engineering": "che",
+  "Civil Engineering": "ce",
+  "Computer Science and Engineering": "cse",
+  "Electrical Engineering": "ee",
+  "Engineering Physics": "ep",
+  "Space Sciences and Engineering": "sse",
+  "Mathematics and Computing": "mnc",
+  "Mechanical Engineering": "me",
+  "Metallurgical Engineering & Materials Science": "mems",
+}
+
 // Generate years from 2008 to current year + 4
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: currentYear + 4 - 2008 + 1 }, (_, i) => 2008 + i)
@@ -77,6 +113,10 @@ export default function CreateCoursePage() {
   const [loading, setLoading] = useState(false)
   const [rollNumberInput, setRollNumberInput] = useState("")
   const [rollNumberError, setRollNumberError] = useState("")
+  const [generalError, setGeneralError] = useState("")
+  const [slotInput, setSlotInput] = useState("")
+  const [roomInput, setRoomInput] = useState("")
+  const [slotError, setSlotError] = useState("")
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -86,18 +126,26 @@ export default function CreateCoursePage() {
       courseCode: "",
       semesterYear: "",
       duration: "",
-      credits: 3,
+      L: 0,
+      T: 0,
+      P: 0,
+      C: 0,
       courseCoordinator: "",
       professors: [{ name: "", email: "" }],
       selectedDepartments: [],
       rollNumbers: [],
       schedule: [],
+      slots: [],
+      room: "",
     },
   })
 
   const watchYear = form.watch("year")
   const watchSemesterYear = form.watch("semesterYear")
   const watchDuration = form.watch("duration")
+
+  // Check if year is greater than 1
+  const isYearGreaterThanOne = watchYear && Number.parseInt(watchYear) > 1
 
   // Compute semester value dynamically
   const semesterValue = watchSemesterYear && watchDuration ? `${watchSemesterYear} ${watchDuration}` : ""
@@ -139,6 +187,12 @@ export default function CreateCoursePage() {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
       })
       .join(" ")
+  }
+
+  // Convert time format from "h:mm a" to "h:mm:a"
+  const changeTime = (timeString) => {
+    if (!timeString) return timeString
+    return timeString.replace(" ", ":")
   }
 
   const addRollNumbers = () => {
@@ -183,40 +237,178 @@ export default function CreateCoursePage() {
     form.setValue("rollNumbers", updatedRollNumbers)
   }
 
+  const validateSlot = (slot) => {
+    return slot.trim().length > 0
+  }
+
+  const validateRoom = (room) => {
+    return room.trim().length > 0
+  }
+
+  const addSlots = () => {
+    if (slotInput.trim()) {
+      setSlotError("")
+      const currentSlots = form.getValues("slots") || []
+
+      // Enhanced parsing: split by comma and/or spaces, filter empty strings
+      const newSlots = slotInput
+        .split(/[,\s]+/)
+        .map((slot) => slot.trim().toUpperCase())
+        .filter((slot) => slot.length > 0)
+
+      const validSlots = []
+      const duplicateSlots = []
+
+      newSlots.forEach((slot) => {
+        if (validateSlot(slot)) {
+          if (!currentSlots.includes(slot)) {
+            validSlots.push(slot)
+          } else {
+            duplicateSlots.push(slot)
+          }
+        }
+      })
+
+      if (duplicateSlots.length > 0) {
+        setSlotError(`Duplicate slots found: ${duplicateSlots.join(", ")}`)
+        return
+      }
+
+      if (validSlots.length > 0) {
+        form.setValue("slots", [...currentSlots, ...validSlots])
+        setSlotInput("")
+      }
+    } else {
+      setSlotError("Slot is required")
+    }
+  }
+
+  const removeSlot = (index) => {
+    const currentSlots = form.getValues("slots") || []
+    const updatedSlots = currentSlots.filter((_, i) => i !== index)
+    form.setValue("slots", updatedSlots)
+  }
+
+  const handleKeyDown = (e, nextFieldName) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      const nextField = document.querySelector(`[name="${nextFieldName}"]`)
+      if (nextField) {
+        nextField.focus()
+      }
+    }
+  }
+
   const onSubmit = async (data) => {
     setErrorMsg("")
+    setGeneralError("")
+
+    // Check for required fields
+    const requiredFields = [
+      { field: data.title, name: "Course Title" },
+      { field: data.year, name: "Year" },
+      { field: data.courseCode, name: "Course Code" },
+      { field: data.semesterYear, name: "Semester Year" },
+      { field: data.duration, name: "Duration" },
+      { field: data.L !== undefined && data.L !== "", name: "L" },
+      { field: data.T !== undefined && data.T !== "", name: "T" },
+      { field: data.P !== undefined && data.P !== "", name: "P" },
+      { field: data.C !== undefined && data.C !== "", name: "C" },
+      { field: data.courseCoordinator, name: "Course Coordinator" },
+    ]
+
+    // Check professors
+    const hasValidProfessors = data.professors.some((prof) => prof.name && prof.email)
+    if (!hasValidProfessors) {
+      requiredFields.push({ field: false, name: "At least one professor" })
+    }
+
+    // Check departments or roll numbers
+    if (data.selectedDepartments.length === 0 && data.rollNumbers.length === 0) {
+      requiredFields.push({ field: false, name: "Departments or roll numbers" })
+    }
+
+    // Check slots and room for year > 1
+    if (Number.parseInt(data.year) > 1 && (!data.slots || data.slots.length === 0 || !data.room || !data.room.trim())) {
+      requiredFields.push({ field: false, name: "Slots and room (required for year 2 and above)" })
+    }
+
+    const missingFields = requiredFields.filter((item) => !item.field)
+
+    if (missingFields.length > 0) {
+      setGeneralError("All starred fields are required")
+      return
+    }
+
     setLoading(true)
 
     try {
+      // Format data according to backend expectations
       const courseData = {
         title: data.title,
-        year: data.year,
         courseCode: data.courseCode,
+        lectures: data.L,
+        tutorials: data.T,
+        practicals: data.P,
+        credits: data.C,
+        studentYear: data.year,
         forSemester: semesterValue,
-        credits: data.credits,
         courseCoordinator: data.courseCoordinator,
-        profName: data.professors.map((prof) => prof.name),
-        profEmail: data.professors.map((prof) => prof.email),
-        selectedDepartments: data.selectedDepartments,
-        rollNumbers: data.rollNumbers || [],
+        profName: data.professors.filter((prof) => prof.name && prof.email).map((prof) => prof.name),
+        profEmail: data.professors.filter((prof) => prof.name && prof.email).map((prof) => prof.email),
         schedule:
-          data.schedule?.map((slot) => ({
-            day: slot.day,
-            start: slot.startTime,
-            end: slot.endTime,
-            room: slot.room,
-          })) || [],
+          Number.parseInt(data.year) === 1
+            ? data.schedule?.map((slot) => ({
+                day: slot.day,
+                start: changeTime(slot.startTime),
+                end: changeTime(slot.endTime),
+                room: slot.room,
+              })) || []
+            : [], // Send empty array for year > 1
+        slots: Number.parseInt(data.year) > 1 ? data.slots || [] : [], // Send array of slot letters
+        room: Number.parseInt(data.year) > 1 ? data.room || "" : "", // Send single room name
+        students: {
+          departments: data.selectedDepartments,
+          year: data.year,
+          rollnos: data.rollNumbers || [],
+        },
       }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      console.log("Sending course data:", courseData)
+      let response;
+      if(data.year==1){
+        response = await fetch("/api/course/createCourseForYear1", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(courseData),
+        })
+      }else{
+        response = await fetch("/api/course/createCourse", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(courseData),
+        })
+      }
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to create course")
+      }
 
       setLoading(false)
       alert("Course created successfully!")
-      console.log("Course Data:", courseData)
+      console.log("Course created:", result.course)
+
+      // Redirect to courses page or reset form
+      router.push("admin/courses")
     } catch (error) {
       console.error("Course creation error:", error)
-      setErrorMsg("Something went wrong. Please try again.")
+      setErrorMsg(error.message || "Something went wrong. Please try again.")
       setLoading(false)
     }
   }
@@ -233,12 +425,9 @@ export default function CreateCoursePage() {
           <CardContent className="py-12 px-10 overflow-visible">
             <div className="flex flex-col items-center justify-between gap-3 mb-8">
               <div className="flex items-center gap-4">
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                >
-                  <HiAcademicCap className="w-10 h-10 text-blue-600" />
-                </motion.div>
+                <div>
+                  <GraduationCap className="w-10 h-10 text-blue-600" />
+                </div>
                 <h2 className="text-4xl font-bold text-gray-800">Create New Course</h2>
               </div>
               <Link
@@ -285,19 +474,19 @@ export default function CreateCoursePage() {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold text-gray-700">Course Title *</FormLabel>
-                        <motion.div
-                          initial={false}
-                          animate={{ scale: form.formState.errors.title ? 1.02 : 1 }}
-                          transition={{ duration: 0.2 }}
+                        <FormLabel
+                          className={`text-base font-semibold ${form.formState.errors.title ? "text-red-600" : "text-gray-700"}`}
                         >
+                          Course Title *
+                        </FormLabel>
+                        <FormControl>
                           <Input
                             placeholder="e.g., Introduction to Machine Learning"
                             className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
                             {...field}
+                            onKeyDown={(e) => handleKeyDown(e, "year")}
                           />
-                        </motion.div>
-                        <FormMessage />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
@@ -308,11 +497,17 @@ export default function CreateCoursePage() {
                       name="year"
                       render={({ field }) => (
                         <FormItem className="overflow-visible">
-                          <FormLabel className="text-base font-semibold text-gray-700">Year *</FormLabel>
+                          <FormLabel
+                            className={`text-base font-semibold ${form.formState.errors.year ? "text-red-600" : "text-gray-700"}`}
+                          >
+                            Year *
+                          </FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger className="h-12 text-base border-2 focus:border-blue-400">
-                              <SelectValue placeholder="Select academic year" />
-                            </SelectTrigger>
+                            <FormControl>
+                              <SelectTrigger className="h-12 w-full text-base border-2 focus:border-blue-400">
+                                <SelectValue placeholder="Select academic year" />
+                              </SelectTrigger>
+                            </FormControl>
                             <SelectContent className="z-50">
                               <SelectItem value="1">1st Year</SelectItem>
                               <SelectItem value="2">2nd Year</SelectItem>
@@ -322,7 +517,6 @@ export default function CreateCoursePage() {
                               <SelectItem value="6">6th Year</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -332,20 +526,20 @@ export default function CreateCoursePage() {
                       name="courseCode"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold text-gray-700">Course Code *</FormLabel>
-                          <motion.div
-                            initial={false}
-                            animate={{ scale: form.formState.errors.courseCode ? 1.02 : 1 }}
-                            transition={{ duration: 0.2 }}
+                          <FormLabel
+                            className={`text-base font-semibold ${form.formState.errors.courseCode ? "text-red-600" : "text-gray-700"}`}
                           >
+                            Course Code *
+                          </FormLabel>
+                          <FormControl>
                             <Input
                               placeholder="e.g., CS 101"
                               className="h-12 text-base border-2 focus:border-blue-400 transition-colors uppercase"
                               {...field}
                               onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                              onKeyDown={(e) => handleKeyDown(e, "semesterYear")}
                             />
-                          </motion.div>
-                          <FormMessage />
+                          </FormControl>
                         </FormItem>
                       )}
                     />
@@ -358,11 +552,17 @@ export default function CreateCoursePage() {
                       name="semesterYear"
                       render={({ field }) => (
                         <FormItem className="overflow-visible">
-                          <FormLabel className="text-base font-semibold text-gray-700">Semester Year *</FormLabel>
+                          <FormLabel
+                            className={`text-base font-semibold ${form.formState.errors.semesterYear ? "text-red-600" : "text-gray-700"}`}
+                          >
+                            Semester Year *
+                          </FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger className="h-12 text-base border-2 focus:border-blue-400">
-                              <SelectValue placeholder="Select year" />
-                            </SelectTrigger>
+                            <FormControl>
+                              <SelectTrigger className="h-12 text-base border-2 w-full focus:border-blue-400">
+                                <SelectValue placeholder="Select year" />
+                              </SelectTrigger>
+                            </FormControl>
                             <SelectContent className="max-h-60 z-50">
                               {years.map((year) => (
                                 <SelectItem key={year} value={year.toString()}>
@@ -371,7 +571,6 @@ export default function CreateCoursePage() {
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -381,17 +580,22 @@ export default function CreateCoursePage() {
                       name="duration"
                       render={({ field }) => (
                         <FormItem className="overflow-visible">
-                          <FormLabel className="text-base font-semibold text-gray-700">Duration *</FormLabel>
+                          <FormLabel
+                            className={`text-base font-semibold ${form.formState.errors.duration ? "text-red-600" : "text-gray-700"}`}
+                          >
+                            Duration *
+                          </FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger className="h-12 text-base border-2 focus:border-blue-400">
-                              <SelectValue placeholder="Select duration" />
-                            </SelectTrigger>
+                            <FormControl>
+                              <SelectTrigger className="h-12 text-base border-2 w-full focus:border-blue-400">
+                                <SelectValue placeholder="Select duration" />
+                              </SelectTrigger>
+                            </FormControl>
                             <SelectContent className="z-50">
-                              <SelectItem value="Autumn">🍂 Autumn</SelectItem>
-                              <SelectItem value="Spring">🌸 Spring</SelectItem>
+                              <SelectItem value="Autumn">Autumn</SelectItem>
+                              <SelectItem value="Spring">Spring</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -407,39 +611,130 @@ export default function CreateCoursePage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <FormField
-                      control={form.control}
-                      name="credits"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-base font-semibold text-gray-700">Credits *</FormLabel>
-                          <Input
-                            type="number"
-                            step="0.5"
-                            min="0.5"
-                            max="20"
-                            placeholder="e.g., 3.0 or 1.5"
-                            className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
-                            {...field}
-                            onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || "")}
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-4 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="L"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel
+                              className={`text-base font-semibold ${form.formState.errors.L ? "text-red-600" : "text-gray-700"}`}
+                            >
+                              Lectures *
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="10"
+                                placeholder="0"
+                                className="h-12 text-base border-2 focus:border-blue-400 transition-colors text-center"
+                                {...field}
+                                onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
+                                onKeyDown={(e) => handleKeyDown(e, "T")}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="T"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel
+                              className={`text-base font-semibold ${form.formState.errors.T ? "text-red-600" : "text-gray-700"}`}
+                            >
+                              Tutorials *
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="10"
+                                placeholder="0"
+                                className="h-12 text-base border-2 focus:border-blue-400 transition-colors text-center"
+                                {...field}
+                                onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
+                                onKeyDown={(e) => handleKeyDown(e, "P")}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="P"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel
+                              className={`text-base font-semibold ${form.formState.errors.P ? "text-red-600" : "text-gray-700"}`}
+                            >
+                              Practicals *
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="10"
+                                placeholder="0"
+                                className="h-12 text-base border-2 focus:border-blue-400 transition-colors text-center"
+                                {...field}
+                                onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
+                                onKeyDown={(e) => handleKeyDown(e, "C")}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="C"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel
+                              className={`text-base font-semibold ${form.formState.errors.C ? "text-red-600" : "text-gray-700"}`}
+                            >
+                              Credits *
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="20"
+                                placeholder="0"
+                                className="h-12 text-base border-2 focus:border-blue-400 transition-colors text-center"
+                                {...field}
+                                onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
+                                onKeyDown={(e) => handleKeyDown(e, "courseCoordinator")}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <FormField
                       control={form.control}
                       name="courseCoordinator"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold text-gray-700">Course Coordinator *</FormLabel>
-                          <Input
-                            placeholder="e.g., Dr. Smith"
-                            className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
-                            {...field}
-                          />
-                          <FormMessage />
+                          <FormLabel
+                            className={`text-base font-semibold ${form.formState.errors.courseCoordinator ? "text-red-600" : "text-gray-700"}`}
+                          >
+                            Course Coordinator *
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., Dr. Smith"
+                              className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                              {...field}
+                              onKeyDown={(e) => handleKeyDown(e, "professors.0.name")}
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />
@@ -467,7 +762,7 @@ export default function CreateCoursePage() {
                       onClick={() => appendProfessor({ name: "", email: "" })}
                       className="flex items-center gap-2 border-2 border-blue-200 hover:bg-blue-50 transition-colors"
                     >
-                      <HiPlus className="w-4 h-4" />
+                      <Plus className="w-4 h-4" />
                       Add Professor
                     </Button>
                   </div>
@@ -486,16 +781,22 @@ export default function CreateCoursePage() {
                           name={`professors.${index}.name`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-base font-semibold text-gray-700">Professor Name *</FormLabel>
-                              <div className="relative">
-                                <HiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <Input
-                                  placeholder="Dr. John Doe"
-                                  className="pl-10 h-12 text-base border-2 focus:border-blue-400 transition-colors"
-                                  {...field}
-                                />
-                              </div>
-                              <FormMessage />
+                              <FormLabel
+                                className={`text-base font-semibold ${form.formState.errors.professors?.[index]?.name ? "text-red-600" : "text-gray-700"}`}
+                              >
+                                Professor Name *
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                  <Input
+                                    placeholder="Dr. John Doe"
+                                    className="pl-10 h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                                    {...field}
+                                    onKeyDown={(e) => handleKeyDown(e, `professors.${index}.email`)}
+                                  />
+                                </div>
+                              </FormControl>
                             </FormItem>
                           )}
                         />
@@ -505,30 +806,36 @@ export default function CreateCoursePage() {
                           name={`professors.${index}.email`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-base font-semibold text-gray-700">Email *</FormLabel>
-                              <div className="relative flex gap-3">
-                                <div className="relative flex-1">
-                                  <HiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                  <Input
-                                    type="email"
-                                    placeholder="john.doe@university.edu"
-                                    className="pl-10 h-12 text-base border-2 focus:border-blue-400 transition-colors"
-                                    {...field}
-                                  />
+                              <FormLabel
+                                className={`text-base font-semibold ${form.formState.errors.professors?.[index]?.email ? "text-red-600" : "text-gray-700"}`}
+                              >
+                                Email *
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative flex gap-3">
+                                  <div className="relative flex-1">
+                                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <Input
+                                      type="email"
+                                      placeholder="john.doe@university.edu"
+                                      className="pl-10 h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                                      {...field}
+                                      onKeyDown={(e) => handleKeyDown(e, "selectedDepartments")}
+                                    />
+                                  </div>
+                                  {professorFields.length > 1 && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => removeProfessor(index)}
+                                      className="text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-12 px-4"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
                                 </div>
-                                {professorFields.length > 1 && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => removeProfessor(index)}
-                                    className="text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-12 px-4"
-                                  >
-                                    <HiTrash className="w-4 h-4" />
-                                  </Button>
-                                )}
-                              </div>
-                              <FormMessage />
+                              </FormControl>
                             </FormItem>
                           )}
                         />
@@ -555,32 +862,44 @@ export default function CreateCoursePage() {
                   <FormField
                     control={form.control}
                     name="selectedDepartments"
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormLabel className="text-base font-semibold text-gray-700">
                           Select Departments
-                          <span className="text-sm font-normal text-gray-500 ml-2">
+                            <span className="text-sm font-normal text-gray-500 ml-2">
                             (Optional if roll numbers are provided)
                           </span>
                         </FormLabel>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6 border-2 border-gray-200 rounded-xl bg-gray-50/50 max-h-72 overflow-y-auto">
                           {departments.map((department) => (
-                            <motion.div
+                            <FormField
                               key={department}
-                              className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded-lg hover:bg-white transition-colors"
-                              whileHover={{ scale: 1.02 }}
-                            >
-                              <Checkbox
-                                checked={field.value?.includes(department)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, department])
-                                    : field.onChange(field.value?.filter((value) => value !== department))
-                                }}
-                                className="mt-1"
-                              />
-                              <label className="text-sm font-medium cursor-pointer leading-relaxed">{department}</label>
-                            </motion.div>
+                              control={form.control}
+                              name="selectedDepartments"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={department}
+                                    className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded-lg hover:bg-white transition-colors"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(departmentMapping[department])}
+                                        onCheckedChange={(checked) => {
+                                          const deptCode = departmentMapping[department]
+                                          return checked
+                                            ? field.onChange([...field.value, deptCode])
+                                            : field.onChange(field.value?.filter((value) => value !== deptCode))
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-medium cursor-pointer leading-relaxed">
+                                      {department}
+                                    </FormLabel>
+                                  </FormItem>
+                                )
+                              }}
+                            />
                           ))}
                         </div>
                         <FormMessage />
@@ -631,7 +950,7 @@ export default function CreateCoursePage() {
                         variant="outline"
                         className="h-12 px-6 border-2 border-blue-200 hover:bg-blue-50 transition-colors"
                       >
-                        <HiPlus className="w-4 h-4" />
+                        <Plus className="w-4 h-4" />
                       </Button>
                     </div>
 
@@ -664,7 +983,7 @@ export default function CreateCoursePage() {
                                   onClick={() => removeRollNumber(index)}
                                   className="ml-1 text-blue-600 hover:text-blue-800 transition-colors"
                                 >
-                                  <HiX className="w-4 h-4" />
+                                  <X className="w-4 h-4" />
                                 </button>
                               </motion.div>
                             ))}
@@ -674,10 +993,142 @@ export default function CreateCoursePage() {
                     </AnimatePresence>
                   </div>
                 </motion.section>
-
-                {/* Enhanced Schedule Section */}
+                {/* Slots Section - Only for Year > 1 */}
                 <AnimatePresence>
-                  {watchYear && (
+                  {isYearGreaterThanOne && (
+                    <motion.section
+                      initial={{ opacity: 0, y: 20, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -20, height: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="space-y-8"
+                    >
+                      <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-100">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          4
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800">Slots *</h3>
+                      </div>
+
+                      {form.formState.errors.slots && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-sm text-red-700 bg-red-50 border border-red-200 p-4 rounded-lg shadow-sm"
+                        >
+                          {form.formState.errors.slots.message}
+                        </motion.div>
+                      )}
+
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2">
+                          <label className="text-base font-semibold text-gray-700">Time Slots & Room</label>
+                          <span className="text-sm font-normal text-gray-500">(Required for year 2 and above)</span>
+                        </div>
+
+                        {/* Room Input - Single field for all slots */}
+                        <FormField
+                          control={form.control}
+                          name="room"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-semibold text-gray-700">Room *</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter room name e.g., LH1, Lab A"
+                                  className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                                  {...field}
+                                  onChange={(e) => {
+                                    const capitalizedValue = capitalizeRoom(e.target.value)
+                                    field.onChange(capitalizedValue)
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Slot Input */}
+                        <div className="space-y-4">
+                          <div className="flex gap-3">
+                            <div className="flex-1">
+                              <label className="text-sm font-semibold text-gray-700">Add Slot Letters *</label>
+                              <Input
+                                placeholder="Enter slot letters (comma or space separated) e.g., A, B, C or M1 M2 M3"
+                                value={slotInput}
+                                onChange={(e) => {
+                                  setSlotInput(e.target.value)
+                                  if (slotError) setSlotError("")
+                                }}
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault()
+                                    addSlots()
+                                  }
+                                }}
+                                className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                              />
+                            </div>
+                            <div className="flex items-end">
+                              <Button
+                                type="button"
+                                onClick={addSlots}
+                                variant="outline"
+                                className="h-12 px-6 border-2 border-blue-200 hover:bg-blue-50 transition-colors"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Slot
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Enhanced Slots Display */}
+                        <AnimatePresence>
+                          {form.watch("slots")?.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="max-h-64 overflow-y-auto p-6 bg-blue-50/50 rounded-xl border-2 border-blue-200"
+                            >
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-sm font-semibold text-gray-700">
+                                  Added Slots ({form.watch("slots").length})
+                                </h4>
+                              </div>
+                              <div className="flex flex-wrap gap-3">
+                                {form.watch("slots")?.map((slot, index) => (
+                                  <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    className="flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium shadow-sm"
+                                  >
+                                    <span className="font-bold">{slot}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeSlot(index)}
+                                      className="ml-1 text-blue-600 hover:text-blue-800 transition-colors"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.section>
+                  )}
+                </AnimatePresence>
+
+                {/* Enhanced Schedule Section - Only for Year 1 */}
+                <AnimatePresence>
+                  {watchYear && Number.parseInt(watchYear) === 1 && (
                     <motion.section
                       initial={{ opacity: 0, y: 20, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: "auto" }}
@@ -696,10 +1147,10 @@ export default function CreateCoursePage() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => appendSchedule({ day: "", startTime: "", endTime: "", room: "" })}
+                          onClick={() => appendSchedule({ day: "Monday", startTime: "", endTime: "", room: "" })}
                           className="flex items-center gap-2 border-2 border-blue-200 hover:bg-blue-50 transition-colors"
                         >
-                          <HiPlus className="w-4 h-4" />
+                          <Plus className="w-4 h-4" />
                           Add Time Slot
                         </Button>
                       </div>
@@ -720,20 +1171,21 @@ export default function CreateCoursePage() {
                                 <FormItem className="overflow-visible">
                                   <FormLabel className="text-base font-semibold text-gray-700">Day *</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <SelectTrigger className="h-12 text-base border-2 focus:border-blue-400">
-                                      <SelectValue placeholder="Select day" />
-                                    </SelectTrigger>
+                                    <FormControl>
+                                      <SelectTrigger className="h-12 text-base border-2 focus:border-blue-400">
+                                        <SelectValue placeholder="Select day" />
+                                      </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent className="z-50">
-                                      <SelectItem value="Sunday">🌅 Sunday</SelectItem>
-                                      <SelectItem value="Monday">📅 Monday</SelectItem>
-                                      <SelectItem value="Tuesday">📅 Tuesday</SelectItem>
-                                      <SelectItem value="Wednesday">📅 Wednesday</SelectItem>
-                                      <SelectItem value="Thursday">📅 Thursday</SelectItem>
-                                      <SelectItem value="Friday">📅 Friday</SelectItem>
-                                      <SelectItem value="Saturday">🌅 Saturday</SelectItem>
+                                      <SelectItem value="Sunday">Sunday</SelectItem>
+                                      <SelectItem value="Monday">Monday</SelectItem>
+                                      <SelectItem value="Tuesday">Tuesday</SelectItem>
+                                      <SelectItem value="Wednesday">Wednesday</SelectItem>
+                                      <SelectItem value="Thursday">Thursday</SelectItem>
+                                      <SelectItem value="Friday">Friday</SelectItem>
+                                      <SelectItem value="Saturday">Saturday</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                  <FormMessage />
                                 </FormItem>
                               )}
                             />
@@ -744,12 +1196,14 @@ export default function CreateCoursePage() {
                               render={({ field }) => (
                                 <FormItem className="overflow-visible">
                                   <FormLabel className="text-base font-semibold text-gray-700">Start Time *</FormLabel>
-                                  <Input
-                                    placeholder="8:30 AM"
-                                    className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
-                                    {...field}
-                                  />
-                                  <FormMessage />
+                                  <FormControl>
+                                    <Input
+                                      placeholder="8:30 AM"
+                                      className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                                      {...field}
+                                      onKeyDown={(e) => handleKeyDown(e, `schedule.${index}.endTime`)}
+                                    />
+                                  </FormControl>
                                 </FormItem>
                               )}
                             />
@@ -760,12 +1214,14 @@ export default function CreateCoursePage() {
                               render={({ field }) => (
                                 <FormItem className="overflow-visible">
                                   <FormLabel className="text-base font-semibold text-gray-700">End Time *</FormLabel>
-                                  <Input
-                                    placeholder="9:30 AM"
-                                    className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
-                                    {...field}
-                                  />
-                                  <FormMessage />
+                                  <FormControl>
+                                    <Input
+                                      placeholder="9:30 AM"
+                                      className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                                      {...field}
+                                      onKeyDown={(e) => handleKeyDown(e, `schedule.${index}.room`)}
+                                    />
+                                  </FormControl>
                                 </FormItem>
                               )}
                             />
@@ -776,29 +1232,30 @@ export default function CreateCoursePage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-base font-semibold text-gray-700">Room *</FormLabel>
-                                  <div className="relative flex gap-3">
-                                    <Input
-                                      placeholder="e.g., gargi hall"
-                                      className="flex-1 h-12 text-base border-2 focus:border-blue-400 transition-colors"
-                                      {...field}
-                                      onChange={(e) => {
-                                        const capitalizedValue = capitalizeRoom(e.target.value)
-                                        field.onChange(capitalizedValue)
-                                      }}
-                                    />
-                                    {scheduleFields.length > 1 && (
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => removeSchedule(index)}
-                                        className="text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-12 px-4"
-                                      >
-                                        <HiTrash className="w-4 h-4" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                  <FormMessage />
+                                  <FormControl>
+                                    <div className="relative flex gap-3">
+                                      <Input
+                                        placeholder="e.g., gargi hall"
+                                        className="flex-1 h-12 text-base border-2 focus:border-blue-400 transition-colors"
+                                        {...field}
+                                        onChange={(e) => {
+                                          const capitalizedValue = capitalizeRoom(e.target.value)
+                                          field.onChange(capitalizedValue)
+                                        }}
+                                      />
+                                      {scheduleFields.length > 1 && (
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => removeSchedule(index)}
+                                          className="text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 h-12 px-4"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </FormControl>
                                 </FormItem>
                               )}
                             />
@@ -810,10 +1267,19 @@ export default function CreateCoursePage() {
                 </AnimatePresence>
 
                 {/* Enhanced Submit Section */}
+                {generalError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-sm text-red-700 bg-red-50 border border-red-200 p-4 rounded-lg text-center mb-4 shadow-sm"
+                  >
+                    {generalError}
+                  </motion.div>
+                )}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.6 }}
                   className="flex gap-6 pt-8 border-t-2 border-gray-200"
                 >
                   <Button

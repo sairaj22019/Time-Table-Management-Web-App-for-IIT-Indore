@@ -55,7 +55,7 @@ const chevronVariants = {
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { setOpen } = useSidebar()
+  const { open, setOpen } = useSidebar()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const timeoutRef = useRef(null)
 
@@ -75,30 +75,46 @@ export function AppSidebar() {
   }, [isDropdownOpen])
 
   return (
-    <Sidebar
-      className="shadow-xl backdrop-blur-lg bg-white/70 border-r border-gray-200"
-      collapsible="icon"
-      onMouseEnter={handleOpen}
-      onMouseLeave={handleClose}
-    >
-      {/* Header */}
-      <SidebarHeader className="mt-3 mb-2">
-        <SidebarGroup className="flex items-center gap-3">
-          <Image src="/Bg_abinandhan.jpg" alt="Logo" width={36} height={36} className="rounded-full border" />
-          <span className="text-lg font-semibold text-gray-800 group-data-[collapsible=icon]:hidden">CampusSync</span>
-        </SidebarGroup>
-      </SidebarHeader>
-
-      <div className="h-[1px] bg-gray-300 mx-2 group-data-[collapsible=icon]:hidden"></div>
-
-      {/* Main Menu */}
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                const isActive = pathname === item.url
+    <Sidebar className={"shadow-sm"} collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>
+          <SidebarHeader className={"mt-2"}>
+            <SidebarGroup className={"flex flex-row items-center justify-start gap-2 relative group-data-[collapsible=icon]:w-12 right-2"}>
+              <div className="w-8 h-8 flex items-center justify-center">
+                <Image
+                  src="/Bg_abinandhan.jpg"
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="rounded-full w-12 h-8 object-cover"
+    
+                />
+              </div>
+              <motion.span
+                className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{
+                  opacity: open ? 1 : 0,
+                  x: open ? 0 : -10,
+                }}
+                transition={{
+                  duration: 0.3,
+                  delay: open ? 0.1 : 0,
+                  ease: "easeOut",
+                }}
+              >
+                Campus Sync
+              </motion.span>
+            </SidebarGroup>
+          </SidebarHeader>
+            
+          <div className="h-[1px] bg-sidebar-border mx-2 group-data-[collapsible=icon]:hidden"></div>
+    
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>Menu</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items.map((item) => {
+                    const isActive = pathname === item.url /*||(item.url !== '/' && pathname.startsWith(item.url))*/
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive}>
