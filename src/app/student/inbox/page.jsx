@@ -211,7 +211,7 @@ export default function InboxPage() {
   const submitPollResponse = (notificationId) => {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
-      // console.log(`Submitting poll response: ${selectedOption} for notification: ${notificationId}`)
+      console.log(`Submitting poll response: ${selectedOption} for notification: ${notificationId}`)
 
       // Update the notification to mark as responded
       setNotifications((prev) =>
@@ -258,7 +258,7 @@ export default function InboxPage() {
   const updatePollResponse = (notificationId) => {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
-      // console.log(Updating poll response: ${selectedOption} for notification: ${notificationId})
+      console.log(`Updating poll response: ${selectedOption} for notification: ${notificationId}`)
 
       // Update the notification with new selection
       setNotifications((prev) =>
@@ -424,7 +424,7 @@ export default function InboxPage() {
                   transition={{ duration: 0.2 }}
                 >
                   <Card
-                    className={`shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-0 pb-2 ${
+                    className={`shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-2 pb-6 ${
                       !notification.isRead ? "border-blue-200 bg-blue-50/30" : "border-gray-100"
                     }`}
                   >

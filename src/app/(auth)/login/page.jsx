@@ -51,11 +51,19 @@ export default function LoginPage() {
         const studentFieldsMissing = !profile?.rollno || !profile?.year
         const commonFieldsMissing = !username || !role || !department
 
+        
         if (commonFieldsMissing || (isStudent && studentFieldsMissing)) {
           router.push('/complete-profile')
         } else {
-          router.push('/welcome')
+          if (role === 'student') {
+            router.push('/student')
+          } else if (role === 'professor') {
+            router.push('/professor')
+          } else {
+            throw new Error("No Valid Role Specified")
+          }
         }
+
       }
     } catch (error) {
       setErrorMsg('Something went wrong. Please try again.')

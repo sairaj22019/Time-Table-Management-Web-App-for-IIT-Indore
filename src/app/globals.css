@@ -2,6 +2,22 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+.no-visible-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.no-visible-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@layer base {
+  :root {
+    --color-skin: #F5EBE0; /* Your custom color */
+
+  }
+}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);

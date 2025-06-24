@@ -1,7 +1,7 @@
-import { connectDB } from "@/dbConnection/ConnectDB";
+import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/User.model";
-import { sendVerificationEmail } from "@/helpers/sendOTPEmail";
-import { generateOTP } from "@/helpers/generateOTP";
+import { connectDB } from "@/dbConnection/ConnectDB";
+import{ sendVerificationEmail} from "@/helpers/sendOTPEmail";
 
 export async function POST(request){
     await connectDB()
