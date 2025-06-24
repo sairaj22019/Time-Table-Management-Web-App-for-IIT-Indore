@@ -1,101 +1,93 @@
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Grid from "@/models/Grid.model";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import User from "@/models/User.model";
 import Student from "@/models/Student.model";
-import Course from "@/models/Course.model";
 
 export async function POST(req) {
   try {
     await connectDB();
   } catch (error) {
-    console.error("Database connection error:", error);
+    console.log(error);
     return NextResponse.json(
-      { success: false, message: "Unable to connect to database" },
-      { status: 500 }
+      {
+        success: false,
+        message: "Unable to connect to database",
+        error: error,
+      },
+      { stauts: 500 }
     );
   }
 
   try {
     const { studentEmail, currentSem, year } = await req.json();
 
-    // Validate input
-    if (!studentEmail || !currentSem || !year) {
-      return NextResponse.json(
-        { success: false, message: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    // Find the grid
-    const grid = await Grid.findOne({ year, semester: currentSem }).lean();
+    const grid = await Grid.findOne({ year: year, semester: currentSem });
     if (!grid) {
-      return NextResponse.json(
-        { success: false, message: "Academic grid not configured" },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: false,
+        message: "Check with the admin for page details",
+      });
     }
 
-    // Find user and student
     const user = await User.findOne({ email: studentEmail });
     if (!user) {
       return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 }
+        {
+          success: false,
+          message: "User with the given mailID does not exist",
+        },
+        { status: 400 }
       );
     }
 
     const student = await Student.findOne({ userId: user._id });
     if (!student) {
       return NextResponse.json(
-        { success: false, message: "Student record not found" },
+        {
+          success: false,
+          message: "Student with the given Mail ID does not exist",
+        },
         { status: 404 }
       );
     }
-    console.log(student.enrolledClasses);
-    // Get enrolled courses
+    if(student.scheduleGrid!=null){
+      return NextResponse.json({
+        success:true,
+        message:"Student schedule fetched successfully",
+        schedule:student.scheduleGrid,
+      },{stauts:200});
+    }
     await student.populate({
       path: "enrolledClasses",
-      match: { forSemester: currentSem },
-      model: Course,
-    });
-    console.log(student);
-    // Build slot-to-course mapping
-    const slotCourseMap = {};
-    student.enrolledClasses.forEach(course => {
-      course.slots.forEach(slot => {
-        slotCourseMap[slot] = course;
-      });
+      match: { year: year, semester: currentSem },
     });
 
-    // Generate detailed schedule for ALL grid slots
-    const detailedSchedule = [];
-    grid.grid.forEach(row => {
-      row.forEach(cell => {
-        const course = slotCourseMap[cell.slot];
-        detailedSchedule.push({
-          slot: cell.slot,
-          room: cell.room || "",
-          courseCode: course?.courseCode || "",
-          course: course ? 
-            (course.toObject ? course.toObject() : course) : 
-            null
-        });
-      });
-    });
+    const personalGrid = JSON.parse(JSON.stringify(grid.grid)); // Deep copy to avoid mutating DB object
 
+    for (const course of student.enrolledClasses) {
+      for (let i = 0; i < personalGrid.length; i++) {
+        for (let j = 0; j < personalGrid[i].length; j++) {
+          if (course.slots.includes(personalGrid[i][j])) {
+            personalGrid[i][j] = course.courseCode;
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Student timetable generated",
+      timetable: personalGrid,
+    });
+  } catch (error) {
+    console.log(error);
     return NextResponse.json(
       {
-        success: true,
-        message: "Complete timetable generated",
-        schedule: detailedSchedule,
+        success: false,
+        message: "Internal server error",
+        error: error,
       },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Processing error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error", error: error.message },
       { status: 500 }
     );
   }

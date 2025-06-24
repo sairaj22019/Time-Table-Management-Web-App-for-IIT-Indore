@@ -1,3 +1,4 @@
+
 import mongoose,{Schema,model,models} from "mongoose";
 
 const ProfessorSchema=new Schema({

@@ -1,8 +1,55 @@
+// import { connectDB } from "@/dbConnection/ConnectDB";
+// import Professor from "@/models/Professor.model";
+// import { NextRequest,NextResponse } from "next/server";
+
+// export async function POST(req){
+//     try {
+//         await connectDB();
+//     } catch (error) {
+//         return NextResponse.status(500).json({
+//             success:false,
+//             message:"Error connecting to database",
+//             error:error,
+//         });
+//     }
+//     try {
+//         const {profId}=await req.json();
+//         if(!profId){
+//             return NextResponse.status(400).json({
+//                 success:false,
+//                 message:"Provide the prof ID for fetching the class data",
+//             })
+//         }
+//         const prof=await Professor.findById(profId);
+//         if(!prof){
+//             return NextResponse.status(400).json({
+//                 success:false,
+//                 message:"Professor does not exist with the given ID",
+//             })
+//         }
+//         await prof.populate('teachingClasses');
+//         console.log("classes" , prof.teachingClasses);
+//         return NextResponse.json({
+//             success:true,
+//             message:"Courses fetched successfully",
+//             data:prof.teachingClasses,
+//         })
+//     } catch (error) {
+//         return NextResponse.status(500).json({
+//             success:false,
+//             message:"Internal server error",
+//             error:error,
+//         })
+//     }
+// }
+
+
+
+
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Professor from "@/models/Professor.model";
 import { NextRequest,NextResponse } from "next/server";
 import Course from '@/models/Course.model';
-import User from "@/models/User.model";
 
 export async function POST(req){
     try {
@@ -15,19 +62,18 @@ export async function POST(req){
         });
     }
     try {
-        const {profEmail}=await req.json();
-        const user=await User.findOne({email:profEmail});
-         if(!user){
+        const {profId}=await req.json();
+        if(!profId){
             return NextResponse.json({
                 success:false,
-                message:"Professor does not exist with the given Mail ID",
+                message:"Provide the prof ID for fetching the class data",
             })
         }
-        const prof=await Professor.findOne({userId:user._id});
+        const prof=await Professor.findById(profId);
         if(!prof){
             return NextResponse.json({
                 success:false,
-                message:"Professor does not exist with the given Mail ID",
+                message:"Professor does not exist with the given ID",
             })
         }
         await prof.populate('teachingClasses');
@@ -45,4 +91,3 @@ export async function POST(req){
         })
     }
 } 
-
