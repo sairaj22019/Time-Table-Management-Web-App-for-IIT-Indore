@@ -29,8 +29,6 @@ export async function POST(req){
                 message:"No user found",
             },{status:404});
         }
-        console.log(user);
-        console.log(user._id);
         const student=await Student.findOne({userId:user._id});
         if(!student){
             return NextResponse.json({

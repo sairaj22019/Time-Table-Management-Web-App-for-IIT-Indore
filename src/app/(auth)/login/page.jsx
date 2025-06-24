@@ -51,6 +51,7 @@ export default function LoginPage() {
         const studentFieldsMissing = !profile?.rollno || !profile?.year
         const commonFieldsMissing = !username || !role || !department
 
+        
         if (commonFieldsMissing || (isStudent && studentFieldsMissing)) {
           router.push('/complete-profile')
         } else {

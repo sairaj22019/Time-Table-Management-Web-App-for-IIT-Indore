@@ -70,7 +70,12 @@ export async function POST(req) {
       title,
       courseCode,
       slots,
+      lectures,
+      tutorials,
+      practicals,
+      room,
       forSemester,
+      studentYear,
       profName,
       courseCoordinator,
       profEmail,
@@ -82,6 +87,11 @@ export async function POST(req) {
       !courseCode ||
       !slots ||
       !forSemester ||
+      !lectures ||
+      !tutorials ||
+      !practicals ||
+      !room ||
+      !studentYear ||
       !profName ||
       !courseCoordinator ||
       !profEmail ||
@@ -101,6 +111,11 @@ export async function POST(req) {
       courseCode: courseCode,
       slots: slots,
       forSemester:forSemester,
+      studentYear:studentYear,
+      lectures:lectures,
+      tutorials:tutorials,
+      practicals:practicals,
+      room:room,
       profName: profName,
       courseCoordinator: courseCoordinator,
       profEmail: profEmail,

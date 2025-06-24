@@ -1,10 +1,16 @@
-import React from 'react'
+import AppSidebar from "@/components/sidebar-professor";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
-function layout() {
+export default function RootLayout({ children }) {
   return (
-    <div>professor layout</div>
-  )
+    <SidebarProvider defaultOpen={false}>
+      <div className="flex h-screen w-screen">
+        <AppSidebar />
+        <main className="w-full">
+          <SidebarTrigger />
+          {children}
+      </main>
+      </div>
+    </SidebarProvider>
+  );
 }
-
-export default layout
-

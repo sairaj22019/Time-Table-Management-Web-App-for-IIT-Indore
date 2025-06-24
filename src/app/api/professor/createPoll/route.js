@@ -6,7 +6,6 @@ import Professor from "@/models/Professor.model";
 import User from "@/models/User.model";
 import Student from "@/models/Student.model";
 import { NextRequest,NextResponse } from "next/server";
-
 async function addPollToProfessor(newPoll,newNotificationId) {
     try {
         const prof=await Professor.findById(newPoll.prof);
