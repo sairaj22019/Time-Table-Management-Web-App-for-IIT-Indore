@@ -89,7 +89,7 @@ export default function LoginPage() {
             <div className="flex flex-col items-center justify-between gap-2 mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Login to your account</h2>
               <Link href="/signup" className="text-sm text-blue-600 hover:underline">
-                Don’t have an account? <span className="font-medium">Sign Up</span>
+                Don't have an account? <span className="font-medium">Sign Up</span>
               </Link>
             </div>
 

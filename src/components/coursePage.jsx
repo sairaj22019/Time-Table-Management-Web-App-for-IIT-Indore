@@ -1336,12 +1336,13 @@ export default function CoursesPage({ studentEmail, year, currentSem }) {
       setLoading(true)
       setError(null)
       let url, body
+      console.log("which year",year)
       if (year === 1) {
-        url = "/api/student/getScheduleForYear1"
+        url = "/api/student/myCourses"
         body = { studentEmail }
       } else {
-        url = "/api/student/getSchedule"
-        body = { studentEmail, currentSem, year }
+        url = "/api/student/myCourses"
+        body = { studentEmail}
       }
       try {
         const response = await fetch(url, {
@@ -1350,6 +1351,7 @@ export default function CoursesPage({ studentEmail, year, currentSem }) {
           body: JSON.stringify(body),
         })
         const data = await response.json()
+        console.log("Data",data)
         if (data.success) {
           setCourses(data.courses)
           setFilteredCourses(data.courses)
@@ -1361,7 +1363,7 @@ export default function CoursesPage({ studentEmail, year, currentSem }) {
       }
       setLoading(false)
     }
-    if (studentEmail && year && (year === 1 || currentSem)) {
+    if (studentEmail && year ) {
       fetchCourses()
     }
   }, [studentEmail, year, currentSem])
@@ -1407,7 +1409,7 @@ export default function CoursesPage({ studentEmail, year, currentSem }) {
       transition: { staggerChildren: 0.1 },
     },
   }
-
+  
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
