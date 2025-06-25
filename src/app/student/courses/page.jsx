@@ -459,18 +459,17 @@
 import CoursesPage from "@/components/coursePage"
 import Student from "@/models/Student.model"
 import { useSession } from "next-auth/react"
+import { useYear } from "@/components/YearProvider"
 
 export default function Courses() {
   const { data: session, status } = useSession()
+  const year = useYear()
   if (status === 'loading') return <p>Loading...</p>
-
+  console.log("year",year);
   if (!session){ return <p>You are not signed in</p>}
-  // const student = await Student.findOne({ userId: session.user.id });
-  //   if (!student) {
-  //     return <p>No student found with this email</p>
-  //   }
+  
   return (
-    <CoursesPage studentEmail={session.user.email} year={1} />
+    <CoursesPage studentEmail={session.user.email} year={year} />
   )
 }
 

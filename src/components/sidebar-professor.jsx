@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 
 const MotionLink = motion(Link)
 
@@ -104,7 +105,7 @@ const chevronVariants = {
 const userMenuItems = [
   { label: "Account", icon: UserCog, action: "account" },
   { label: "Settings", icon: Settings, action: "settings" },
-  { label: "Sign out", icon: LogOut, action: "signout", variant: "destructive" },
+  { label: "Logout", icon: LogOut, action: "signout", variant: "destructive" },
 ]
 
 export function AppSidebar() {
@@ -148,7 +149,7 @@ export function AppSidebar() {
         break
       case "signout":
         // Handle sign out
-        console.log("Sign out user")
+        signOut({ callbackUrl: '/login' })
         break
       default:
         break
