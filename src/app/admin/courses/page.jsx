@@ -506,6 +506,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export default function ViewAllCoursesPage() {
   const [courses, setCourses] = useState([])
@@ -646,8 +647,9 @@ export default function ViewAllCoursesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-3 sm:p-6">
-      <div className="w-full mx-auto">
+    <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 ">
+      <SidebarTrigger/>
+      <div className="w-full mx-auto p-3 sm:p-6">
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -709,7 +711,7 @@ export default function ViewAllCoursesPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 gap-4 sm:gap-6 max-w-4xl mx-auto"
+          className="grid grid-cols-1 gap-4 sm:gap-6 max-w-7xl mx-auto sm:px-6"
         >
           {filteredCourses.map((course) => {
             const isExpanded = expandedCards.includes(course.id)

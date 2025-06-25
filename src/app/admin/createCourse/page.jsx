@@ -9309,7 +9309,7 @@ export default function CreateCoursePage() {
         initial={{ opacity: 0, scale: 0.9, y: 50 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-5xl mx-auto"
+        className="w-full max-w-6xl mx-auto"
       >
         <Card className="shadow-2xl rounded-3xl border border-gray-100 bg-white/90 backdrop-blur-lg overflow-visible">
           <CardContent className="py-12 px-10 overflow-visible">
@@ -9883,8 +9883,8 @@ export default function CreateCoursePage() {
                     </AnimatePresence>
                   </div>
                 </motion.section>
-\
-                {/* Slots Section - Only for Year > 1 */}\
+
+                {/* Slots Section - Only for Year > 1 */}
                 <AnimatePresence>
                   {isYearGreaterThanOne && (
                     <motion.section
