@@ -149,7 +149,7 @@ export function AppSidebar() {
         break
       case "signout":
         // Handle sign out
-        signOut({ callbackUrl: "/login" })
+        signOut({ callbackUrl: '/login' })
         break
       default:
         break
