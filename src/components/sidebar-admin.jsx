@@ -581,7 +581,7 @@ const items = [
   },
   {
     title: "Create Course",
-    url: "/admin/createCourse",
+    url: "/admin/createCourses",
     icon: BookPlus,
   },
 ]
