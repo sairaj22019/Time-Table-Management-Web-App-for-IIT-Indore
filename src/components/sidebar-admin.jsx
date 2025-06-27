@@ -31,6 +31,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { HiAcademicCap } from "react-icons/hi"
+import { signOut } from "next-auth/react"
 
 const MotionLink = motion(Link)
 
