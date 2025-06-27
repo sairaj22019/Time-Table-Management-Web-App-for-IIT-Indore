@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Plus, Trash2, GraduationCap, User, Mail, X } from "lucide-react"
+import { Plus, Trash2, GraduationCap, User, Mail, X } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -1152,10 +1152,11 @@ export default function CreateCoursePage() {
                           variant="outline"
                           size="sm"
                           onClick={() => appendSchedule({ day: "Monday", startTime: "", endTime: "", room: "" })}
-                          className="flex items-center gap-2 border-2 border-blue-200 hover:bg-blue-50 transition-colors"
+                          className="flex items-center gap-1 sm:gap-2 border-2 border-blue-200 hover:bg-blue-50 transition-colors text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex-shrink-0"
                         >
-                          <Plus className="w-4 h-4" />
-                          Add Time Slot
+                          <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden xs:inline sm:inline">Add Time Slot</span>
+                          <span className="xs:hidden sm:hidden">Add</span>
                         </Button>
                       </div>
 
