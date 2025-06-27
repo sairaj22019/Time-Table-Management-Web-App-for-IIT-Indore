@@ -265,7 +265,7 @@ export function AppSidebar() {
                     </Avatar>
                   </motion.div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">{session.user.email}</p>
+                    <p className="text-sm font-medium">{session.user.name}</p>
                     {/* <p className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
                       Student ID: 12345
                     </p> */}

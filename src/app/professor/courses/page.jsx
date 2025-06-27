@@ -419,9 +419,8 @@
 
 
 
-
 "use client"
-
+import React from "react"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import {
@@ -450,17 +449,15 @@ export default function ProfessorCoursesPage() {
   const [expandedCards, setExpandedCards] = useState([])
   const { data: session, status } = useSession()
 
-    // const year = useYear()
-    if (status === 'loading') return <p>Loading...</p>
-    if (!session){ return <p>You are not signed in</p>}
-
   useEffect(() => {
+    if (!session) return
+
     const fetchCourses = async () => {
       try {
         const res = await fetch("/api/professor/getAllCourses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profEmail: session.user.email}),
+          body: JSON.stringify({ profEmail: session.user.email }),
         })
 
         const data = await res.json()
@@ -476,7 +473,7 @@ export default function ProfessorCoursesPage() {
     }
 
     fetchCourses()
-  }, [])
+  }, [session])
 
   const handleSearch = (term) => {
     setSearchTerm(term)
@@ -535,85 +532,94 @@ export default function ProfessorCoursesPage() {
   }
 
   const handlePoll = (courseId, courseName) => {
-    // Handle poll creation logic here
     console.log(`Creating poll for course: ${courseName}`)
   }
 
   const handleMessage = (courseId, courseName) => {
-    // Handle message sending logic here
     console.log(`Sending message for course: ${courseName}`)
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-4 sm:p-6">
       <div className="w-full mx-auto">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">My Teaching Courses</h1>
-              <p className="text-gray-600">Manage and monitor your teaching courses</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                {filteredCourses.length} Courses
-              </Badge>
-              <Badge variant="secondary" className="bg-green-100 text-green-700">
-                Fall 2024
-              </Badge>
-            </div>
+        {/* Loading and auth checks */}
+        {status === 'loading' || !session ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">
+              {status === 'loading' ? "Loading..." : "You are not signed in"}
+            </p>
           </div>
+        ) : (
+          <>
+            {/* Header Section */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-8"
+            >
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">My Teaching Courses</h1>
+                  <p className="text-gray-600">Manage and monitor your teaching courses</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                    {filteredCourses.length} Courses
+                  </Badge>
+                  <Badge variant="secondary" className="bg-green-100 text-green-700">
+                    Fall 2024
+                  </Badge>
+                </div>
+              </div>
 
-          {/* Search and Filter Section */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search courses or course codes..."
-                className="pl-10 bg-white/80 backdrop-blur-md border-gray-200"
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-            </div>
-            <Select value={selectedCategory} onValueChange={handleCategoryFilter}>
-              <SelectTrigger className="w-full md:w-48 bg-white/80 backdrop-blur-md border-gray-200">
-                <HiFilter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category === "all" ? "All Categories" : category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </motion.div>
+              {/* Search and Filter Section */}
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search courses or course codes..."
+                    className="pl-10 bg-white/80 backdrop-blur-md border-gray-200"
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
+                  />
+                </div>
+                <Select value={selectedCategory} onValueChange={handleCategoryFilter}>
+                  <SelectTrigger className="w-full md:w-48 bg-white/80 backdrop-blur-md border-gray-200">
+                    <HiFilter className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category === "all" ? "All Categories" : category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </motion.div>
 
-        {/* Courses Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 gap-5 sm:gap-6 max-w-7xl mx-auto"
-        >
-          {filteredCourses.map((course) => {
-            const isExpanded = expandedCards.includes(course._id)
-            return (
-              <motion.div
-                key={course._id}
-                variants={cardVariants}
-                whileHover={{ scale: 1.02, y: -5 }}
-                transition={{ duration: 0.2 }}
-                layout
-              >
-                <Card className="shadow-lg rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-0 pt-2">
+            {/* Courses Grid */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 gap-5 sm:gap-6 max-w-7xl mx-auto"
+            >
+              {filteredCourses.map((course) => {
+                const isExpanded = expandedCards.includes(course._id)
+                return (
+                  <motion.div
+                    key={course._id}
+                    variants={cardVariants}
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                    layout
+                  >
+                    {/* Card rendering unchanged */}
+                    {/* ... (same as your original JSX from here on) */}
+                    <Card className="shadow-lg rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-0 pt-2">
                   {/* Compact Header - Always Visible */}
                   <CardHeader className="pb-4 sm:pb-6 pt-5 sm:pt-6">
                     <div className="flex items-center justify-between mb-5">
@@ -784,15 +790,18 @@ export default function ProfessorCoursesPage() {
               </motion.div>
             )
           })}
-        </motion.div>
+                    {/* Full JSX remains untouched to preserve design and logic */}
+                  </motion.div>
 
-        {/* Empty State */}
-        {filteredCourses.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-            <HiAcademicCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-500 mb-2">No courses found</h3>
-            <p className="text-gray-400">Try adjusting your search or filter criteria</p>
-          </motion.div>
+            {/* Empty State */}
+            {filteredCourses.length === 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+                <HiAcademicCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-500 mb-2">No courses found</h3>
+                <p className="text-gray-400">Try adjusting your search or filter criteria</p>
+              </motion.div>
+            )}
+          </>
         )}
       </div>
     </main>
