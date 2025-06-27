@@ -31,6 +31,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { HiAcademicCap } from "react-icons/hi"
+import { useSession } from "next-auth/react"
 
 const MotionLink = motion(Link)
 
@@ -111,7 +112,7 @@ const userMenuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { setOpen, open } = useSidebar()
+  const { setOpen, open, isMobile } = useSidebar()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const timeoutRef = useRef(null)
   const [ismenuitemHovered, setIsMenuItemHovered] = useState(false)
@@ -157,6 +158,12 @@ export function AppSidebar() {
     }
   }
 
+  const { data: session, status } = useSession();
+      if (status === 'loading') return <p>Loading...</p>
+      console.log("session",session)
+      if (!session){ return <p>You are not signed in</p>}
+  
+
   return (
     <Sidebar className={"shadow-sm"} collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>
       <SidebarHeader className={"mt-2"}>
@@ -175,8 +182,8 @@ export function AppSidebar() {
             className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
             initial={{ opacity: 0, x: -10 }}
             animate={{
-              opacity: open ? 1 : 0,
-              x: open ? 0 : -10,
+              opacity: (open || isMobile) ? 1 : 0,
+              x: (open || isMobile) ? 0 : -10,
             }}
             transition={{
               duration: 0.3,
@@ -252,14 +259,16 @@ export function AppSidebar() {
                   >
                     <Avatar className="w-6 h-6">
                       <AvatarImage src="/placeholder.svg?height=24&width=24" alt="User" />
-                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">JD</AvatarFallback>
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                      <Image alt="logo" src={session.user.image} width={100} height={100}/>
+                      </AvatarFallback>
                     </Avatar>
                   </motion.div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">John Doe</p>
-                    <p className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
+                    <p className="text-sm font-medium">{session.user.email}</p>
+                    {/* <p className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
                       Student ID: 12345
-                    </p>
+                    </p> */}
                   </div>
                   <motion.div
                     animate={isDropdownOpen ? "up" : "down"}
@@ -274,7 +283,7 @@ export function AppSidebar() {
               <AnimatePresence>
                 {isDropdownOpen && (
                   <DropdownMenuContent
-                    side="right"
+                    side={isMobile? "top" : "right"}
                     sideOffset={8}
                     align="end"
                     className="w-56"
@@ -290,8 +299,8 @@ export function AppSidebar() {
                       className="bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg overflow-hidden"
                     >
                       <div className="px-3 py-2 border-b border-border/50">
-                        <p className="text-sm font-medium">John Doe</p>
-                        <p className="text-xs text-muted-foreground">john.doe@iiti.ac.in</p>
+                        <p className="text-sm font-medium">{session.user.email}</p>
+                        <p className="text-xs text-muted-foreground">{session.user.name}</p>
                       </div>
 
                       {userMenuItems.map((item, index) => (

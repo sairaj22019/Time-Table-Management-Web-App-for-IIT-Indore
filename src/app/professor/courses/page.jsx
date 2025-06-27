@@ -440,6 +440,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useSession } from "next-auth/react"
 
 export default function ProfessorCoursesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -447,6 +448,11 @@ export default function ProfessorCoursesPage() {
   const [filteredCourses, setFilteredCourses] = useState([])
   const [allCourses, setAllCourses] = useState([])
   const [expandedCards, setExpandedCards] = useState([])
+  const { data: session, status } = useSession()
+
+    // const year = useYear()
+    if (status === 'loading') return <p>Loading...</p>
+    if (!session){ return <p>You are not signed in</p>}
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -454,7 +460,7 @@ export default function ProfessorCoursesPage() {
         const res = await fetch("/api/professor/getAllCourses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profId: "68500a73fd68f87834dd1e9d" }),
+          body: JSON.stringify({ profEmail: session.user.email}),
         })
 
         const data = await res.json()
@@ -595,7 +601,7 @@ export default function ProfessorCoursesPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 gap-5 sm:gap-6 max-w-4xl mx-auto"
+          className="grid grid-cols-1 gap-5 sm:gap-6 max-w-7xl mx-auto"
         >
           {filteredCourses.map((course) => {
             const isExpanded = expandedCards.includes(course._id)

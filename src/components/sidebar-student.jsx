@@ -644,7 +644,7 @@ const userMenuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { setOpen, open } = useSidebar();
+  const { setOpen, open, isMobile } = useSidebar();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const timeoutRef = useRef(null);
   const [ismenuitemHovered, setIsMenuItemHovered] = useState(false);
@@ -717,18 +717,18 @@ export function AppSidebar() {
             />
           </div>
           <motion.span
-            className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{
-              opacity: open ? 1 : 0,
-              x: open ? 0 : -10,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: open ? 0.1 : 0,
-              ease: "easeOut",
-            }}
-          >
+          className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{
+            opacity: (open || isMobile) ? 1 : 0,
+            x: (open || isMobile) ? 0 : -10,
+          }}
+          transition={{
+            duration: 0.3,
+            delay: open ? 0.1 : 0,
+            ease: "easeOut",
+          }}
+        >
             Manager
           </motion.span>
         </SidebarGroup>
@@ -835,7 +835,7 @@ export function AppSidebar() {
               <AnimatePresence>
                 {isDropdownOpen && (
                   <DropdownMenuContent
-                    side="right"
+                    side={isMobile? "top" : "right"}
                     sideOffset={8}
                     align="end"
                     className="w-56"
