@@ -241,7 +241,7 @@ export default function EnhancedLandingPage() {
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 group"
               >
-                Start Free Trial
+                Start Now
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
