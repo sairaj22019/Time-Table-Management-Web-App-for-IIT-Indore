@@ -62,7 +62,6 @@
 //     }
 //   }, [isDropdownOpen])
 
-
 //   return (
 //     <Sidebar collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>
 //       <SidebarHeader className={'mt-2'}>
@@ -129,7 +128,6 @@
 
 // export default AppSidebar;
 
-
 // 'use client'
 // import { Calendar, CalendarDays, ChevronDown, ChevronUp, Home, HomeIcon, Inbox, Search, Settings, User2 } from "lucide-react"
 
@@ -193,7 +191,6 @@
 //       handleClose();
 //     }
 //   }, [isDropdownOpen])
-
 
 //   return (
 //     <Sidebar collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>
@@ -261,7 +258,6 @@
 
 // export default AppSidebar;
 
-
 // 'use client'
 // import { Calendar, CalendarDays, ChevronDown, ChevronUp, Home, HomeIcon, Inbox, Search, Settings, User2 } from "lucide-react"
 // import { motion, AnimatePresence, inView, scale } from "framer-motion"
@@ -278,7 +274,6 @@
 // import { usePathname } from 'next/navigation'
 
 // const MotionLink = motion(Link)
-
 
 // const items = [
 //   {
@@ -395,13 +390,13 @@
 //             <SidebarMenu>
 //       {items.map((item) => {
 //         const isActive = pathname === item.url /*||(item.url !== '/' && pathname.startsWith(item.url))*/
-        
+
 //         return (
 //           <SidebarMenuItem key={item.title}>
-//             <SidebarMenuButton 
-//               asChild 
+//             <SidebarMenuButton
+//               asChild
 //               className={"text-md"}
-//               isActive={isActive} 
+//               isActive={isActive}
 //             >
 //               <MotionLink
 //                 href={item.url}
@@ -523,11 +518,19 @@
 
 // export default AppSidebar;
 
-
-"use client"
-import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
+"use client";
+import {
+  Calendar,
+  CalendarDays,
+  ChevronUp,
+  Home,
+  Inbox,
+  Settings,
+  LogOut,
+  UserCog,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 import {
   Sidebar,
@@ -542,20 +545,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
-import { usePathname } from "next/navigation"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import { useYear } from "./YearProvider";
 
-const MotionLink = motion(Link)
+const MotionLink = motion(Link);
 
 const items = [
   {
@@ -583,7 +588,7 @@ const items = [
     url: "/student/settings",
     icon: Settings,
   },
-]
+];
 
 const dropdownVariants = {
   hidden: {
@@ -604,7 +609,7 @@ const dropdownVariants = {
       ease: "easeOut",
     },
   },
-}
+};
 
 // Animation variants for menu items
 const itemVariants = {
@@ -617,73 +622,91 @@ const itemVariants = {
       duration: 0.2,
     },
   }),
-}
+};
 
 // Animation variants for chevron icon
 const chevronVariants = {
   up: { rotate: 0, transition: { duration: 0.2 } },
   down: { rotate: 180, transition: { duration: 0.2 } },
-}
+};
 
 // User menu items
 const userMenuItems = [
   { label: "Account", icon: UserCog, action: "account" },
   { label: "Settings", icon: Settings, action: "settings" },
-  { label: "Sign out", icon: LogOut, action: "signout", variant: "destructive" },
-]
+  {
+    label: "Logout",
+    icon: LogOut,
+    action: "signout",
+    variant: "destructive",
+  },
+];
 
 export function AppSidebar() {
-  const pathname = usePathname()
-  const { setOpen, open } = useSidebar()
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const timeoutRef = useRef(null)
-  const [ismenuitemHovered, setIsMenuItemHovered] = useState(false)
+  const pathname = usePathname();
+  const { setOpen, open, isMobile } = useSidebar();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const timeoutRef = useRef(null);
+  const [ismenuitemHovered, setIsMenuItemHovered] = useState(false);
 
   const handleOpen = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    setOpen(true)
-  }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setOpen(true);
+  };
 
   const handleClose = () => {
     if (!isDropdownOpen) {
       timeoutRef.current = setTimeout(() => {
-        setOpen(false)
-      }, 100)
+        setOpen(false);
+      }, 100);
     }
-  }
+  };
 
   useEffect(() => {
     if (isDropdownOpen) {
-      handleOpen()
+      handleOpen();
     } else {
-      handleClose()
+      handleClose();
     }
-  }, [isDropdownOpen])
+  }, [isDropdownOpen]);
 
   // Handle user menu actions
   const handleUserMenuAction = (action) => {
     switch (action) {
       case "account":
         // Navigate to account page
-        console.log("Navigate to account")
-        break
+        console.log("Navigate to account");
+        break;
       case "settings":
         // Navigate to settings page
-        console.log("Navigate to settings")
-        break
+        console.log("Navigate to settings");
+        break;
       case "signout":
         // Handle sign out
-        console.log("Sign out user")
-        break
+        signOut({ callbackUrl: '/login' })
+        break;
       default:
-        break
+        break;
     }
-  }
+  };
+  const { data: session, status } = useSession();
+  if (status === 'loading') return <p>Loading...</p>
+  console.log("session",session)
+  if (!session){ return <p>You are not signed in</p>}
 
   return (
-    <Sidebar className={"shadow-sm"} collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>
+    <Sidebar
+      className={"shadow-sm"}
+      collapsible="icon"
+      onMouseLeave={handleClose}
+      onMouseEnter={handleOpen}
+    >
       <SidebarHeader className={"mt-2"}>
-        <SidebarGroup className={"flex flex-row items-center justify-start gap-2 relative group-data-[collapsible=icon]:w-12 right-2"}>
+        <SidebarGroup
+          className={
+            "flex flex-row items-center justify-start gap-2 relative group-data-[collapsible=icon]:w-12 right-2"
+          }
+        >
           <div className="w-8 h-8 flex items-center justify-center">
             <Image
               src="/IITI_Logo.svg.png"
@@ -691,22 +714,21 @@ export function AppSidebar() {
               width={32}
               height={32}
               className="rounded-full w-12 h-8 object-cover"
-
             />
           </div>
           <motion.span
-            className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{
-              opacity: open ? 1 : 0,
-              x: open ? 0 : -10,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: open ? 0.1 : 0,
-              ease: "easeOut",
-            }}
-          >
+          className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{
+            opacity: (open || isMobile) ? 1 : 0,
+            x: (open || isMobile) ? 0 : -10,
+          }}
+          transition={{
+            duration: 0.3,
+            delay: open ? 0.1 : 0,
+            ease: "easeOut",
+          }}
+        >
             Manager
           </motion.span>
         </SidebarGroup>
@@ -720,11 +742,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
-                const isActive = pathname === item.url /*||(item.url !== '/' && pathname.startsWith(item.url))*/
+                const isActive =
+                  pathname ===
+                  item.url; /*||(item.url !== '/' && pathname.startsWith(item.url))*/
 
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className={"text-md"} isActive={isActive}>
+                    <SidebarMenuButton
+                      asChild
+                      className={"text-md"}
+                      isActive={isActive}
+                    >
                       <MotionLink
                         href={item.url}
                         whileHover={{
@@ -752,7 +780,7 @@ export function AppSidebar() {
                       </MotionLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -762,7 +790,10 @@ export function AppSidebar() {
       <SidebarFooter className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+            <DropdownMenu
+              open={isDropdownOpen}
+              onOpenChange={setIsDropdownOpen}
+            >
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   isActive={isDropdownOpen}
@@ -774,15 +805,22 @@ export function AppSidebar() {
                     className="flex items-center justify-center"
                   >
                     <Avatar className="w-6 h-6">
-                      <AvatarImage src="/placeholder.svg?height=24&width=24" alt="User" />
-                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">JD</AvatarFallback>
+                      <AvatarImage
+                        src="/placeholder.svg?height=24&width=24"
+                        alt="User"
+                      />
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                        {/* {session.user.name
+                          .split(" ")
+                          .map((word) => word[0]?.toUpperCase())
+                          .join("")} */}
+                          <Image alt="logo" src={session.user.image} width={100} height={100}/>
+                      </AvatarFallback>
                     </Avatar>
                   </motion.div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">John Doe</p>
-                    <p className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
-                      Student ID: 12345
-                    </p>
+                    <p className="text-sm font-medium">{session.user.name}</p>
+                    
                   </div>
                   <motion.div
                     animate={isDropdownOpen ? "up" : "down"}
@@ -797,7 +835,7 @@ export function AppSidebar() {
               <AnimatePresence>
                 {isDropdownOpen && (
                   <DropdownMenuContent
-                    side="right"
+                    side={isMobile? "top" : "right"}
                     sideOffset={8}
                     align="end"
                     className="w-56"
@@ -813,13 +851,19 @@ export function AppSidebar() {
                       className="bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg overflow-hidden"
                     >
                       <div className="px-3 py-2 border-b border-border/50">
-                        <p className="text-sm font-medium">John Doe</p>
-                        <p className="text-xs text-muted-foreground">john.doe@iiti.ac.in</p>
+                        <p className="text-sm font-medium">
+                          {session.user.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {session.user.email}
+                        </p>
                       </div>
 
                       {userMenuItems.map((item, index) => (
                         <div key={item.label}>
-                          {item.action === "signout" && <DropdownMenuSeparator className="my-1" />}
+                          {item.action === "signout" && (
+                            <DropdownMenuSeparator className="my-1" />
+                          )}
                           <DropdownMenuItem asChild>
                             <motion.button
                               className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors duration-200 cursor-pointer focus:outline-none ${
@@ -850,7 +894,7 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
 
-export default AppSidebar
+export default AppSidebar;

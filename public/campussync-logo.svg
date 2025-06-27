@@ -1,0 +1,14 @@
+<!-- public/campussync-logo.svg -->
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="10" fill="url(#grad1)"/>
+  <rect x="8" y="10" width="24" height="18" rx="4" fill="#fff" stroke="#38BDF8" stroke-width="2"/>
+  <rect x="12" y="14" width="16" height="2" rx="1" fill="#38BDF8"/>
+  <rect x="12" y="18" width="10" height="2" rx="1" fill="#38BDF8"/>
+  <path d="M16 24l3 3 5-5" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="grad1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+  </defs>
+</svg>
