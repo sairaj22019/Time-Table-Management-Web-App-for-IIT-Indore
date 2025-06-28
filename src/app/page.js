@@ -146,7 +146,7 @@ export default function EnhancedLandingPage() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="fixed top-4 left-1/2 z-50 -translate-x-1/2 w-[95vw] max-w-6xl"
       >
-        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl px-6 py-4 shadow-xl">
+        <div className="bg-white/70 backdrop-blur-xl border border-gray-200 rounded-2xl px-6 py-4 shadow-xl">
           <div className="flex justify-between items-center">
             <motion.div whileHover={{ scale: 1.05 }} className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-sky-500 rounded-lg flex items-center justify-center">
@@ -241,7 +241,7 @@ export default function EnhancedLandingPage() {
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 group"
               >
-                Start Free Trial
+                Start Now
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button

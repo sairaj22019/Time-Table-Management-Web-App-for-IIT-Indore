@@ -127,13 +127,13 @@ export async function POST(req) {
   try {
     const { title, courseCode,lectures,tutorials,practicals, schedule,studentYear, forSemester, profName,courseCoordinator, profEmail, credits, students } =await req.json();
     // console.log(typeof schedule);
+    console.log( title, courseCode,lectures,tutorials,practicals, schedule,studentYear, forSemester, profName,courseCoordinator, profEmail, credits, students)
     if (
       !title ||
       !schedule ||
       !courseCode ||
       !lectures ||
-      !tutorials ||
-      !practicals ||
+ 
       !forSemester ||
       !studentYear ||
       !profName ||

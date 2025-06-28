@@ -1440,7 +1440,7 @@ export default function CoursesPage({ studentEmail, year, currentSem }) {
           className="mb-6 sm:mb-8"
         >
           <div className="flex flex-col gap-4 mb-4 sm:mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">My Courses</h1>
                 <p className="text-sm sm:text-base text-gray-600">Manage and track your enrolled courses</p>
@@ -1448,14 +1448,27 @@ export default function CoursesPage({ studentEmail, year, currentSem }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs sm:text-sm">
                   {filteredCourses.length} Courses
-                </Badge>
-                {selectedDepartment !== "all" && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs sm:text-sm">
-                    {DEPARTMENT_MAPPING[selectedDepartment] || selectedDepartment}
-                  </Badge>
-                )}
-              </div>
-            </div>
+                </Badge> */}
+  
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  {/* Title and Description */}
+  <div>
+    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">My Courses</h1>
+    <p className="text-sm sm:text-base text-gray-600">Manage and track your enrolled courses</p>
+  </div>
+
+  {/* Right-Aligned Badge always visible */}
+  <div className="flex items-center gap-2">
+    <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs sm:text-sm">
+      {filteredCourses.length} Courses
+    </Badge>
+    {selectedDepartment !== "all" && (
+      <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs sm:text-sm">
+        {DEPARTMENT_MAPPING[selectedDepartment] || selectedDepartment}
+      </Badge>
+    )}
+  </div>
+</div>
             {/* Search and Filter Section */}
             <div className="flex gap-3 flex-col sm:flex-row sm:gap-4">
               <div className="relative flex-grow">
@@ -1524,7 +1537,8 @@ export default function CoursesPage({ studentEmail, year, currentSem }) {
                   <Card className="shadow-lg py-0 rounded-xl sm:rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden">
                     {/* Compact Header - Always Visible */}
                     <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6 ">
-                      <div className="flex flex-col items-start sm:flex-row sm:items-center justify-between gap-3">
+                      {/* <div className="flex flex-col items-start sm:flex-row sm:items-center justify-between gap-3"> */}
+                      <div className="flex flex-row items-center justify-between flex-wrap gap-3">
                         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                           <motion.div
                             className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-md flex-shrink-0"
