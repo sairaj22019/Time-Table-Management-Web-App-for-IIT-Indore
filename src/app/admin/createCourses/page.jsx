@@ -1,4 +1,3 @@
-
 "use client"
 import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
@@ -376,8 +375,8 @@ export default function CreateCoursePage() {
       }
 
       console.log("Sending course data:", courseData)
-      let response;
-      if(data.year==1){
+      let response
+      if (data.year == 1) {
         response = await fetch("/api/course/createCourseForYear1", {
           method: "POST",
           headers: {
@@ -385,7 +384,7 @@ export default function CreateCoursePage() {
           },
           body: JSON.stringify(courseData),
         })
-      }else{
+      } else {
         response = await fetch("/api/course/createCourse", {
           method: "POST",
           headers: {
@@ -420,19 +419,21 @@ export default function CreateCoursePage() {
         initial={{ opacity: 0, scale: 0.9, y: 50 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-5xl mx-auto"
+        className="w-full max-w-6xl mx-auto"
       >
         <Card className="shadow-2xl rounded-3xl border border-gray-100 bg-white/90 backdrop-blur-lg overflow-visible">
           <CardContent className="py-12 px-10 overflow-visible">
             <div className="flex flex-col items-center justify-between gap-3 mb-8">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div>
-                  <GraduationCap className="w-10 h-10 text-blue-600" />
+                  <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />
                 </div>
-                <h2 className="text-4xl font-bold text-gray-800">Create New Course</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 whitespace-nowrap">
+                  Create New Course
+                </h2>
               </div>
               <Link
-                href="/courses"
+                href="/admin/courses"
                 className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
               >
                 ← Back to courses
@@ -584,7 +585,7 @@ export default function CreateCoursePage() {
                           <FormLabel
                             className={`text-base font-semibold ${form.formState.errors.duration ? "text-red-600" : "text-gray-700"}`}
                           >
-                            Duration *
+                            Duration*
                           </FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
@@ -621,7 +622,7 @@ export default function CreateCoursePage() {
                             <FormLabel
                               className={`text-base font-semibold ${form.formState.errors.L ? "text-red-600" : "text-gray-700"}`}
                             >
-                              Lectures *
+                              L *
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -647,7 +648,7 @@ export default function CreateCoursePage() {
                             <FormLabel
                               className={`text-base font-semibold ${form.formState.errors.T ? "text-red-600" : "text-gray-700"}`}
                             >
-                              Tutorials *
+                              T *
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -673,7 +674,7 @@ export default function CreateCoursePage() {
                             <FormLabel
                               className={`text-base font-semibold ${form.formState.errors.P ? "text-red-600" : "text-gray-700"}`}
                             >
-                              Practicals *
+                              P *
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -699,7 +700,7 @@ export default function CreateCoursePage() {
                             <FormLabel
                               className={`text-base font-semibold ${form.formState.errors.C ? "text-red-600" : "text-gray-700"}`}
                             >
-                              Credits *
+                              C *
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -749,22 +750,23 @@ export default function CreateCoursePage() {
                   transition={{ delay: 0.2 }}
                   className="space-y-8"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-100">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-100 min-w-0">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         2
                       </div>
-                      <h3 className="text-xl font-bold text-gray-800">Professors</h3>
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 truncate">Professors</h3>
                     </div>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => appendProfessor({ name: "", email: "" })}
-                      className="flex items-center gap-2 border-2 border-blue-200 hover:bg-blue-50 transition-colors"
+                      className="flex items-center gap-1 sm:gap-2 border-2 border-blue-200 hover:bg-blue-50 transition-colors text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex-shrink-0"
                     >
-                      <Plus className="w-4 h-4" />
-                      Add Professor
+                      <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden xs:inline sm:inline">Add Professor</span>
+                      <span className="xs:hidden sm:hidden">Add</span>
                     </Button>
                   </div>
 
@@ -867,7 +869,7 @@ export default function CreateCoursePage() {
                       <FormItem>
                         <FormLabel className="text-base font-semibold text-gray-700">
                           Select Departments
-                            <span className="text-sm font-normal text-gray-500 ml-2">
+                          <span className="text-sm font-normal text-gray-500 ml-2">
                             (Optional if roll numbers are provided)
                           </span>
                         </FormLabel>
@@ -1302,7 +1304,7 @@ export default function CreateCoursePage() {
                     type="button"
                     variant="outline"
                     className="px-8 h-14 border-2 border-gray-300 hover:bg-gray-50 font-semibold text-lg transition-colors"
-                    onClick={() => router.push("/courses")}
+                    onClick={() => router.push("/admin/courses")}
                   >
                     Cancel
                   </Button>

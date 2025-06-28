@@ -71,6 +71,7 @@ export default function LoginPage() {
   }
 
   const handleGoogleLogin = () => {
+    console.log("hi")
     signIn('google', { callbackUrl: '/profile' })
       .catch(() => setErrorMsg('Failed to sign in with Google.'))
   }
@@ -204,4 +205,3 @@ export default function LoginPage() {
     </main>
   )
 }
-
