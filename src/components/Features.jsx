@@ -1,27 +1,3 @@
-// import React from 'react'
-
-// function Features() {
-//   return (
-//     <div className='border-[0.1px] border-indigo-500 mx-5 my-3 py-5 gap-5 rounded-lg bg-indigo-100 flex flex-col '>
-//         <h1 className="text-slate-700 text-3xl font-bold text-center">Core Features That Simplify Scheduling</h1>
-//         <div className='px-6 flex items-center justify-center'>
-//             <ul className='list-disc text-lg grid text-slate-800 md:grid-cols-2 gap-x-7 gap-y-3'>
-//                 <li className=''> Centralized Course Management – Easily create, update, and manage courses and schedules</li>
-//                 <li> Personalized Timetables – Get real-time schedules tailored to each user</li>
-//                 <li> Smart Notifications – Stay updated with instant alerts for any changes</li>
-//                 <li> Polls for Flexible Scheduling – Professors can create polls, students can vote</li>
-//                 <li> Conflict Detection – Avoid overlapping schedules and room clashes</li>
-//                 <li> Real-Time Updates – All changes reflect instantly across the platform</li>
-                
-//             </ul>
-
-//         </div>
-//     </div>
-//   )
-// }
-
-// export default Features
-
 
 import React from "react";
 import { CheckCircle } from "lucide-react";
