@@ -88,8 +88,6 @@ export async function POST(req) {
       !slots ||
       !forSemester ||
       !lectures ||
-      !tutorials ||
-      !practicals ||
       !room ||
       !studentYear ||
       !profName ||
