@@ -11,10 +11,14 @@ const notificationSchema = new Schema(
       enum: ['poll', 'poll update', 'timetable', 'general message'],
       default: 'timetable',
     },
-    isRead: {
-      type: Boolean,
-      default: false,
+    prof:{
+      type:Schema.Types.ObjectId,
+      default:null,
     },
+    course:{
+      type:Schema.Types.ObjectId,
+      required:[true,"Course ID is required sending a notification"],
+    }
   },
   { timestamps: true }
 );
