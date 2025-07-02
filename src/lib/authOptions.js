@@ -5,6 +5,7 @@ import { connectDB } from "@/dbConnection/ConnectDB";
 import User from "@/models/User.model";
 import bcrypt from "bcryptjs";
 
+
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -90,13 +91,22 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        const userdata = await User.findById(user.id)
+        if(!userdata){
+          console.error("user not found")
+        }
+        token.role = userdata.role
+
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = String(token.id);
+        session.user.role = token.role
+
       }
+      console.log("session" , session.user)
       return session;
     },
   },
