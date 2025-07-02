@@ -183,6 +183,7 @@ export default function InboxPage() {
       // Automatically mark as read when expanding
       setNotifications((prev) =>
         prev.map((notification) => (notification._id === id ? { ...notification, isRead: true } : notification)),
+      
       )
     }
     setExpandedItems(newExpanded)

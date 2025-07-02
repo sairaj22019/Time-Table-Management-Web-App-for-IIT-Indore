@@ -25,10 +25,6 @@ const scheduleSchema = z.object({
   room: z.string().min(1, "Room is required"),
 })
 
-// Add room input state variable after slotError
-// const [roomInput, setRoomInput] = useState("")
-
-// Update the formSchema to handle slots with room for year > 1
 const slotSchema = z.string().min(1, "Slot is required")
 
 const professorSchema = z.object({
@@ -169,6 +165,8 @@ export default function CreateCoursePage() {
     name: "schedule",
   })
 
+  
+  
   // Validate roll number (exactly 9 characters)
   const validateRollNumber = (rollNumber) => {
     return rollNumber.trim().length === 9

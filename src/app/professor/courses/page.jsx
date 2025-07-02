@@ -197,8 +197,6 @@ export default function ProfessorCoursesPage() {
                     transition={{ duration: 0.2 }}
                     layout
                   >
-                    {/* Card rendering unchanged */}
-                    {/* ... (same as your original JSX from here on) */}
                     <Card className="shadow-lg rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-0 pt-2">
                   {/* Compact Header - Always Visible */}
                   <CardHeader className="pb-4 sm:pb-6 pt-5 sm:pt-6">
