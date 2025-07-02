@@ -55,8 +55,8 @@ const items = [
     icon: CalendarDays,
   },
   {
-    title: "Settings",
-    url: "/professor/settings",
+    title: "Send Message",
+    url: "/professor/sendMessage",
     icon: Settings,
   },
 ]

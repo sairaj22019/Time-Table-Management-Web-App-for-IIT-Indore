@@ -1,30 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-  HiPaperAirplane,
-  HiAcademicCap,
-  HiPencilAlt,
-  HiCheck,
-  HiExclamation,
-  HiInformationCircle,
-  HiX,
-} from "react-icons/hi"
+import { HiPaperAirplane, HiAcademicCap, HiPencilAlt, HiCheck, HiExclamation, HiX } from "react-icons/hi"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-
-// Mock course data - replace with your actual API calls
-const mockCourses = [
-  { code: "CS 401", name: "Advanced Web Development", instructor: "Dr. Sarah Johnson" },
-  { code: "CS 350", name: "Database Management Systems", instructor: "Prof. Michael Chen" },
-  { code: "CS 480", name: "Machine Learning", instructor: "Dr. Alex Kumar" },
-  { code: "CS 320", name: "Software Engineering", instructor: "Prof. Emily Davis" },
-  { code: "CS 450", name: "Computer Networks", instructor: "Dr. Robert Wilson" },
-]
+import { useSession } from "next-auth/react"
 
 const messageTypes = [
   { value: "announcement", label: "Announcement", color: "bg-blue-100 text-blue-700" },
@@ -38,16 +23,67 @@ export default function SendMessagePage() {
   const [title, setTitle] = useState("")
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState(null) // 'success', 'error', null
+  const [submitStatus, setSubmitStatus] = useState(null)
   const [errors, setErrors] = useState({})
   const [courseSearch, setCourseSearch] = useState("")
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [teachingCourses, setTeachingCourses] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredCourses = mockCourses.filter(
+  const { data: session } = useSession()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Fetch teaching courses from API
+  useEffect(() => {
+    if (!session) return
+
+    const fetchTeachingCourses = async () => {
+      try {
+        const res = await fetch("/api/professor/getAllCourses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profEmail: session.user.email }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setTeachingCourses(data.data)
+        } else {
+          console.error("Error:", data.message)
+        }
+      } catch (error) {
+        console.error("Fetch error:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTeachingCourses()
+  }, [session])
+
+  // Auto-fill course data from URL parameters
+  useEffect(() => {
+    const courseId = searchParams.get("courseId")
+    const courseCode = searchParams.get("courseCode")
+    const courseTitle = searchParams.get("courseTitle")
+    const professor = searchParams.get("professor")
+    const studentsCount = searchParams.get("studentsCount")
+
+    if (courseId && courseCode && courseTitle) {
+      setSelectedCourse(courseId)
+      setCourseSearch(`${courseCode} - ${courseTitle}`)
+
+      // Store additional info for display
+      if (professor || studentsCount) {
+        // This will be used when selectedCourseData is found
+      }
+    }
+  }, [searchParams])
+
+  const filteredCourses = teachingCourses.filter(
     (course) =>
-      course.code.toLowerCase().includes(courseSearch.toLowerCase()) ||
-      course.name.toLowerCase().includes(courseSearch.toLowerCase()) ||
-      course.instructor.toLowerCase().includes(courseSearch.toLowerCase()),
+      course.courseCode.toLowerCase().includes(courseSearch.toLowerCase()) ||
+      course.title.toLowerCase().includes(courseSearch.toLowerCase()),
   )
 
   useEffect(() => {
@@ -62,7 +98,6 @@ export default function SendMessagePage() {
 
   const validateForm = () => {
     const newErrors = {}
-
     if (!selectedCourse) newErrors.course = "Please select a course"
     if (!title.trim()) newErrors.title = "Title is required"
     if (!message.trim()) newErrors.message = "Message content is required"
@@ -74,16 +109,14 @@ export default function SendMessagePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!validateForm()) return
 
     setIsSubmitting(true)
     setSubmitStatus(null)
 
     try {
-      // Simulate API call
+      // Simulate API call - replace with your actual API endpoint
       await new Promise((resolve) => setTimeout(resolve, 2000))
-
       // Mock success/error for demo
       const success = Math.random() > 0.2 // 80% success rate
 
@@ -107,7 +140,7 @@ export default function SendMessagePage() {
     }
   }
 
-  const selectedCourseData = mockCourses.find((course) => course.code === selectedCourse)
+  const selectedCourseData = teachingCourses.find((course) => course._id === selectedCourse)
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -129,6 +162,18 @@ export default function SendMessagePage() {
         ease: "easeOut",
       },
     },
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-3 sm:p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">Loading courses...</p>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -168,7 +213,7 @@ export default function SendMessagePage() {
                 <motion.div variants={itemVariants} className="space-y-2">
                   <label className="text-sm sm:text-base font-medium text-gray-700 flex items-center gap-2">
                     <HiAcademicCap className="w-4 h-4 text-blue-600" />
-                    Select Course
+                    <span className="font-bold">Select Course</span>
                   </label>
                   <div className="relative">
                     <Input
@@ -192,20 +237,23 @@ export default function SendMessagePage() {
                         >
                           {filteredCourses.map((course) => (
                             <motion.div
-                              key={course.code}
+                              key={course._id}
                               whileHover={{ backgroundColor: "#f3f4f6" }}
                               className="p-3 cursor-pointer border-b border-gray-100 last:border-b-0"
                               onClick={() => {
-                                setSelectedCourse(course.code)
-                                setCourseSearch(`${course.code} - ${course.name}`)
+                                setSelectedCourse(course._id)
+                                setCourseSearch(`${course.courseCode} - ${course.title}`)
                                 setShowSuggestions(false)
                               }}
                             >
                               <div className="flex flex-col">
-                                <span className="font-medium text-gray-800">
-                                  {course.code} - {course.name}
+                                <span className="font-bold text-gray-800">
+                                  {course.courseCode} - {course.title}
                                 </span>
-                                <span className="text-xs text-gray-500">{course.instructor}</span>
+                                <span className="text-xs text-gray-500">
+                                  <span className="font-bold">Students:</span> {course.enrolledStudents?.length || 0}{" "}
+                                  enrolled
+                                </span>
                               </div>
                             </motion.div>
                           ))}
@@ -236,14 +284,20 @@ export default function SendMessagePage() {
                       className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-blue-100"
                     >
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
-                            {selectedCourseData.code}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-gray-600">{selectedCourseData.name}</p>
-                          <p className="text-xs text-gray-500">Instructor: {selectedCourseData.instructor}</p>
+                        <div className="space-y-1">
+                          <h3 className="font-bold text-gray-800 text-sm sm:text-base">{selectedCourseData.title}</h3>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            <span className="font-bold">Course Code:</span> {selectedCourseData.courseCode}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            <span className="font-bold">Professor:</span> {session?.user?.name || "You"}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            <span className="font-bold">Students:</span>{" "}
+                            {selectedCourseData.enrolledStudents?.length || 0}
+                          </p>
                         </div>
-                        <Badge className="bg-blue-100 text-blue-700">Selected</Badge>
+                        <Badge className="bg-blue-100 text-blue-700 font-bold">Selected</Badge>
                       </div>
                     </motion.div>
                   )}
@@ -251,7 +305,9 @@ export default function SendMessagePage() {
 
                 {/* Message Title */}
                 <motion.div variants={itemVariants} className="space-y-2">
-                  <label className="text-sm sm:text-base font-medium text-gray-700">Message Title</label>
+                  <label className="text-sm sm:text-base font-medium text-gray-700">
+                    <span className="font-bold">Message Title</span>
+                  </label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -272,7 +328,9 @@ export default function SendMessagePage() {
 
                 {/* Message Content */}
                 <motion.div variants={itemVariants} className="space-y-2">
-                  <label className="text-sm sm:text-base font-medium text-gray-700">Message Content</label>
+                  <label className="text-sm sm:text-base font-medium text-gray-700">
+                    <span className="font-bold">Message Content</span>
+                  </label>
                   <Textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -350,25 +408,6 @@ export default function SendMessagePage() {
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* Info Box */}
-              {/* <motion.div
-                variants={itemVariants}
-                className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-blue-100"
-              >
-                <div className="flex items-start gap-2">
-                  <HiInformationCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs sm:text-sm text-blue-700">
-                    <p className="font-medium mb-1">Message Guidelines:</p>
-                    <ul className="space-y-1 text-blue-600">
-                      <li>• Keep messages clear and professional</li>
-                      <li>• Include all necessary details</li>
-                      <li>• Messages will be sent to all course participants</li>
-                      <li>• You can track message delivery in your sent items</li>
-                    </ul>
-                  </div>
-                </div>
-              </motion.div> */}
             </CardContent>
           </Card>
         </motion.div>

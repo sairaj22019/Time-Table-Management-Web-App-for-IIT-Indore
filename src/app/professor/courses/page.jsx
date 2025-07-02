@@ -1,8 +1,7 @@
-
 "use client"
-import React from "react"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 import {
   HiAcademicCap,
   HiCalendar,
@@ -27,7 +26,9 @@ export default function ProfessorCoursesPage() {
   const [filteredCourses, setFilteredCourses] = useState([])
   const [allCourses, setAllCourses] = useState([])
   const [expandedCards, setExpandedCards] = useState([])
+
   const { data: session, status } = useSession()
+  const router = useRouter()
 
   useEffect(() => {
     if (!session) return
@@ -39,7 +40,6 @@ export default function ProfessorCoursesPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ profEmail: session.user.email }),
         })
-
         const data = await res.json()
         if (data.success) {
           setAllCourses(data.data)
@@ -115,19 +115,27 @@ export default function ProfessorCoursesPage() {
     console.log(`Creating poll for course: ${courseName}`)
   }
 
-  const handleMessage = (courseId, courseName) => {
-    console.log(`Sending message for course: ${courseName}`)
+  const handleMessage = (course) => {
+    // Navigate to send message page with comprehensive course data pre-filled
+    const queryParams = new URLSearchParams({
+      courseId: course._id,
+      courseCode: course.courseCode,
+      courseTitle: course.title,
+      professor: session?.user?.name || "You",
+      studentsCount: course.enrolledStudents?.length || 0,
+    })
+
+    // Use the correct path based on your app structure
+    router.push(`/professor/sendMessage?${queryParams.toString()}`)
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-4 sm:p-6">
       <div className="w-full mx-auto">
         {/* Loading and auth checks */}
-        {status === 'loading' || !session ? (
+        {status === "loading" || !session ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">
-              {status === 'loading' ? "Loading..." : "You are not signed in"}
-            </p>
+            <p className="text-gray-600 text-lg">{status === "loading" ? "Loading..." : "You are not signed in"}</p>
           </div>
         ) : (
           <>
@@ -198,178 +206,179 @@ export default function ProfessorCoursesPage() {
                     layout
                   >
                     <Card className="shadow-lg rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-0 pt-2">
-                  {/* Compact Header - Always Visible */}
-                  <CardHeader className="pb-4 sm:pb-6 pt-5 sm:pt-6">
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <motion.div
-                          className="p-2.5 sm:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md"
-                          whileHover={{ rotate: 5, scale: 1.05 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <HiAcademicCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                        </motion.div>
-                        <div>
-                          <h3 className="font-bold text-gray-800 text-base sm:text-lg lg:text-xl leading-tight mb-1">
-                            {course.title}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-gray-500 font-medium">{course.courseCode}</p>
+                      {/* Compact Header - Always Visible */}
+                      <CardHeader className="pb-4 sm:pb-6 pt-5 sm:pt-6">
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-3 sm:gap-4">
+                            <motion.div
+                              className="p-2.5 sm:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md"
+                              whileHover={{ rotate: 5, scale: 1.05 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <HiAcademicCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            </motion.div>
+                            <div>
+                              <h3 className="font-bold text-gray-800 text-base sm:text-lg lg:text-xl leading-tight mb-1">
+                                {course.title}
+                              </h3>
+                              <p className="text-xs sm:text-sm text-gray-500 font-medium">{course.courseCode}</p>
+                            </div>
+                          </div>
+                          <Badge
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-700 font-semibold px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm whitespace-nowrap"
+                          >
+                            {course.credits} Credits
+                          </Badge>
                         </div>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className="bg-blue-100 text-blue-700 font-semibold px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm whitespace-nowrap"
-                      >
-                        {course.credits} Credits
-                      </Badge>
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-4 mb-6 sm:mb-7">
-                      <Button
-                        onClick={() => handlePoll(course._id, course.title)}
-                        size="sm"
-                        className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-200 py-2.5 sm:py-3 text-sm sm:text-base font-medium"
-                      >
-                        <HiSpeakerphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
-                        Create Poll
-                      </Button>
-                      <Button
-                        onClick={() => handleMessage(course._id, course.title)}
-                        size="sm"
-                        className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 py-2.5 sm:py-3 text-sm sm:text-base font-medium"
-                      >
-                        <HiMail className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
-                        Send Message
-                      </Button>
-                    </div>
+                        {/* Action Buttons */}
+                        <div className="flex gap-4 mb-6 sm:mb-7">
+                          <Button
+                            onClick={() => handlePoll(course._id, course.title)}
+                            size="sm"
+                            className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-200 py-2.5 sm:py-3 text-sm sm:text-base font-medium"
+                          >
+                            <HiSpeakerphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
+                            Create Poll
+                          </Button>
+                          <Button
+                            onClick={() => handleMessage(course)}
+                            size="sm"
+                            className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 py-2.5 sm:py-3 text-sm sm:text-base font-medium"
+                          >
+                            <HiMail className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
+                            Send Message
+                          </Button>
+                        </div>
 
-                    {/* View Details Button */}
-                    <motion.div>
-                      <Button
-                        onClick={() => toggleCardExpansion(course._id)}
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 py-2.5 sm:py-3 text-sm sm:text-base"
-                      >
-                        <motion.div
-                          animate={{ rotate: isExpanded ? 180 : 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="mr-2"
-                        >
-                          <HiChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        {/* View Details Button */}
+                        <motion.div>
+                          <Button
+                            onClick={() => toggleCardExpansion(course._id)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 py-2.5 sm:py-3 text-sm sm:text-base"
+                          >
+                            <motion.div
+                              animate={{ rotate: isExpanded ? 180 : 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="mr-2"
+                            >
+                              <HiChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </motion.div>
+                            {isExpanded ? "Hide Details" : "View Details"}
+                          </Button>
                         </motion.div>
-                        {isExpanded ? "Hide Details" : "View Details"}
-                      </Button>
-                    </motion.div>
-                  </CardHeader>
+                      </CardHeader>
 
-                  {/* Expandable Details Section */}
-                  <motion.div
-                    initial={false}
-                    animate={{
-                      height: isExpanded ? "auto" : 0,
-                      opacity: isExpanded ? 1 : 0,
-                    }}
-                    transition={{
-                      duration: 0.4,
-                      ease: [0.04, 0.62, 0.23, 0.98],
-                    }}
-                    className="overflow-hidden"
-                  >
-                    <CardContent className="pt-0 pb-5 sm:pb-6 px-5 sm:px-6">
+                      {/* Expandable Details Section */}
                       <motion.div
                         initial={false}
                         animate={{
-                          y: isExpanded ? 0 : -20,
+                          height: isExpanded ? "auto" : 0,
                           opacity: isExpanded ? 1 : 0,
                         }}
                         transition={{
-                          duration: 0.3,
-                          delay: isExpanded ? 0.1 : 0,
+                          duration: 0.4,
+                          ease: [0.04, 0.62, 0.23, 0.98],
                         }}
-                        className="space-y-5"
+                        className="overflow-hidden"
                       >
-                        {/* Course Stats - Student Count */}
-                        <div className="grid grid-cols-1 gap-4">
+                        <CardContent className="pt-0 pb-5 sm:pb-6 px-5 sm:px-6">
                           <motion.div
-                            className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
-                            whileHover={{ x: 5 }}
-                            transition={{ duration: 0.2 }}
+                            initial={false}
+                            animate={{
+                              y: isExpanded ? 0 : -20,
+                              opacity: isExpanded ? 1 : 0,
+                            }}
+                            transition={{
+                              duration: 0.3,
+                              delay: isExpanded ? 0.1 : 0,
+                            }}
+                            className="space-y-5"
                           >
-                            <div className="p-2 bg-white rounded-lg shadow-sm">
-                              <HiUserGroup className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
+                            {/* Course Stats - Student Count */}
+                            <div className="grid grid-cols-1 gap-4">
+                              <motion.div
+                                className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                                whileHover={{ x: 5 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <div className="p-2 bg-white rounded-lg shadow-sm">
+                                  <HiUserGroup className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="text-sm sm:text-base font-semibold text-gray-800">
+                                    {course.enrolledStudents?.length || 0} Students
+                                  </p>
+                                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Enrolled</p>
+                                </div>
+                              </motion.div>
                             </div>
-                            <div>
-                              <p className="text-sm sm:text-base font-medium text-gray-800">
-                                {course.enrolledStudents?.length || 0} Students
-                              </p>
-                              <p className="text-xs sm:text-sm text-gray-500">Enrolled</p>
-                            </div>
-                          </motion.div>
-                        </div>
 
-                        {/* Course Description */}
-                        {course.description && (
-                          <motion.div
-                            className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                            whileHover={{ x: 5 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div className="p-2 bg-white rounded-lg shadow-sm">
-                              <HiAcademicCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm sm:text-base font-medium text-gray-800">Course Description</p>
-                              <p className="text-xs sm:text-sm text-gray-500">{course.description}</p>
-                            </div>
-                          </motion.div>
-                        )}
+                            {/* Course Description */}
+                            {course.description && (
+                              <motion.div
+                                className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                                whileHover={{ x: 5 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <div className="p-2 bg-white rounded-lg shadow-sm">
+                                  <HiAcademicCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
+                                </div>
+                                <div>
+                                  <p className="text-sm sm:text-base font-semibold text-gray-800">Course Description</p>
+                                  <p className="text-xs sm:text-sm text-gray-500">{course.description}</p>
+                                </div>
+                              </motion.div>
+                            )}
 
-                        {/* Detailed Schedule */}
-                        {course.schedule && course.schedule.length > 0 && (
-                          <div className="space-y-2 sm:space-y-3">
-                            <h4 className="text-sm sm:text-base font-semibold text-gray-700 flex items-center gap-2 mb-4">
-                              <HiCalendar className="w-4 h-4" />
-                              Weekly Schedule
-                            </h4>
-                            <div className="space-y-2 sm:space-y-3">
-                              {course.schedule.map((sch, index) => (
-                                <motion.div
-                                  key={index}
-                                  initial={{ opacity: 0, x: -20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: index * 0.1 }}
-                                  className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-200"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    <div>
-                                      <span className="font-medium text-gray-800 text-sm sm:text-base">{sch.day}</span>
-                                      <p className="text-xs sm:text-sm text-gray-500">
-                                        {new Date(sch.start).toLocaleTimeString()} -{" "}
-                                        {new Date(sch.end).toLocaleTimeString()}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500">
-                                    <HiLocationMarker className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span>{sch.room}</span>
-                                  </div>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                            {/* Detailed Schedule */}
+                            {course.schedule && course.schedule.length > 0 && (
+                              <div className="space-y-2 sm:space-y-3">
+                                <h4 className="text-sm sm:text-base font-semibold text-gray-700 flex items-center gap-2 mb-4">
+                                  <HiCalendar className="w-4 h-4" />
+                                  Weekly Schedule
+                                </h4>
+                                <div className="space-y-2 sm:space-y-3">
+                                  {course.schedule.map((sch, index) => (
+                                    <motion.div
+                                      key={index}
+                                      initial={{ opacity: 0, x: -20 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: index * 0.1 }}
+                                      className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-200"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        <div>
+                                          <span className="font-medium text-gray-800 text-sm sm:text-base">
+                                            {sch.day}
+                                          </span>
+                                          <p className="text-xs sm:text-sm text-gray-500">
+                                            {new Date(sch.start).toLocaleTimeString()} -{" "}
+                                            {new Date(sch.end).toLocaleTimeString()}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500">
+                                        <HiLocationMarker className="w-3 h-3 sm:w-4 sm:h-4" />
+                                        <span>{sch.room}</span>
+                                      </div>
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        </CardContent>
                       </motion.div>
-                    </CardContent>
+                    </Card>
                   </motion.div>
-                </Card>
-              </motion.div>
-            )
-          })}
-                    {/* Full JSX remains untouched to preserve design and logic */}
-                  </motion.div>
+                )
+              })}
+            </motion.div>
 
             {/* Empty State */}
             {filteredCourses.length === 0 && (

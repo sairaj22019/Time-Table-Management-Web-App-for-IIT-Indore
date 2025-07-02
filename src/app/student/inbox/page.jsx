@@ -1,5 +1,5 @@
-
 "use client"
+
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -18,7 +18,6 @@ import {
   HiUsers,
   HiFilter,
 } from "react-icons/hi"
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -91,7 +90,6 @@ const mockNotifications = [
     createdAt: new Date("2025-01-15T09:15:00Z"),
     updatedAt: new Date("2025-01-15T09:15:00Z"),
     hasResponded: false,
-    // selectedOption: "68510239efee6cdde8a69b40",
     pollData: {
       _id: "68510239efee6cdde8a69b38",
       options: [
@@ -126,8 +124,31 @@ const mockNotifications = [
   },
 ]
 
+// Helper functions for localStorage persistence
+const getReadNotificationsFromStorage = () => {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem("readNotifications")
+    return stored ? JSON.parse(stored) : []
+  }
+  return []
+}
+
+const saveReadNotificationsToStorage = (readNotificationIds) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("readNotifications", JSON.stringify(readNotificationIds))
+  }
+}
+
+const updateNotificationsWithReadStatus = (notifications) => {
+  const readNotificationIds = getReadNotificationsFromStorage()
+  return notifications.map((notification) => ({
+    ...notification,
+    isRead: readNotificationIds.includes(notification._id),
+  }))
+}
+
 export default function InboxPage() {
-  const [notifications, setNotifications] = useState(mockNotifications)
+  const [notifications, setNotifications] = useState(() => updateNotificationsWithReadStatus(mockNotifications))
   const [filteredNotifications, setFilteredNotifications] = useState(mockNotifications)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
@@ -181,10 +202,17 @@ export default function InboxPage() {
     } else {
       newExpanded.add(id)
       // Automatically mark as read when expanding
-      setNotifications((prev) =>
-        prev.map((notification) => (notification._id === id ? { ...notification, isRead: true } : notification)),
-      
-      )
+      setNotifications((prev) => {
+        const updated = prev.map((notification) =>
+          notification._id === id ? { ...notification, isRead: true } : notification,
+        )
+
+        // Update localStorage with read notifications
+        const readNotificationIds = updated.filter((n) => n.isRead).map((n) => n._id)
+        saveReadNotificationsToStorage(readNotificationIds)
+
+        return updated
+      })
     }
     setExpandedItems(newExpanded)
   }
@@ -193,10 +221,9 @@ export default function InboxPage() {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
       console.log(`Submitting poll response: ${selectedOption} for notification: ${notificationId}`)
-
       // Update the notification to mark as responded
-      setNotifications((prev) =>
-        prev.map((notification) =>
+      setNotifications((prev) => {
+        const updated = prev.map((notification) =>
           notification._id === notificationId
             ? {
                 ...notification,
@@ -205,8 +232,14 @@ export default function InboxPage() {
                 isRead: true,
               }
             : notification,
-        ),
-      )
+        )
+
+        // Update localStorage with read notifications
+        const readNotificationIds = updated.filter((n) => n.isRead).map((n) => n._id)
+        saveReadNotificationsToStorage(readNotificationIds)
+
+        return updated
+      })
 
       // Clear the selected option from state
       setSelectedPollOptions((prev) => {
@@ -240,7 +273,6 @@ export default function InboxPage() {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
       console.log(`Updating poll response: ${selectedOption} for notification: ${notificationId}`)
-
       // Update the notification with new selection
       setNotifications((prev) =>
         prev.map((notification) =>
@@ -252,7 +284,6 @@ export default function InboxPage() {
             : notification,
         ),
       )
-
       setEditingPoll(null)
       setSelectedPollOptions((prev) => {
         const newState = { ...prev }
@@ -281,7 +312,6 @@ export default function InboxPage() {
   const getRelativeTime = (date) => {
     const now = new Date()
     const diffInHours = Math.floor((now - new Date(date)) / (1000 * 60 * 60))
-
     if (diffInHours < 1) return "Just now"
     if (diffInHours < 24) return `${diffInHours}h ago`
     const diffInDays = Math.floor(diffInHours / 24)
@@ -474,7 +504,9 @@ export default function InboxPage() {
                             <p className="text-gray-700 text-sm leading-relaxed font-semibold line-clamp-2">
                               {isPoll
                                 ? data.reason
-                                : data.content.substring(0, 80) + (data.content.length > 80 ? "..." : "")}
+                                : !isExpanded
+                                  ? data.content.substring(0, 80) + (data.content.length > 80 ? "..." : "")
+                                  : ""}
                             </p>
                           </div>
                         </div>
@@ -615,7 +647,6 @@ export default function InboxPage() {
                                               />
                                             </div>
                                           )}
-
                                           <div className="relative flex items-center justify-between">
                                             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                               <div
@@ -654,7 +685,6 @@ export default function InboxPage() {
                                                 </div>
                                               </div>
                                             </div>
-
                                             {/* Vote count and percentage */}
                                             {notification.hasResponded && !isEditing && (
                                               <div className="text-right flex-shrink-0 ml-2">
@@ -719,20 +749,7 @@ export default function InboxPage() {
                                 transition={{ delay: 0.1 }}
                                 className="space-y-4"
                               >
-                                {/* Light text for messages - visible on small screens only when expanded */}
-                                <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                  <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
-                                    <span className="flex items-center gap-1">
-                                      <HiAcademicCap className="w-3 h-3" />
-                                      {data.courseCode}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <HiClock className="w-3 h-3" />
-                                      {getRelativeTime(notification.createdAt)}
-                                    </span>
-                                  </div>
-                                  <div className="text-xs text-gray-600">by {data.sender}</div>
-                                </div>
+                                {/* Course details section removed for messages when expanded */}
 
                                 {/* Full Message Content */}
                                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 sm:p-4 rounded-xl border border-green-100">
@@ -780,5 +797,3 @@ export default function InboxPage() {
     </main>
   )
 }
-
-
