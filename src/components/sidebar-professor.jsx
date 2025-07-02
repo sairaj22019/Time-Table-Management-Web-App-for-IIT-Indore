@@ -59,6 +59,11 @@ const items = [
     url: "/professor/sendMessage",
     icon: Settings,
   },
+  {
+    title: "Create poll",
+    url: "/professor/createPoll",
+    icon: Settings,
+  },
 ]
 
 const dropdownVariants = {
