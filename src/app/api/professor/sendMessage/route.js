@@ -42,12 +42,12 @@ export async function POST(req){
         await newNotification.save();
         await course.populate("enrolledStudents");
         for(const student of course.enrolledStudents){
-            student.notifications.push(newNotification._id);
+            student.notifications.push({notification:newNotification._id,isRead:false});
             await student.save();
         }
         await course.populate("prof");
         for(const prof of course.prof){
-            prof.notifications.push(newNotification._id);
+            prof.notifications.push({notification:newNotification._id,isRead:false});
             await prof.save();
         }
         return NextResponse.json({

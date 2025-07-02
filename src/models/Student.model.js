@@ -37,6 +37,20 @@ const StudentSchema=new Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Notification",
     }]
+// notifications: [
+//   {
+//     notification: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "Notification",
+//       required: true
+//     },
+//     isRead: {
+//       type: Boolean,
+//       default: false
+//     }
+//   }
+// ]
+
 },{timestamps:true,minimize:false});
 
 const Student=models?.Student || model('Student',StudentSchema);
