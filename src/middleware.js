@@ -18,18 +18,37 @@ export async function middleware(request) {
   const token = await getToken({ req: request })
 
 
-  if (pathname.startsWith('/dashboard')) {
+  if (pathname.startsWith('/student')) {
     if (!token) {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('returnTo', pathname)
       return NextResponse.redirect(loginUrl)
     }
 
-
-    if (!token.username || !token.role) {
+    if (!token.role) {
       const completeUrl = new URL('/complete-profile', request.url)
       return NextResponse.redirect(completeUrl)
     }
+  }else if(pathname.startsWith('/professor')){
+    if (!token) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('returnTo', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    if (!token.role) {
+      const completeUrl = new URL('/complete-profile', request.url)
+      return NextResponse.redirect(completeUrl)
+    }
+  }
+  console.log("Token" , token);
+
+   if (pathname.startsWith('/student') && token.role !== 'student') {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  if (pathname.startsWith('/professor') && token.role !== 'professor') {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
   // else if(pathname.startsWith('/student')){
   //   if (!token) {
