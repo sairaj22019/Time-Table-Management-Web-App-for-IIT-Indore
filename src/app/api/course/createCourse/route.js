@@ -4,7 +4,33 @@ import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/User.model";
 import Professor from "@/models/Professor.model";
 import Student from "@/models/Student.model";
+import Grid from "@/models/Grid.model";
 
+function saveTime(timeString) {
+  let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
+  let hours = parseInt(hourStr, 10);
+  let minutes = parseInt(minuteStr, 10);
+
+  if (meridian === "pm" && hours !== 12) hours += 12;
+  if (meridian === "am" && hours === 12) hours = 0;
+
+  // Set a fixed date: Jan 1, 2000
+  const fixedDate = new Date(2000, 0, 1, hours, minutes, 0, 0);
+  //                year, month (0-indexed), day, hr, min, sec, ms
+
+  return fixedDate;
+}
+
+function getDay(i) {
+  return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][i];
+}
+
+function getStart(j){
+  return saveTime(["8:30:am","9:30:am","10:30:am","11:30:am","12:30:pm","1:30:pm","2:30:pm","3:30:pm","4:30:pm","5:30:pm"][j]);
+}
+function getEnd(j){
+  return saveTime(["9:30:am","10:30:am","11:30:am","12:30:pm","1:30:pm","2:30:pm","3:30:pm","4:30:pm","5:30:pm","6:30:pm"][j]);
+}
 async function addCourseToStudents(students, courseId, rollNumbers) {
   try {
     let s = [];
@@ -108,6 +134,7 @@ export async function POST(req) {
       title: title,
       courseCode: courseCode,
       slots: slots,
+      schedule:new Array,
       forSemester:forSemester,
       studentYear:studentYear,
       lectures:lectures,
@@ -144,6 +171,38 @@ export async function POST(req) {
       prof.teachingClasses.push(newCourse._id);
       await prof.save();
     }
+    //This will be the space to insert the schedule day wise slots into the course data.
+    const allGrids=await Grid.find({});
+    for(const grid of allGrids){
+      console.log(grid.year,grid.semester);
+    }
+    console.log(forSemester,studentYear,typeof studentYear);
+      const courseGrid=await Grid.findOne({year:String(studentYear),semester:(forSemester)});
+    if(!courseGrid){
+      return NextResponse.json({
+        success:false,
+        message:"Course grid is not yet made",
+      },{status:404});
+    }
+    const matchingSlots=new Array;
+    for(let i=0;i<courseGrid.grid.length;i++){
+      for(let j=0;j<courseGrid.grid[i].length;j++){
+        if(slots.includes(courseGrid.grid[i][j].slot)){
+          const day=getDay(i);
+          const start=getStart(j);
+          const end=getEnd(j);
+          const newTiming={
+            start:start,
+            end:end,
+            day:day,
+            room:room
+          }
+          matchingSlots.push(newTiming);
+        }
+      }
+    }
+    // console.log(matchingSlots);
+    newCourse.schedule=matchingSlots;
     await newCourse.save();
     return NextResponse.json(
       {

@@ -133,7 +133,6 @@ export async function POST(req) {
       !schedule ||
       !courseCode ||
       !lectures ||
- 
       !forSemester ||
       !studentYear ||
       !profName ||
@@ -172,6 +171,7 @@ export async function POST(req) {
       forSemester:forSemester,
       courseCoordinator:courseCoordinator,
       profEmail: profEmail,
+      isFinalized:true,
       credits: credits,
       prof: Array(profEmail.length),
       enrolledStudents: Array(),
