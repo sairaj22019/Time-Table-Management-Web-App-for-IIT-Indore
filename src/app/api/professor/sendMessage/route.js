@@ -17,7 +17,7 @@ export async function POST(req){
         },{status:500});
     }
     try {
-        const {courseId,profEmail,message}=await req.json();
+        const {courseId,profEmail,message,messageTitle}=await req.json();
         if(!courseId || !message || !profEmail) {
             return NextResponse.json({
                 success:false,
@@ -35,6 +35,7 @@ export async function POST(req){
         const profObject=await Professor.findOne({userId:userObject._id});
         const newNotification=new Notification({
             message:message,
+            messageTitle:messageTitle,
             prof:profObject._id,
             type:"general message",
             course:courseId,
