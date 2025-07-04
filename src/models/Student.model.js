@@ -42,7 +42,7 @@ const StudentSchema=new Schema({
          notification: {
            type: mongoose.Schema.Types.ObjectId,
            ref: "Notification",
-           required: true
+        //    required: true
          },
          isRead: {
            type: Boolean,
