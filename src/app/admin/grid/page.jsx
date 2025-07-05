@@ -1,18 +1,23 @@
 
+"use client";
+import { useState } from "react";
+import React from "react";
 
-"use client"
-import { useState } from "react"
-import React from "react"
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Save, RotateCcw, GraduationCap, Clock } from "lucide-react";
+import { motion } from "framer-motion";
 
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Save, RotateCcw, GraduationCap, Clock } from "lucide-react"
-import { motion } from "framer-motion"
-
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Time slots configuration
 const timeSlots = [
@@ -20,13 +25,19 @@ const timeSlots = [
   { id: "slot2", label: "9:30-10:25", start: "9:30", end: "10:25" },
   { id: "slot3", label: "10:30-11:25", start: "10:30", end: "11:25" },
   { id: "slot4", label: "11:30-12:25", start: "11:30", end: "12:25" },
-  { id: "lunch", label: "12:30-13:25", start: "12:30", end: "13:25", isLunch: true },
+  {
+    id: "lunch",
+    label: "12:30-13:25",
+    start: "12:30",
+    end: "13:25",
+    isLunch: true,
+  },
   { id: "slot5", label: "13:30-14:25", start: "13:30", end: "14:25" },
   { id: "slot6", label: "14:30-15:25", start: "14:30", end: "15:25" },
   { id: "slot7", label: "15:30-16:25", start: "15:30", end: "16:25" },
   { id: "slot8", label: "16:30-17:25", start: "16:30", end: "17:25" },
   { id: "slot9", label: "17:30-18:25", start: "17:30", end: "18:25" },
-]
+];
 
 const daysOfWeek = [
   { id: "monday", label: "Mon", fullName: "Monday" },
@@ -35,44 +46,46 @@ const daysOfWeek = [
   { id: "thursday", label: "Thu", fullName: "Thursday" },
   { id: "friday", label: "Fri", fullName: "Friday" },
   { id: "saturday", label: "Sat", fullName: "Saturday" },
-]
+];
 
 // Cell input component
 const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
-  const [localValue, setLocalValue] = useState(value || "")
-  const [isEditing, setIsEditing] = useState(false)
-  const slotInputRef = React.useRef(null)
+  const [localValue, setLocalValue] = useState(value || "");
+  const [isEditing, setIsEditing] = useState(false);
+  const slotInputRef = React.useRef(null);
 
   const handleChange = (newValue) => {
-    setLocalValue(newValue)
-    onChange(newValue)
-  }
+    setLocalValue(newValue);
+    onChange(newValue);
+  };
 
   const handleCellClick = (e) => {
-    e.stopPropagation()
-    setIsEditing(true)
-  }
+    e.stopPropagation();
+    setIsEditing(true);
+  };
 
   const handleSlotKeyDown = (e) => {
     if (e.key === "Enter") {
-      e.preventDefault()
-      setIsEditing(false)
+      e.preventDefault();
+      setIsEditing(false);
     }
-  }
+  };
 
   const handleEditingEnd = () => {
-    setIsEditing(false)
-  }
+    setIsEditing(false);
+  };
 
   // Don't show empty cells in display mode
-  const hasContent = localValue && localValue.trim()
+  const hasContent = localValue && localValue.trim();
 
   if (isLunch) {
     return (
       <div className="h-12 sm:h-16 md:h-20 bg-orange-50 border border-orange-200 rounded-md sm:rounded-lg flex items-center justify-center px-1">
-        <span className="text-xs sm:text-sm font-medium text-orange-700 text-center leading-tight">Lunch Break</span>
+        <span className="text-xs sm:text-sm font-medium text-orange-700 text-center leading-tight">
+          Lunch Break
+        </span>
       </div>
-    )
+    );
   }
 
   return (
@@ -81,7 +94,10 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
       onClick={handleCellClick}
     >
       {isEditing ? (
-        <div className="h-full flex flex-col justify-center" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="h-full flex flex-col justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Input
             ref={slotInputRef}
             placeholder="Slot"
@@ -89,7 +105,7 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
             onChange={(e) => handleChange(e.target.value.toUpperCase())}
             onKeyDown={handleSlotKeyDown}
             onBlur={() => {
-              handleEditingEnd()
+              handleEditingEnd();
             }}
             className="h-6 sm:h-8 text-xs sm:text-sm border-0 p-1 bg-blue-50 focus:bg-white text-center"
             autoFocus
@@ -98,7 +114,9 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
       ) : (
         <div className="h-full flex flex-col justify-center items-center text-center group-hover:bg-blue-50 rounded transition-colors">
           {hasContent ? (
-            <div className="text-xs sm:text-sm md:text-lg font-bold text-blue-700 leading-tight">{localValue}</div>
+            <div className="text-xs sm:text-sm md:text-lg font-bold text-blue-700 leading-tight">
+              {localValue}
+            </div>
           ) : (
             <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
               Click to add
@@ -107,94 +125,103 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 export default function TimetablePage() {
-  const router = useRouter()
-  const [timetableData, setTimetableData] = useState({})
-  const [loading, setLoading] = useState(false)
-  const [timetableTitle, setTimetableTitle] = useState("")
-  const [academicYear, setAcademicYear] = useState("")
-  const [semester, setSemester] = useState("")
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
-  const [lunchBreakSlot, setLunchBreakSlot] = useState("lunch")
-  const [year, setYear] = useState("")
+  const router = useRouter();
+  const [timetableData, setTimetableData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [timetableTitle, setTimetableTitle] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
+  const [semester, setSemester] = useState("");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [lunchBreakSlot, setLunchBreakSlot] = useState("lunch");
+  const [year, setYear] = useState("");
 
   const handleCellChange = (day, slot, value) => {
     setTimetableData((prev) => ({
       ...prev,
       [`${day}-${slot}`]: value,
-    }))
-  }
+    }));
+  };
 
   const handleReset = () => {
-    setShowResetConfirm(true)
-  }
+    setShowResetConfirm(true);
+  };
 
   const confirmReset = () => {
-    setTimetableData({})
-    setTimetableTitle("")
-    setAcademicYear("")
-    setSemester("")
-    setYear("")
-    setLunchBreakSlot("lunch")
-    setShowResetConfirm(false)
+    setTimetableData({});
+    setTimetableTitle("");
+    setAcademicYear("");
+    setSemester("");
+    setYear("");
+    setLunchBreakSlot("lunch");
+    setShowResetConfirm(false);
     // Force re-render of all cells
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   const cancelReset = () => {
-    setShowResetConfirm(false)
-  }
+    setShowResetConfirm(false);
+  };
 
   const handleSave = async () => {
     if (!timetableTitle.trim()) {
-      alert("Please enter a timetable title")
-      return
+      alert("Please enter a timetable title");
+      return;
     }
 
     if (!academicYear || !semester || !year) {
-      alert("Please select semester year, semester, and year")
-      return
+      alert("Please select semester year, semester, and year");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       // Convert timetableData to 6x10 grid format
       const grid = daysOfWeek.map((day) => {
         return timeSlots.map((timeSlot) => {
-          const cellKey = `${day.id}-${timeSlot.id}`
-          const cellData = timetableData[cellKey]
+          const cellKey = `${day.id}-${timeSlot.id}`;
+          const cellData = timetableData[cellKey];
 
           // Handle lunch break
           if (timeSlot.id === lunchBreakSlot) {
             return {
               slot: "LB",
-            }
+            };
           }
 
           // Handle filled slots
           if (cellData && cellData.trim()) {
             return {
               slot: cellData.trim(),
-            }
+            };
           }
 
           // Handle free slots
           return {
             slot: "FS",
-          }
-        })
-      })
+          };
+        });
+      });
+
+      // const payload = {
+      //   grid: grid,
+      //   semester: academicYear + " " + semester,
+      //   year: Number.parseInt(year), // Convert to number
+      // }
+      const capitalizedSemester =
+        semester.charAt(0).toUpperCase() + semester.slice(1);
 
       const payload = {
         grid: grid,
-        semester: academicYear + " " + semester,
-        year: Number.parseInt(year), // Convert to number
-      }
-      console.log(payload)
+        semester: academicYear + " " + capitalizedSemester,
+        year: Number.parseInt(year),
+      };
+
+      console.log(payload);
       // Send to backend
       const response = await fetch("/api/course/createGrid", {
         method: "POST",
@@ -202,23 +229,23 @@ export default function TimetablePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
-        alert("Timetable saved successfully!")
-        console.log("Grid saved:", result.grid)
+        alert("Timetable saved successfully!");
+        console.log("Grid saved:", result.grid);
       } else {
-        throw new Error(result.message || "Failed to save timetable")
+        throw new Error(result.message || "Failed to save timetable");
       }
     } catch (error) {
-      console.error("Save error:", error)
-      alert(`Failed to save timetable: ${error.message}`)
+      console.error("Save error:", error);
+      alert(`Failed to save timetable: ${error.message}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 px-2 sm:px-4 py-4 sm:py-8">
@@ -250,7 +277,9 @@ export default function TimetablePage() {
             <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
               {/* Title - Full width */}
               <div className="space-y-2">
-                <label className="text-sm sm:text-base font-semibold text-gray-700">Timetable Title *</label>
+                <label className="text-sm sm:text-base font-semibold text-gray-700">
+                  Timetable Title *
+                </label>
                 <Input
                   placeholder="e.g., B.Tech 2nd Year - Spring 2024"
                   value={timetableTitle}
@@ -262,7 +291,9 @@ export default function TimetablePage() {
               {/* Form fields - 2 columns initially, 4 columns on large screens */}
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-1 sm:gap-2">
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">Year *</label>
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">
+                    Year *
+                  </label>
                   <Select value={year} onValueChange={setYear}>
                     <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
                       <SelectValue placeholder="Select Year" />
@@ -279,7 +310,9 @@ export default function TimetablePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">Sem Year *</label>
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">
+                    Sem Year *
+                  </label>
                   <Select value={academicYear} onValueChange={setAcademicYear}>
                     <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
                       <SelectValue placeholder="Select Semester Year" />
@@ -293,7 +326,9 @@ export default function TimetablePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">Semester *</label>
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">
+                    Semester *
+                  </label>
                   <Select value={semester} onValueChange={setSemester}>
                     <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
                       <SelectValue placeholder="Select Semester" />
@@ -306,8 +341,13 @@ export default function TimetablePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">Lunch Slot</label>
-                  <Select value={lunchBreakSlot} onValueChange={setLunchBreakSlot}>
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">
+                    Lunch Slot
+                  </label>
+                  <Select
+                    value={lunchBreakSlot}
+                    onValueChange={setLunchBreakSlot}
+                  >
                     <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
                       <SelectValue placeholder="Select Lunch Slot" />
                     </SelectTrigger>
@@ -345,26 +385,39 @@ export default function TimetablePage() {
                 {/* Header Row */}
                 <div className="grid grid-cols-11 gap-1 sm:gap-2 mb-2">
                   <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 sm:p-3 text-center">
-                    <div className="text-xs sm:text-sm font-bold text-gray-700">Day/</div>
-                    <div className="text-xs sm:text-sm font-bold text-gray-700">Time</div>
+                    <div className="text-xs sm:text-sm font-bold text-gray-700">
+                      Day/
+                    </div>
+                    <div className="text-xs sm:text-sm font-bold text-gray-700">
+                      Time
+                    </div>
                   </div>
                   {timeSlots.map((slot) => (
                     <div
                       key={slot.id}
                       className={`border border-gray-300 rounded-lg p-1 sm:p-2 text-center ${
-                        slot.id === lunchBreakSlot ? "bg-orange-100" : "bg-blue-50"
+                        slot.id === lunchBreakSlot
+                          ? "bg-orange-100"
+                          : "bg-blue-50"
                       }`}
                     >
-                      <div className="text-xs font-semibold text-gray-700 leading-tight">{slot.label}</div>
+                      <div className="text-xs font-semibold text-gray-700 leading-tight">
+                        {slot.label}
+                      </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Timetable Rows */}
                 {daysOfWeek.map((day) => (
-                  <div key={day.id} className="grid grid-cols-11 gap-1 sm:gap-2 mb-2">
+                  <div
+                    key={day.id}
+                    className="grid grid-cols-11 gap-1 sm:gap-2 mb-2"
+                  >
                     <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 sm:p-3 flex items-center justify-center">
-                      <span className="text-sm sm:text-base font-bold text-gray-700">{day.label}</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-700">
+                        {day.label}
+                      </span>
                     </div>
                     {timeSlots.map((slot) => (
                       <TimetableCell
@@ -372,7 +425,9 @@ export default function TimetablePage() {
                         day={day.id}
                         slot={slot.id}
                         value={timetableData[`${day.id}-${slot.id}`]}
-                        onChange={(value) => handleCellChange(day.id, slot.id, value)}
+                        onChange={(value) =>
+                          handleCellChange(day.id, slot.id, value)
+                        }
                         isLunch={slot.id === lunchBreakSlot}
                       />
                     ))}
@@ -424,10 +479,12 @@ export default function TimetablePage() {
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[300] p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Reset</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Confirm Reset
+            </h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to reset the entire timetable? This action cannot be undone and will clear all
-              entered data.
+              Are you sure you want to reset the entire timetable? This action
+              cannot be undone and will clear all entered data.
             </p>
             <div className="flex gap-3 justify-end">
               <Button
@@ -437,7 +494,10 @@ export default function TimetablePage() {
               >
                 Cancel
               </Button>
-              <Button onClick={confirmReset} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white">
+              <Button
+                onClick={confirmReset}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
+              >
                 Reset All
               </Button>
             </div>
@@ -445,9 +505,5 @@ export default function TimetablePage() {
         </div>
       )}
     </main>
-  )
+  );
 }
-
-
-
-

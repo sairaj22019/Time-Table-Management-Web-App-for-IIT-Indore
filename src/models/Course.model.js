@@ -85,7 +85,11 @@ const courseSchema = new Schema({
     type:mongoose.Schema.Types.ObjectId,
     ref:"Student",
     required:[true,"Student list is required"]
-  }]
+  }],
+  isFinalized:{
+    type:Boolean,
+    default:false,
+  },
 },{timestamps:true,minimize:false});
 
 

@@ -27,14 +27,6 @@ const PollSchema = new Schema({
   votes:{
     type:Object,
   },
-  course: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Course",
-  },
-  prof: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Professor",
-  },
   reason:{
     type:String,
     required:[true,"Reason for the poll is required"],
@@ -46,6 +38,10 @@ const PollSchema = new Schema({
   isApproved:{
     type:Boolean,
     default:false,
+  },
+  expiryDate:{
+    type:Date,
+    required:[true,"Expiry date for the poll is required"],
   }
   
 }, { timestamps: true, minimize: false });
