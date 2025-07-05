@@ -27,16 +27,7 @@ const notificationSchema = new Schema(
   { timestamps: true }
 );
 
-// Optional: Add custom validation logic
-notificationSchema.pre('save', function (next) {
-  if (this.type === 'poll' && !mongoose.Types.ObjectId.isValid(this.message)) {
-    return next(new Error('Invalid ObjectId for poll notification'));
-  }
-  if (this.type !== 'poll' && typeof this.message !== 'string') {
-    return next(new Error('Message must be a string for non-poll notifications'));
-  }
-  next();
-});
+
 
 const Notification = models?.Notification || model('Notification', notificationSchema);
 export default Notification;

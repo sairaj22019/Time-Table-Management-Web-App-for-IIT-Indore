@@ -277,6 +277,8 @@ import Professor from "@/models/Professor.model";
 import Student from "@/models/Student.model";
 import Grid from "@/models/Grid.model";
 import mongoose from "mongoose";
+import Poll from "@/models/Polls.model";
+import Notification from "@/models/Notification.model";
 
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
@@ -526,11 +528,47 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-
+    const allOptions=[];
+    for(const slot of matchingSlots){
+      const n={
+        date:new Date(2000,0,1),
+        day:slot.day,
+        start:slot.start,
+        end:slot.end,
+        room:slot.room,
+      }
+      allOptions.push(n);
+    }
+    const newPoll=new Poll({
+      options:allOptions,
+      reason:`For fixture of course schdule for the course ${newCourse.courseCode}`,
+      context:"Sending this poll to ask for the verification of slots which will be used for the given course",
+      expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    })
+    await newPoll.save({session});
+    const newNotification=new Notification({
+      message:newPoll._id,
+      messageTitle:"Confirmation of course schedule",
+      type:"schedule selection",
+      course:newCourse._id,
+    })
+    await newNotification.save({session});
+    const userObject=await User.findOne({email:profEmail[0]});
+    const professorObject=await Professor.findOne({userId:userObject._id});
+    if(!professorObject){
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { success: false, message: "Professor is not on the platform yet!" },
+        { status: 400 }
+      );
+    }
+    professorObject.notifications.push({notification:newNotification._id,isRead:false});
+    await professorObject.save({session});
     await newCourse.save({ session });
     await session.commitTransaction();
     session.endSession();
-    console.log(newCourse);
+    
     return NextResponse.json(
       {
         success: true,
