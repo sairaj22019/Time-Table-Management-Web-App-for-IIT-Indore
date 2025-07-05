@@ -1,6 +1,7 @@
 import { connectDB } from "@/dbConnection/ConnectDB";
 import { NextResponse } from "next/server";
 import Student from "@/models/Student.model";
+import User from "@/models/User.model"
 
 export async function POST(req) {
   try {
@@ -17,8 +18,10 @@ export async function POST(req) {
   }
 
   try {
-    const { userId, notificationList } = await req.json();
-    if (!userId || !notificationList || !Array.isArray(notificationList)) {
+    const { studentEmail, notificationList } = await req.json();
+    const userObj=await User.findOne({email:studentEmail});
+    const studentObj=await Student.findOne({userId:userObj._id});
+    if (!studentObj || !notificationList ) {
       return NextResponse.json(
         {
           success: false,
@@ -27,26 +30,13 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-
-    const student = await Student.findOne({ userId });
-    if (!student) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Student not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    for (const notificationId of notificationList) {
       const index = student.notifications.findIndex(
-        (item) => item.notification.toString() === notificationId
+        (item) => item.notification.toString() === notificationList
       );
       if (index !== -1) {
         student.notifications[index].isRead = true;
       }
-    }
+    
 
     await student.save();
 

@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import User from "@/models/User.model";
 import Student from "@/models/Student.model";
 import Notification from "@/models/Notification.model";
-
+import Professor from "@/models/Professor.model";
+import Course from "@/models/Course.model";
+import Poll from "@/models/Polls.model"
 export async function POST(req) {
   try {
     await connectDB();
@@ -49,14 +51,23 @@ export async function POST(req) {
     for (const item of student.notifications) {
       const notif = item.notification;
       if (notif && notif.type === "poll") {
-        await notif.populate("message"); // populate poll object into `message`
+        await notif.populate({path:"message",model:"Poll"}); // populate poll object into `message`
       }
+      if(notif){
+        await notif.populate({path:"prof",model:"Professor"});
+        const userId=notif.prof.userId;
+        const user=await User.findById(userId);
+        notif.prof=user;
+        await notif.populate({path:"course",model:"Course"});
+      }
+
     }
+    
 
     return NextResponse.json({
       success: true,
       message: "Student notifications fetched successfully",
-      student: student,
+      student: student.notifications,
     }, { status: 200 });
 
   } catch (error) {
