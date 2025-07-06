@@ -25,7 +25,8 @@ const PollSchema = new Schema({
     },
   }],
   votes:{
-    type:Object,
+    type:[Object],
+    default:[],
   },
   reason:{
     type:String,

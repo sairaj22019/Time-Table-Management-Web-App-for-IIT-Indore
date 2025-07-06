@@ -1,7 +1,7 @@
 import { connectDB } from "@/dbConnection/ConnectDB";
 import { NextResponse } from "next/server";
 import Student from "@/models/Student.model";
-import User from "@/models/User.model"
+import  User  from "@/models/User.model";
 
 export async function POST(req) {
   try {
@@ -19,9 +19,9 @@ export async function POST(req) {
 
   try {
     const { studentEmail, notificationList } = await req.json();
-    const userObj=await User.findOne({email:studentEmail});
-    const studentObj=await Student.findOne({userId:userObj._id});
-    if (!studentObj || !notificationList ) {
+    console.log(typeof notificationList)
+    console.log(studentEmail,notificationList);
+    if (!studentEmail || !notificationList) {
       return NextResponse.json(
         {
           success: false,
@@ -30,11 +30,37 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-      const index = student.notifications.findIndex(
-        (item) => item.notification.toString() === notificationList
+    const userObject=await User.findOne({email:studentEmail});
+    const student = await Student.findOne({userId:userObject._id });
+    if (!student) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Student not found",
+        },
+        { status: 404 }
       );
-      if (index !== -1) {
-        student.notifications[index].isRead = true;
+    }
+
+    
+      let index=-1;
+      for(let i=0;i<student.notifications.length;i++){
+        if(student.notifications[i]){
+          if(student.notifications[i].notification){
+            console.log(student.notifications[i].notification,student.notifications[i].isRead)
+            if(notificationList==student.notifications[i]._id.toString()){
+              index=2;
+              student.notifications[i].isRead=true;
+              break;
+            }
+          }
+        }
+      }
+      if(index===-1){
+        return NextResponse.json({
+          success:false,
+          message:"Error marking the message as read"
+        })
       }
     
 

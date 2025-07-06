@@ -18,8 +18,8 @@ export async function POST(req) {
     );
   }
   try {
-    const { option, notificationId, userId } = await req.json();
-    if (!option || !notificationId || !userId) {
+    const { option, notificationId, userEmail } = await req.json();
+    if (!option || !notificationId || !userEmail) {
       return NextResponse.json(
         {
           success: false,
@@ -29,7 +29,32 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    const notification = await Notification.findById(notificationId);
+    const userObject = await User.findOne({ email: userEmail });
+    const studentObject=await Student.findOne({userId:userObject._id});
+    if (!studentObject) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Student is not found",
+        },
+        { status: 404 }
+      );
+    }
+    let notificationToBeUsed;
+    let index=-1;
+    for(let i=0;i<studentObject.notifications.length;i++){
+        if(studentObject.notifications[i]){
+          if(studentObject.notifications[i].notification){
+            console.log(studentObject.notifications[i].notification,studentObject.notifications[i].isRead)
+            if(notificationId==studentObject.notifications[i]._id.toString()){
+              index=2;
+              notificationToBeUsed=studentObject.notifications[i].notification;
+              break;
+            }
+          }
+        }
+      }
+    const notification=await Notification.findById(notificationToBeUsed);
     if (!notification) {
       return NextResponse.json(
         {
@@ -58,29 +83,27 @@ export async function POST(req) {
         { status: 404 }
       );
     }
-    const student = await Student.findOne({ userId: userId });
-    if (!student) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Student is not found",
-        },
-        { status: 404 }
-      );
+    for(let i=0;i<poll.votes.length;i++){
+        if(poll.votes[i].voter.toString()==studentObject._id){
+            poll.votes.splice(i,1);
+            break;
+        }
     }
     //I am avoiding the check of the userId cause i know they will be verified by the frontnend sessions.
     //I am also avoiding the check of user option cause i know that the frontend will not allow any funny business with the option selection.
-    poll.votes.push({ option, time: new Date(), voter: student._id });
+    poll.votes.push({ option, time: new Date(), voter: studentObject._id });
     //THis will store the ID of the student who voted in for the poll;
     await poll.save();
     return NextResponse.json(
       {
         success: true,
         message: "Vote casted successfully",
+        poll:poll,
       },
       { status: 200 }
     );
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       {
         success: false,
