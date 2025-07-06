@@ -21,10 +21,23 @@ const ProfessorSchema=new Schema({
         type:mongoose.Schema.Types.ObjectId,  
         ref:"Poll",
     }],
-    notifications:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Notification",
-    }]
+    // notifications:[{
+    //     type:mongoose.Schema.Types.ObjectId,
+    //     ref:"Notification",
+    // }]
+    notifications: [
+           {
+             notification: {
+               type: mongoose.Schema.Types.ObjectId,
+               ref: "Notification",
+               required: true
+             },
+             isRead: {
+               type: Boolean,
+               default: false
+             }
+           }
+         ]
 },{timestamps:true,minimize:false})
 
 const Professor=models?.Professor || model('Professor',ProfessorSchema);

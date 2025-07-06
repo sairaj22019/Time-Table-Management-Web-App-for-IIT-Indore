@@ -189,11 +189,19 @@ export default function TimetablePage() {
         })
       })
 
+      // const payload = {
+      //   grid: grid,
+      //   semester: academicYear + " " + semester,
+      //   year: Number.parseInt(year), // Convert to number
+      // }
+      const capitalizedSemester =
+        semester.charAt(0).toUpperCase() + semester.slice(1);
+
       const payload = {
         grid: grid,
-        semester: academicYear + " " + semester,
-        year: Number.parseInt(year), // Convert to number
-      }
+        semester: academicYear + " " + capitalizedSemester,
+        year: Number.parseInt(year),
+      };
       console.log(payload)
       // Send to backend
       const response = await fetch("/api/course/createGrid", {

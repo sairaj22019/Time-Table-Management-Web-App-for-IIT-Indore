@@ -6,15 +6,23 @@ const notificationSchema = new Schema(
       type: Schema.Types.Mixed, // Can be String or ObjectId
       required: false,
     },
+    messageTitle:{
+      type:String,
+      required:false,
+    },
     type: {
       type: String,
-      enum: ['poll', 'poll update', 'timetable', 'general message'],
+      enum: ['poll', 'poll update', 'timetable', 'general message','schedule selection'],
       default: 'timetable',
     },
-    isRead: {
-      type: Boolean,
-      default: false,
+    prof:{
+      type:Schema.Types.ObjectId,
+      default:null,
     },
+    course:{
+      type:Schema.Types.ObjectId,
+      required:[true,"Course ID is required sending a notification"],
+    }
   },
   { timestamps: true }
 );

@@ -1,75 +1,84 @@
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Course from "@/models/Course.model";
-import { NextResponse } from "next/server";
 
-const generateAllSlots = () => {
-  const baseDate = new Date("2000-01-01T08:30:00.000+05:30");
+function saveTime(timeString) {
+  let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
+  let hours = parseInt(hourStr, 10);
+  let minutes = parseInt(minuteStr, 10);
+  if (meridian === "pm" && hours !== 12) hours += 12;
+  if (meridian === "am" && hours === 12) hours = 0;
+  return new Date(2000, 0, 1, hours, minutes, 0, 0);
+}
+
+function getAllSlots() {
+  const baseTimes = [
+    "8:30:am", "9:30:am", "10:30:am", "11:30:am", "12:30:pm",
+    "1:30:pm", "2:30:pm", "3:30:pm", "4:30:pm", "5:30:pm"
+  ];
   const slots = [];
-  for (let i = 0; i < 15; i++) {
-    const slot = new Date(baseDate.getTime() + i * 60 * 60 * 1000);
-    const hours = slot.getHours().toString().padStart(2, '0');
-    const minutes = slot.getMinutes().toString().padStart(2, '0');
-    slots.push(`${hours}:${minutes}`);
+  for (let i = 0; i < baseTimes.length - 1; i++) {
+    slots.push({
+      start: saveTime(baseTimes[i]),
+      end: saveTime(baseTimes[i + 1])
+    });
   }
   return slots;
-};
+}
 
 export async function POST(req) {
   try {
     await connectDB();
-  } catch (error) {
-    return NextResponse.json({
-      success: false,
-      message: "Database connection failed",
-      error,
-    }, { status: 500 });
-  }
+    const { days } = await req.json();
 
-  try {
-    const { room, days } = await req.json(); 
-
-    if (!room || !Array.isArray(days) || days.length === 0) {
+    if (!days || !Array.isArray(days)) {
       return NextResponse.json({
         success: false,
-        message: "Room and at least one day are required",
+        message: "Please provide an array of days",
       }, { status: 400 });
     }
 
-    const allSchedules = await Course.find({});
-    const allSlots = generateAllSlots();
-
-    const emptySlotsByDay = {};
+    const allCourses = await Course.find({});
+    const dayWiseFreeSlots = {};
 
     for (const day of days) {
-      const occupied = new Set();
+      const occupied = [];
 
-      for (const course of allSchedules) {
-        for (const schedule of course.schedule) {
-          if (schedule.room === room && schedule.day === day) {
-            const istDate = new Date(schedule.start.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-            const hour = istDate.getHours();
-            const minute = istDate.getMinutes();
-            const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-            occupied.add(timeStr);
+      for (const course of allCourses) {
+        for (const sch of course.schedule) {
+          if (sch.day === day) {
+            occupied.push({
+              start: new Date(sch.start).getTime(),
+              end: new Date(sch.end).getTime()
+            });
           }
         }
       }
 
-      const empty = allSlots.filter(slot => !occupied.has(slot));
-      emptySlotsByDay[day] = empty;
+      const allSlots = getAllSlots();
+      const freeSlots = allSlots.filter(slot => {
+        return !occupied.some(occ =>
+          slot.start.getTime() === occ.start && slot.end.getTime() === occ.end
+        );
+      });
+
+      dayWiseFreeSlots[day] = freeSlots.map(s => ({
+        start: s.start.toTimeString().substring(0, 5),
+        end: s.end.toTimeString().substring(0, 5)
+      }));
     }
 
     return NextResponse.json({
       success: true,
-      message: "Empty slots fetched successfully",
-      emptySlots: emptySlotsByDay,
-    });
-
+      message: "Available time slots for the given days",
+      freeSlots: dayWiseFreeSlots
+    }, { status: 200 });
   } catch (error) {
+    console.error("Internal error:", error);
     return NextResponse.json({
       success: false,
       message: "Internal server error",
-      error,
+      error
     }, { status: 500 });
   }
 }

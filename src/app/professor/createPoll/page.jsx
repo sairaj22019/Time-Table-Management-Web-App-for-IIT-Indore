@@ -1569,7 +1569,6 @@
 
 
 "use client"
-
 import { useState, useEffect } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
@@ -1651,7 +1650,6 @@ export default function CreatePollPage() {
   // Fetch user's teaching courses
   useEffect(() => {
     if (!session) return
-
     const fetchCourses = async () => {
       try {
         const res = await fetch("/api/professor/getAllCourses", {
@@ -1669,7 +1667,6 @@ export default function CreatePollPage() {
         console.error("Fetch error:", error)
       }
     }
-
     fetchCourses()
   }, [session])
 
@@ -1685,7 +1682,6 @@ export default function CreatePollPage() {
         setShowSuggestions(false)
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
@@ -1706,24 +1702,80 @@ export default function CreatePollPage() {
         professor: professor || "You",
         enrolledStudents: Array(Number.parseInt(studentsCount) || 0).fill({}),
       }
-
       setPrefilledCourse(prefilledData)
       form.setValue("selectedCourse", courseId)
       setCourseSearch(`${courseCode} - ${courseTitle}`)
     }
   }, [searchParams, form])
 
+  const handleCourseSelection = (course) => {
+    form.setValue("selectedCourse", course._id)
+    setCourseSearch(`${course.courseCode} - ${course.title}`)
+    setShowSuggestions(false)
+    setPrefilledCourse(null) // Clear prefilled when manually selecting
+
+    // Update URL with course details
+    const queryParams = new URLSearchParams({
+      courseId: course._id,
+      courseCode: course.courseCode,
+      courseTitle: course.title,
+      professor: session?.user?.email || "",
+      studentsCount: course.enrolledStudents?.length || 0,
+    })
+
+    router.push(`/professor/createPoll?${queryParams.toString()}`)
+  }
+
   const handleSubmit = async (data) => {
     setIsSubmitting(true)
     setSubmitStatus(null)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      // Mock success/error for demo
-      const success = Math.random() > 0.2 // 80% success rate
+      // Get courseId from selected course or URL params
+      const courseId = data.selectedCourse || searchParams.get("courseId")
 
-      if (success) {
+      // Get professor email from session
+      const profEmail = session?.user?.email || ""
+
+      // Set default expiry date to 7 days from now
+      const expiryDate = new Date()
+      expiryDate.setDate(expiryDate.getDate() + 7)
+
+      // Transform options to match backend format
+      const transformedOptions = data.options.map((option) => {
+        // Get day name from date
+        const date = new Date(option.date)
+        const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
+
+        return {
+          startTime: option.startTime,
+          endTime: option.endTime,
+          day: dayName,
+          date: option.date,
+          room: option.room,
+        }
+      })
+
+      const requestBody = {
+        options: transformedOptions,
+        reason: data.title,
+        context: data.context,
+        prof: profEmail,
+        courseId: courseId,
+        expiryDate: expiryDate.toISOString(),
+      }
+
+      const response = await fetch("/api/professor/createPoll", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
         setSubmitStatus("success")
         // Reset form after success
         setTimeout(() => {
@@ -1734,9 +1786,11 @@ export default function CreatePollPage() {
         }, 3000)
       } else {
         setSubmitStatus("error")
+        console.error("API Error:", result.message)
       }
     } catch (error) {
       setSubmitStatus("error")
+      console.error("Network Error:", error)
     } finally {
       setIsSubmitting(false)
     }
@@ -1750,12 +1804,10 @@ export default function CreatePollPage() {
       .split(" ")
       .map((word) => {
         if (word.length === 0) return word
-
         // Handle special cases like "l01" -> "L01"
         if (/^[a-z]\d+$/i.test(word)) {
           return word.toUpperCase()
         }
-
         // Regular capitalization
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
       })
@@ -1765,23 +1817,20 @@ export default function CreatePollPage() {
   // Format date to show date and day in DD-MM-YYYY Day format for input display
   const formatDateForInput = (dateString) => {
     if (!dateString) return ""
-
     const date = new Date(dateString)
     const day = date.getDate().toString().padStart(2, "0")
     const month = (date.getMonth() + 1).toString().padStart(2, "0")
     const year = date.getFullYear()
     const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
-    
+
     // Capitalize first letter and add space instead of comma
     const capitalizedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase()
-
     return `${day}-${month}-${year} ${capitalizedDayName}`
   }
 
   // Convert formatted display back to date string for form storage
   const parseDateFromDisplay = (displayValue) => {
     if (!displayValue) return ""
-
     const match = displayValue.match(/^(\d{2})-(\d{2})-(\d{4})/)
     if (match) {
       const [, day, month, year] = match
@@ -1842,7 +1891,6 @@ export default function CreatePollPage() {
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Poll Details</h2>
               </div>
             </CardHeader>
-
             <CardContent className="space-y-4 sm:space-y-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
@@ -1883,11 +1931,7 @@ export default function CreatePollPage() {
                                       key={course._id}
                                       whileHover={{ backgroundColor: "#f3f4f6" }}
                                       className="p-3 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                      onClick={() => {
-                                        field.onChange(course._id)
-                                        setCourseSearch(`${course.courseCode} - ${course.title}`)
-                                        setShowSuggestions(false)
-                                      }}
+                                      onClick={() => handleCourseSelection(course)}
                                     >
                                       <div className="flex flex-col">
                                         <span className="font-medium text-gray-800">
@@ -2012,7 +2056,6 @@ export default function CreatePollPage() {
                         Add Option
                       </Button>
                     </div>
-
                     <div className="space-y-4">
                       <AnimatePresence>
                         {optionFields.map((field, index) => (
@@ -2038,7 +2081,6 @@ export default function CreatePollPage() {
                                 </Button>
                               )}
                             </div>
-
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {/* Date - Fixed Section */}
                               <FormField
@@ -2086,7 +2128,6 @@ export default function CreatePollPage() {
                                   </FormItem>
                                 )}
                               />
-
                               {/* Room */}
                               <FormField
                                 control={form.control}
@@ -2113,7 +2154,6 @@ export default function CreatePollPage() {
                                 )}
                               />
                             </div>
-
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {/* Start Time */}
                               <FormField
@@ -2147,7 +2187,6 @@ export default function CreatePollPage() {
                                             ))}
                                           </SelectContent>
                                         </Select>
-
                                         <Select
                                           onValueChange={(minute) => {
                                             const currentTime = field.value || ""
@@ -2181,7 +2220,6 @@ export default function CreatePollPage() {
                                             ))}
                                           </SelectContent>
                                         </Select>
-
                                         <Select
                                           onValueChange={(period) => {
                                             const currentTime = field.value || ""
@@ -2205,7 +2243,6 @@ export default function CreatePollPage() {
                                   </FormItem>
                                 )}
                               />
-
                               {/* End Time */}
                               <FormField
                                 control={form.control}
@@ -2238,7 +2275,6 @@ export default function CreatePollPage() {
                                             ))}
                                           </SelectContent>
                                         </Select>
-
                                         <Select
                                           onValueChange={(minute) => {
                                             const currentTime = field.value || ""
@@ -2272,7 +2308,6 @@ export default function CreatePollPage() {
                                             ))}
                                           </SelectContent>
                                         </Select>
-
                                         <Select
                                           onValueChange={(period) => {
                                             const currentTime = field.value || ""
@@ -2383,3 +2418,4 @@ export default function CreatePollPage() {
     </main>
   )
 }
+

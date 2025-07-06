@@ -5,31 +5,36 @@ import Poll from "@/models/Polls.model";
 import Professor from "@/models/Professor.model";
 import User from "@/models/User.model";
 import Student from "@/models/Student.model";
-import { NextRequest,NextResponse } from "next/server";
-async function addPollToProfessor(newPoll,newNotificationId) {
-    try {
-        const prof=await Professor.findById(newPoll.prof);
-        prof.activePolls.push(newPoll._id);
-        prof.notifications.push(newNotificationId);
-        prof.save();
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
+import { NextRequest, NextResponse } from "next/server";
+import Courses from "@/app/student/courses/page";
 
-async function addPollToStudents(newPoll,newNotificationId){
-    try {
-        const course=await Course.findById(newPoll.course).populate("enrolledStudents");
-        for(const student of course.enrolledStudents){
-            student.notifications.push(newNotificationId);
-            student.save();
-        }
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
+// async function addPollToProfessor(newPoll, newNotificationId) {
+//   try {
+//     const prof = await Professor.findById(newPoll.prof);
+//     prof.activePolls.push(newPoll._id);
+//     prof.notifications.push(newNotificationId);
+//     await prof.save();
+//   } catch (error) {
+//     console.log(error);
+//     return null;
+//   }
+// }
+
+// async function addPollToStudents(newPoll, newNotificationId) {
+//   try {
+//     const course = await Course.findById(newPoll.course).populate(
+//       "enrolledStudents"
+//     );
+//     for (const student of course.enrolledStudents) {
+//       student.notifications.push(newNotificationId);
+//       student.save();
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return null;
+//   }
+// }
+
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
   let hours = parseInt(hourStr, 10);
@@ -45,77 +50,91 @@ function saveTime(timeString) {
   return fixedDate;
 }
 
-export async function POST(req){
-    try {
-        await connectDB();
-    } catch (error) {
-        return NextResponse.json({
-            success:false,
-            message:"Error connecting to database",
-            error:error,
-        })
+export async function POST(req) {
+  try {
+    await connectDB();
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      message: "Error connecting to database",
+      error: error,
+    });
+  }
+
+  try {
+    const { options, reason, context, prof, courseId, expiryDate } =
+      await req.json();
+    if (
+      !options ||
+      !Array.isArray(options) ||
+      !reason ||
+      !context ||
+      !prof ||
+      !courseId ||
+      !expiryDate
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Provide all the necessary fields for the poll",
+        },
+        { status: 400 }
+      );
     }
-    try {
-        const {options,course,profEmail,reason,context}=await req.json();
-        if(!options || !course || !profEmail || !reason || !context){
-            return NextResponse.json({
-                success:false,
-                message:"Please provide all the necessay fields",
-            },{status:400});
-        }
-        const newPoll= new Poll({
-            options:new Array(options.length),
-            course:null,
-            prof:null,
-            reason:reason,
-            context:context,
-        })
-        for(const option of options){
-            option.start=saveTime(option.start);
-            option.end=saveTime(option.end);
-            option.day=option.day;
-            option.date=option.date;//Send this to me as a Javascript date object
-            option.room=option.room;
-            newPoll.options.push(option);
-        }
-        const findUser=await User.findOne({email:profEmail});
-        const findProf=await Professor.findOne({userId:findUser._id})
-        if(findProf){
-            newPoll.prof=findProf._id;
-        }else{
-            return NextResponse.json({
-                success:false,
-                message:"Unauthorised professor cannt create polls",
-            },{status:404})
-        }
-        const findCourse=await Course.findOne({courseCode:course});
-        if(!findCourse){
-            return NextResponse.json({
-                success:false,
-                message:"Course with the given code does not exist",
-            },{status:400});
-        }else{
-            newPoll.course=findCourse._id;
-        }
-        await newPoll.save();
-         const newNotification=new Notification({
-            message:newPoll._id,
-            type:"poll",
-        })
-        await newNotification.save();
-        addPollToProfessor(newPoll,newNotification._id);
-        addPollToStudents(newPoll,newNotification._id);
-        return NextResponse.json({
-            success:true,
-            message:"Poll created successfully",
-            poll:newPoll
-        },{status:200});
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json({
-            success:false,
-            message:"Internal server error",
-            error:error,
-        })
+    const newPoll = new Poll({
+      options: [],
+      reason: reason,
+      context: context,
+      expiryDate: expiryDate,
+    });
+    for (const option of options) {
+      option.start = saveTime(option.startTime);
+      option.end = saveTime(option.endTime);
+      option.day = option.day;
+      option.date = option.date;
+      option.room = option.room;
+      newPoll.options.push(option);
     }
+    await newPoll.save();
+    const finduser = await User.findOne({ email: prof });
+    const findProf = await Professor.findOne({ userId: finduser._id });
+    const newNotification = new Notification({
+      message: newPoll._id,
+      type: "poll",
+      course: courseId,
+      prof: findProf._id,
+    });
+    await newNotification.save();
+    const course = await Course.findById(courseId);
+    await course.populate("enrolledStudents");
+    await course.populate("prof");
+
+    //Pushing the new Notification into the student notifications.
+    for (const student of course.enrolledStudents) {
+      student.notifications.push({notification:newNotification._id,isRead:false});
+      await student.save();
+    }
+
+    //Pushing the notification into the professot notifications.
+    for (const professor of course.prof) {
+      professor.notifications.push({ notification: newNotification._id, isRead: false });
+      professor.activePolls.push(newNotification._id);
+      await professor.save();
+    }
+    
+    return NextResponse.json({
+        success:true,
+        message:"Poll sent successfully",
+        poll:newPoll,
+        notification:newNotification,
+    },{status:200})
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json({
+        success:false,
+        message:"Internal server error",
+        error:error,
+    },{status:500});
+  }
+
 }
