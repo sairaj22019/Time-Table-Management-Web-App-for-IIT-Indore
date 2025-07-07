@@ -442,6 +442,7 @@ export default function ProfessorCoursesPage() {
         if (data.success) {
           setAllCourses(data.data)
           setFilteredCourses(data.data)
+          console.log(data);
         } else {
           console.error("Error:", data.message)
         }

@@ -1,22 +1,9 @@
 
-
 // "use client"
 
 // import { useState, useEffect } from "react"
 // import { motion, AnimatePresence } from "framer-motion"
-// import {
-//   User,
-//   Mail,
-//   Calendar,
-//   Building,
-//   Hash,
-//   Edit3,
-//   Lock,
-//   LogOut,
-//   SettingsIcon,
-//   ChevronRight,
-//   Shield,
-// } from "lucide-react"
+// import { User, Mail, Building, Edit3, Lock, LogOut, SettingsIcon, ChevronRight, Shield } from "lucide-react"
 // import { HiLockClosed, HiEye, HiEyeOff } from "react-icons/hi"
 // import { Card, CardContent } from "@/components/ui/card"
 // import { Button } from "@/components/ui/button"
@@ -348,38 +335,12 @@
 //       color: "text-purple-600",
 //       badge: true,
 //     },
-//     ...(userData.role === "student"
-//       ? [
-//           {
-//             label: "Academic Year",
-//             value: userData.year,
-//             icon: Calendar,
-//             color: "text-orange-600",
-//           },
-//           {
-//             label: "Department",
-//             value: userData.department,
-//             icon: Building,
-//             color: "text-indigo-600",
-//           },
-//           {
-//             label: "Roll Number",
-//             value: userData.rollno,
-//             icon: Hash,
-//             color: "text-red-600",
-//           },
-//         ]
-//       : []),
-//     ...(userData.role === "professor"
-//       ? [
-//           {
-//             label: "Department",
-//             value: userData.department,
-//             icon: Building,
-//             color: "text-indigo-600",
-//           },
-//         ]
-//       : []),
+//     {
+//       label: "Department",
+//       value: userData.department,
+//       icon: Building,
+//       color: "text-indigo-600",
+//     },
 //   ]
 
 //   // Remove Edit Profile from settings actions
@@ -819,25 +780,11 @@
 
 
 
-
-
 "use client"
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-  User,
-  Mail,
-  Calendar,
-  Building,
-  Hash,
-  Edit3,
-  Lock,
-  LogOut,
-  SettingsIcon,
-  ChevronRight,
-  Shield,
-} from "lucide-react"
+import { User, Mail, Building, Edit3, Lock, LogOut, SettingsIcon, ChevronRight, Shield } from "lucide-react"
 import { HiLockClosed, HiEye, HiEyeOff } from "react-icons/hi"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -1017,6 +964,7 @@ export default function UserSettingsPage() {
           },
         })
       } else {
+        setPasswordErrors({ oldPassword: data.error || "Failed to reset password" })
         toast.error(data.error || "Failed to reset password. Please try again.", {
           duration: 4000,
           style: {
@@ -1037,6 +985,7 @@ export default function UserSettingsPage() {
       }
     } catch (err) {
       console.error("Error resetting password:", err)
+      setPasswordErrors({ oldPassword: "Failed to reset password" })
       toast.error("Network Error: Unable to connect to server. Please check your connection and try again.", {
         duration: 5000,
         style: {
@@ -1054,7 +1003,6 @@ export default function UserSettingsPage() {
           secondary: "#fef2f2",
         },
       })
-      setPasswordErrors({ oldPassword: "Failed to reset password" })
     } finally {
       setLoading(false)
       setActiveAction("")
@@ -1127,6 +1075,7 @@ export default function UserSettingsPage() {
           },
         })
       } else {
+        setUsernameError(data.error || "Failed to update username")
         toast.error(data.error || "Failed to update username. Please try again.", {
           duration: 4000,
           style: {
@@ -1147,6 +1096,7 @@ export default function UserSettingsPage() {
       }
     } catch (err) {
       console.error("Error updating username:", err)
+      setUsernameError("Failed to update username")
       toast.error("Network Error: Unable to connect to server. Please check your connection and try again.", {
         duration: 5000,
         style: {
@@ -1164,7 +1114,6 @@ export default function UserSettingsPage() {
           secondary: "#fef2f2",
         },
       })
-      setUsernameError("Failed to update username")
     } finally {
       setLoading(false)
       setActiveAction("")
@@ -1185,7 +1134,7 @@ export default function UserSettingsPage() {
       setActiveAction("")
       setShowResetModal(false)
       passwordForm.reset()
-      toast.success("Password Updated Successfully!", {
+      toast.success("Password Updated Successfully! 🎉", {
         duration: 4000,
         style: {
           background: "#f0fdf4",
@@ -1284,38 +1233,12 @@ export default function UserSettingsPage() {
       color: "text-purple-600",
       badge: true,
     },
-    ...(userData.role === "student"
-      ? [
-          {
-            label: "Academic Year",
-            value: userData.year,
-            icon: Calendar,
-            color: "text-orange-600",
-          },
-          {
-            label: "Department",
-            value: userData.department,
-            icon: Building,
-            color: "text-indigo-600",
-          },
-          {
-            label: "Roll Number",
-            value: userData.rollno,
-            icon: Hash,
-            color: "text-red-600",
-          },
-        ]
-      : []),
-    ...(userData.role === "professor"
-      ? [
-          {
-            label: "Department",
-            value: userData.department,
-            icon: Building,
-            color: "text-indigo-600",
-          },
-        ]
-      : []),
+    {
+      label: "Department",
+      value: userData.department,
+      icon: Building,
+      color: "text-indigo-600",
+    },
   ]
 
   // Remove Edit Profile from settings actions

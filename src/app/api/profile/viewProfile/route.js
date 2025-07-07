@@ -8,7 +8,7 @@ import { connectDB } from "@/dbConnection/ConnectDB";
 export async function POST(req) {
   try {
     const { userId } = await req.json();
-
+    // console.log("Hi");
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
