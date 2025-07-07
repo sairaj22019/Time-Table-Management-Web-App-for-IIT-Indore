@@ -1,32 +1,3 @@
-// import React from 'react'
-// import { Button } from './ui/button'
-// import Image from 'next/image'
-
-// function Navbar() {
-//   return (
-//     <div className='flex w-full justify-center items-center'>
-//     <div className='px-4 bg-[var(--color-skin)]/[0.8] fixed z-100 top-5 py-2 w-[90%] md:w-[70%] flex justify-between items-center rounded-xl'>
-
-//       <div className='text-blue-500 flex gap-3 items-center'>
-//         <Image src={"/IITI_Logo.svg.png"} alt='logo' width={30} height={30}/>
-//         NAME
-//         </div>
-//       <div className='flex gap-4'>
-//         {/* <div className='bg-slate-50 hover:bg-gray-700 hover:text-white text-[1rem] px-3 py-1 rounded-md border border-slate-600'>
-//           sign in
-//         </div> */}
-//         <Button variant={"outline"} className={"bg-slate-50 hover:cursor-pointer hover:bg-gray-200/[0.7] my-2"}>Sign in</Button>
-//         <div className='bg-indigo-500 px-3 py-1 flex items-center hover:bg-indigo-500/[0.9] rounded-md text-sm font-medium hover:cursor-pointer my-2'>
-//           Sign up
-//         </div>
-//       </div>
-//     </div>
-//     </div>
-//   )
-// }
-
-// export default Navbar
-
 import React from 'react'
 import { Button } from './ui/button'
 import Image from 'next/image'
