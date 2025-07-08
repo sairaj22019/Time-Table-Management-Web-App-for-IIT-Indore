@@ -82,13 +82,13 @@ export default function StudentTimetable() {
       try {
         setLoading(true)
 
-        const response = await fetch("/api/student/myCourses", {
+        const response = await fetch("/api/professor/getAllCourses", { 
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            studentEmail: session.user.email,
+            profEmail: session.user.email,
           }),
         })
         if (!response.ok) {
@@ -96,9 +96,11 @@ export default function StudentTimetable() {
         }
         const data = await response.json()
         console.log("data is...", data)
+
         if (data.success) {
           setCoursesData(data)
-          console.log("Coursessss",coursesData)
+          console.log("courses" , coursesData)
+
         } else {
           throw new Error(data.message || "Failed to fetch courses")
         }
@@ -126,12 +128,12 @@ export default function StudentTimetable() {
 
   // Fixed function to map course schedule to time slots
   const getCourseForSlot = (day, slotIndex) => {
-    if (!coursesData?.courses) return null
+    if (!coursesData?.data) return null
 
     const targetSlot = timeSlots[slotIndex]
     if (!targetSlot) return null
 
-    for (const course of coursesData.courses) {
+    for (const course of coursesData.data) {
       if (!course.schedule) continue
 
       for (const schedule of course.schedule) {
@@ -444,8 +446,8 @@ export default function StudentTimetable() {
             >
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  
-                  {coursesData?.courses?.map((course, index) => {
+                  {coursesData?.data?.map((course, index) => {
+
                     const colors = getCourseOverviewColor(course.courseCode)
                     return (
                       <motion.div
@@ -641,4 +643,3 @@ export default function StudentTimetable() {
     </div>
   )
 }
-

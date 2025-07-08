@@ -61,7 +61,7 @@ const items = [
   },
   {
     title: "timetable",
-    url: "/student/timetable",
+    url: "/student/timeTable",
     icon: CalendarDays,
   },
   {
