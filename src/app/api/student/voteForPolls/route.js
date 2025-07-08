@@ -86,6 +86,7 @@ export async function POST(req) {
     for(let i=0;i<poll.votes.length;i++){
         if(poll.votes[i].voter.toString()==studentObject._id){
             poll.votes.splice(i,1);
+            await poll.save();
             break;
         }
     }

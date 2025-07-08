@@ -59,7 +59,7 @@ export default function InboxPage() {
           .map(item => {
             const notification = item.notification
             const isPoll = notification.type === "poll"
-            
+            console.log(notification)
             if (isPoll) {
               // For polls that are already read, process the votes from the API response
               let processedVotes = {}
