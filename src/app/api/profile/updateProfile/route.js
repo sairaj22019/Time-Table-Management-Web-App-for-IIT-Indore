@@ -7,7 +7,7 @@
 // export async function POST(req) {
 //   try {
 //     const body = await req.json();
-//     const { userId, username } = body;
+//     const { userId, year, department, username } = body;
 
 //     if (!userId) {
 //       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -63,6 +63,7 @@
 
 
 
+ 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/dbConnection/ConnectDB";
 import User from "@/models/User.model";
@@ -93,3 +94,4 @@ export async function POST(req) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+

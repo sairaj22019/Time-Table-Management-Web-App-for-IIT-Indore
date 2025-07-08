@@ -16,6 +16,7 @@ export async function POST(req){
     }
     try {
         const {studentEmail}=await req.json();
+        console.log("entered try block with", studentEmail)
         if(!studentEmail) {
             return NextResponse.json({
                 success:true,
@@ -38,6 +39,7 @@ export async function POST(req){
         }
         console.log(student);
         await student.populate("enrolledClasses");
+        console.log("classes", student.enrolledClasses)
         return NextResponse.json({
             success:true,
             message:"Student Courses fetched successfully",

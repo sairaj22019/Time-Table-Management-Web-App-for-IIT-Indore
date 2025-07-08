@@ -147,15 +147,15 @@ export const config = {
 //   return NextResponse.next()
 // }
 
-// export const config = {
+// // export const config = {
 
-//   matcher: [
-//     '/((?!api|_next/static|_next/image|favicon.ico|login).*)',
-//     // Or match specific paths, e.g.:
-//     // '/dashboard/:path*',
-//     // '/about/:path*'
-//   ]
-// }
+// //   matcher: [
+// //     '/((?!api|_next/static|_next/image|favicon.ico|login).*)',
+// //     // Or match specific paths, e.g.:
+// //     // '/dashboard/:path*',
+// //     // '/about/:path*'
+// //   ]
+// // }
 
 
 // export const config = {
