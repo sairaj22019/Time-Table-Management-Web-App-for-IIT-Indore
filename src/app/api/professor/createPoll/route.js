@@ -111,7 +111,7 @@ export async function POST(req) {
 
     //Pushing the new Notification into the student notifications.
     for (const student of course.enrolledStudents) {
-      student.notifications.push({notication:newNotification._id,isRead:false});
+      student.notifications.push({notification:newNotification._id,isRead:false});
       await student.save();
     }
 

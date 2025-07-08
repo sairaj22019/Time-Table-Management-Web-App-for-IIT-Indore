@@ -220,8 +220,7 @@ export default function TimetablePage() {
         semester: academicYear + " " + capitalizedSemester,
         year: Number.parseInt(year),
       };
-
-      console.log(payload);
+      console.log(payload)
       // Send to backend
       const response = await fetch("/api/course/createGrid", {
         method: "POST",

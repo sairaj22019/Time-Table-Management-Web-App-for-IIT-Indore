@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -18,148 +17,156 @@ import {
   HiUsers,
   HiFilter,
 } from "react-icons/hi"
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-// Mock data - replace with your actual API calls
-const mockNotifications = [
-  {
-    _id: "68510b55efee6cdde8a69b59",
-    message: "68510b55efee6cdde8a69b4b",
-    type: "poll",
-    isRead: false,
-    createdAt: new Date("2025-01-17T10:30:00Z"),
-    updatedAt: new Date("2025-01-17T10:30:00Z"),
-    hasResponded: false,
-    pollData: {
-      _id: "68510239efee6cdde8a69b37",
-      options: [
-        {
-          date: new Date("2025-01-20T00:00:00Z"),
-          day: "Monday",
-          start: new Date("2000-01-01T10:00:00Z"),
-          end: new Date("2000-01-01T11:00:00Z"),
-          room: "Room A",
-          _id: "68510239efee6cdde8a69b38",
-          voteCount: 12,
-        },
-        {
-          date: new Date("2025-01-22T00:00:00Z"),
-          day: "Wednesday",
-          start: new Date("2000-01-01T11:00:00Z"),
-          end: new Date("2000-01-01T12:00:00Z"),
-          room: "Room B",
-          _id: "68510239efee6cdde8a69b39",
-          voteCount: 8,
-        },
-      ],
-      course: "Advanced Web Development",
-      courseCode: "CS 401",
-      prof: "Dr. Sarah Johnson",
-      reason: "Rescheduling due to public holiday",
-      context:
-        "The upcoming Republic Day holiday falls on our regular class day. We need to reschedule to ensure all students can attend without missing important coursework.",
-      isApproved: false,
-      totalVotes: 20,
-    },
-  },
-  {
-    _id: "68510b55efee6cdde8a69b60",
-    message: "68510b55efee6cdde8a69b4c",
-    type: "message",
-    isRead: false,
-    createdAt: new Date("2025-01-16T14:20:00Z"),
-    updatedAt: new Date("2025-01-16T14:20:00Z"),
-    messageData: {
-      title: "Assignment Deadline Extended",
-      content:
-        "The deadline for Database Management Systems assignment has been extended to January 25th due to technical issues with the submission portal. Please ensure you submit your work before the new deadline. If you face any issues, contact the TA immediately.",
-      sender: "Prof. Michael Chen",
-      course: "Database Management Systems",
-      courseCode: "CS 350",
-    },
-  },
-  {
-    _id: "68510b55efee6cdde8a69b61",
-    message: "68510b55efee6cdde8a69b4d",
-    type: "poll",
-    isRead: false,
-    createdAt: new Date("2025-01-15T09:15:00Z"),
-    updatedAt: new Date("2025-01-15T09:15:00Z"),
-    hasResponded: false,
-    pollData: {
-      _id: "68510239efee6cdde8a69b38",
-      options: [
-        {
-          date: new Date("2025-01-25T00:00:00Z"),
-          day: "Friday",
-          start: new Date("2000-01-01T14:00:00Z"),
-          end: new Date("2000-01-01T16:00:00Z"),
-          room: "Lab 301",
-          _id: "68510239efee6cdde8a69b40",
-          voteCount: 15,
-        },
-        {
-          date: new Date("2025-01-27T00:00:00Z"),
-          day: "Sunday",
-          start: new Date("2000-01-01T10:00:00Z"),
-          end: new Date("2000-01-01T12:00:00Z"),
-          room: "Lab 302",
-          _id: "68510239efee6cdde8a69b41",
-          voteCount: 5,
-        },
-      ],
-      course: "Machine Learning",
-      courseCode: "CS 480",
-      prof: "Dr. Alex Kumar",
-      reason: "Extra lab session for project work",
-      context:
-        "Many students have requested additional hands-on practice for the final project implementation. This extra session will provide dedicated time for project work with instructor guidance.",
-      isApproved: false,
-      totalVotes: 20,
-    },
-  },
-]
-
-// Helper functions for localStorage persistence
-const getReadNotificationsFromStorage = () => {
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem("readNotifications")
-    return stored ? JSON.parse(stored) : []
-  }
-  return []
-}
-
-const saveReadNotificationsToStorage = (readNotificationIds) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("readNotifications", JSON.stringify(readNotificationIds))
-  }
-}
-
-const updateNotificationsWithReadStatus = (notifications) => {
-  const readNotificationIds = getReadNotificationsFromStorage()
-  return notifications.map((notification) => ({
-    ...notification,
-    isRead: readNotificationIds.includes(notification._id),
-  }))
-}
-
 export default function InboxPage() {
-  const [notifications, setNotifications] = useState(() => updateNotificationsWithReadStatus(mockNotifications))
-  const [filteredNotifications, setFilteredNotifications] = useState(mockNotifications)
+  const [notifications, setNotifications] = useState([])
+  const [filteredNotifications, setFilteredNotifications] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
   const [filterRead, setFilterRead] = useState("all")
   const [expandedItems, setExpandedItems] = useState(new Set())
   const [selectedPollOptions, setSelectedPollOptions] = useState({})
   const [editingPoll, setEditingPoll] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [readMessages, setReadMessages] = useState([]) // Track read messages
 
   useEffect(() => {
-    filterNotifications()
-  }, [searchTerm, filterType, filterRead, notifications])
+    fetchNotifications()
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      console.log("Getting notifications!!")
+      setLoading(true)
+      const response = await fetch("/api/student/getNotifications",{
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({studentEmail:"cse240001029@iiti.ac.in"}),
+      })
+      const data = await response.json()
+      console.log(response);
+      if (data.success) {
+        // Filter out notifications with buffer and transform the data
+        const filteredNotifications = data.student
+          .filter(item => !item.buffer && item.notification)
+          .map(item => {
+            const notification = item.notification
+            const isPoll = notification.type === "poll"
+            
+            if (isPoll) {
+              // For polls that are already read, process the votes from the API response
+              let processedVotes = {}
+              let totalVotes = 0
+              
+              if (item.isRead === true && notification.message && notification.message.votes) {
+                const pollVotes = notification.message.votes || []
+                totalVotes = pollVotes.length
+                
+                // Calculate vote counts for each option
+                pollVotes.forEach(vote => {
+                  if (processedVotes[vote.option]) {
+                    processedVotes[vote.option]++
+                  } else {
+                    processedVotes[vote.option] = 1
+                  }
+                })
+              }
+              
+              // Transform poll data to match expected structure
+              return {
+                _id: item._id,
+                message: notification._id,
+                type: "poll",
+                isRead: item.isRead === true, // Explicitly convert to boolean, false means unread
+                createdAt: notification.createdAt,
+                updatedAt: notification.updatedAt,
+                hasResponded: item.isRead === true, // If read, assume user has responded
+                pollData: {
+                  _id: notification.message._id,
+                  options: notification.message.options.map(option => ({
+                    ...option,
+                    voteCount: item.isRead === true ? (processedVotes[option._id] || 0) : 0,
+                  })),
+                  course: notification.course.title,
+                  courseCode: notification.course.courseCode,
+                  prof: notification.prof.username,
+                  reason: notification.message.reason,
+                  context: notification.message.context,
+                  isApproved: notification.message.isApproved,
+                  totalVotes: item.isRead === true ? totalVotes : 0,
+                },
+              }
+            } else {
+              // Transform message data to match expected structure
+              return {
+                _id: item._id,
+                message: notification._id,
+                type: "message",
+                isRead: item.isRead === true, // Explicitly convert to boolean, false means unread
+                createdAt: notification.createdAt,
+                updatedAt: notification.updatedAt,
+                messageData: {
+                  title: notification.messageTitle,
+                  content: notification.message,
+                  sender: notification.prof.username,
+                  course: notification.course.title,
+                  courseCode: notification.course.courseCode,
+                },
+              }
+            }
+          })
+
+        setNotifications(filteredNotifications)
+        setFilteredNotifications(filteredNotifications)
+      } else {
+        setError("Failed to fetch notifications: " + data.message)
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+      setError("Error fetching notifications: " + error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // API call to mark message as read
+  const markMessageAsRead = async (notificationId) => {
+    try {
+      console.log("Marking message as read:", notificationId)
+      const response = await fetch("/api/student/markAsRead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentEmail: "cse240001029@iiti.ac.in",
+          notificationList: notificationId
+        }),
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        console.log("Message marked as read successfully")
+        // Add to read messages array
+        setReadMessages(prev => [...prev, notificationId])
+      } else {
+        console.error("Failed to mark message as read:", data.message)
+      }
+    } catch (error) {
+      console.error("Error marking message as read:", error)
+    }
+  }
+
+  useEffect(() => {
+    if (!loading) {
+      filterNotifications()
+    }
+  }, [searchTerm, filterType, filterRead, notifications, loading])
 
   const filterNotifications = () => {
     let filtered = notifications
@@ -177,7 +184,8 @@ export default function InboxPage() {
           return (
             notification.messageData.title.toLowerCase().includes(searchLower) ||
             notification.messageData.course.toLowerCase().includes(searchLower) ||
-            notification.messageData.sender.toLowerCase().includes(searchLower)
+            notification.messageData.sender.toLowerCase().includes(searchLower) ||
+            notification.messageData.content.toLowerCase().includes(searchLower)
           )
         }
       })
@@ -195,51 +203,95 @@ export default function InboxPage() {
     setFilteredNotifications(filtered)
   }
 
-  const toggleExpanded = (id) => {
+  const toggleExpanded = async (id) => {
     const newExpanded = new Set(expandedItems)
     if (newExpanded.has(id)) {
       newExpanded.delete(id)
     } else {
       newExpanded.add(id)
-      // Automatically mark as read when expanding
-      setNotifications((prev) => {
-        const updated = prev.map((notification) =>
-          notification._id === id ? { ...notification, isRead: true } : notification,
+      
+      // Find the notification
+      const notification = notifications.find(n => n._id === id)
+      
+      // If message was unread, mark as read and make API call
+      if (notification && !notification.isRead) {
+        // Update local state immediately
+        setNotifications((prev) =>
+          prev.map((notification) => 
+            notification._id === id ? { ...notification, isRead: true } : notification
+          )
         )
-
-        // Update localStorage with read notifications
-        const readNotificationIds = updated.filter((n) => n.isRead).map((n) => n._id)
-        saveReadNotificationsToStorage(readNotificationIds)
-
-        return updated
-      })
+        
+        // Make API call to mark as read
+        await markMessageAsRead(id)
+      }
     }
     setExpandedItems(newExpanded)
   }
 
-  const submitPollResponse = (notificationId) => {
+  const submitPollResponse = async (notificationId) => {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
       console.log(`Submitting poll response: ${selectedOption} for notification: ${notificationId}`)
-      // Update the notification to mark as responded
-      setNotifications((prev) => {
-        const updated = prev.map((notification) =>
-          notification._id === notificationId
-            ? {
-                ...notification,
-                hasResponded: true,
-                selectedOption: selectedOption,
-                isRead: true,
-              }
-            : notification,
+
+      try {
+        const body={
+          option:selectedOption,
+          notificationId:notificationId,
+          userEmail:"cse240001029@iiti.ac.in"
+        }
+        const response = await fetch("/api/student/voteForPolls",{  
+          method:"POST",
+          headers: { "Content-Type": "application/json" },
+          body:JSON.stringify(body)
+       })
+       const data=await response.json();
+       if (data.success) {
+        console.log("Vote added successfully")
+        
+        // Process the votes array from the poll data in the response
+        const pollVotes = data.poll.votes || []
+        
+        // Calculate vote counts for each option
+        const voteCountsByOption = {}
+        pollVotes.forEach(vote => {
+          if (voteCountsByOption[vote.option]) {
+            voteCountsByOption[vote.option]++
+          } else {
+            voteCountsByOption[vote.option] = 1
+          }
+        })
+        
+        const totalVotes = pollVotes.length
+        
+        // Update the notification with real vote data
+        setNotifications((prev) =>
+          prev.map((notification) =>
+            notification._id === notificationId
+              ? {
+                  ...notification,
+                  hasResponded: true,
+                  selectedOption: selectedOption,
+                  isRead: true,
+                  pollData: {
+                    ...notification.pollData,
+                    options: notification.pollData.options.map(option => ({
+                      ...option,
+                      voteCount: voteCountsByOption[option._id] || 0
+                    })),
+                    totalVotes: totalVotes
+                  }
+                }
+              : notification,
+          ),
         )
-
-        // Update localStorage with read notifications
-        const readNotificationIds = updated.filter((n) => n.isRead).map((n) => n._id)
-        saveReadNotificationsToStorage(readNotificationIds)
-
-        return updated
-      })
+        
+      } else {
+        console.error("Failed to add vote :", data.message)
+      }
+      } catch (error) {
+      console.error("Error adding vote :", error)
+      }
 
       // Clear the selected option from state
       setSelectedPollOptions((prev) => {
@@ -269,10 +321,11 @@ export default function InboxPage() {
     })
   }
 
-  const updatePollResponse = (notificationId) => {
+  const updatePollResponse = async (notificationId) => {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
       console.log(`Updating poll response: ${selectedOption} for notification: ${notificationId}`)
+      await submitPollResponse(notificationId);
       // Update the notification with new selection
       setNotifications((prev) =>
         prev.map((notification) =>
@@ -284,6 +337,7 @@ export default function InboxPage() {
             : notification,
         ),
       )
+
       setEditingPoll(null)
       setSelectedPollOptions((prev) => {
         const newState = { ...prev }
@@ -312,6 +366,7 @@ export default function InboxPage() {
   const getRelativeTime = (date) => {
     const now = new Date()
     const diffInHours = Math.floor((now - new Date(date)) / (1000 * 60 * 60))
+
     if (diffInHours < 1) return "Just now"
     if (diffInHours < 24) return `${diffInHours}h ago`
     const diffInDays = Math.floor(diffInHours / 24)
@@ -341,7 +396,7 @@ export default function InboxPage() {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: "easeOut",
+        ease: [0.25, 0.46, 0.45, 0.94], // Fixed ease value
       },
     },
   }
@@ -353,6 +408,40 @@ export default function InboxPage() {
       ...prev,
       [notificationId]: optionId,
     }))
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-3 sm:p-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading notifications...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-3 sm:p-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <HiExclamationCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-800 mb-2">Error Loading Notifications</h3>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={fetchNotifications} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -382,6 +471,11 @@ export default function InboxPage() {
                 </Badge>
                 {unreadCount > 0 && (
                   <Badge className="bg-red-500 text-white text-xs sm:text-sm">{unreadCount} Unread</Badge>
+                )}
+                {readMessages.length > 0 && (
+                  <Badge className="bg-green-500 text-white text-xs sm:text-sm">
+                    {readMessages.length} Recently Read
+                  </Badge>
                 )}
               </div>
             </div>
@@ -504,9 +598,7 @@ export default function InboxPage() {
                             <p className="text-gray-700 text-sm leading-relaxed font-semibold line-clamp-2">
                               {isPoll
                                 ? data.reason
-                                : !isExpanded
-                                  ? data.content.substring(0, 80) + (data.content.length > 80 ? "..." : "")
-                                  : ""}
+                                : data.content.substring(0, 80) + (data.content.length > 80 ? "..." : "")}
                             </p>
                           </div>
                         </div>
@@ -647,6 +739,7 @@ export default function InboxPage() {
                                               />
                                             </div>
                                           )}
+
                                           <div className="relative flex items-center justify-between">
                                             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                               <div
@@ -685,6 +778,7 @@ export default function InboxPage() {
                                                 </div>
                                               </div>
                                             </div>
+
                                             {/* Vote count and percentage */}
                                             {notification.hasResponded && !isEditing && (
                                               <div className="text-right flex-shrink-0 ml-2">
@@ -749,7 +843,20 @@ export default function InboxPage() {
                                 transition={{ delay: 0.1 }}
                                 className="space-y-4"
                               >
-                                {/* Course details section removed for messages when expanded */}
+                                {/* Light text for messages - visible on small screens only when expanded */}
+                                <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                  <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
+                                    <span className="flex items-center gap-1">
+                                      <HiAcademicCap className="w-3 h-3" />
+                                      {data.courseCode}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <HiClock className="w-3 h-3" />
+                                      {getRelativeTime(notification.createdAt)}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-gray-600">by {data.sender}</div>
+                                </div>
 
                                 {/* Full Message Content */}
                                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 sm:p-4 rounded-xl border border-green-100">
@@ -758,17 +865,24 @@ export default function InboxPage() {
 
                                 {/* Message Actions */}
                                 <div className="flex gap-3">
-                                  {!notification.isRead ? (
+                                  {readMessages.includes(notification._id) ? (
+                                    <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                                      <HiCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                      <span className="text-green-700 font-medium">
+                                        Message opened and marked as read
+                                      </span>
+                                    </div>
+                                  ) : notification.isRead ? (
+                                    <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                                      <HiCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                      <span className="text-green-700 font-medium">Message marked as read</span>
+                                    </div>
+                                  ) : (
                                     <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                                       <HiInformationCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
                                       <span className="text-blue-700 font-medium">
                                         Notification opened - marked as read
                                       </span>
-                                    </div>
-                                  ) : (
-                                    <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                                      <HiCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
-                                      <span className="text-green-700 font-medium">Message marked as read</span>
                                     </div>
                                   )}
                                 </div>
@@ -786,7 +900,7 @@ export default function InboxPage() {
         </motion.div>
 
         {/* Empty State */}
-        {filteredNotifications.length === 0 && (
+        {filteredNotifications.length === 0 && !loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8 sm:py-12">
             <HiInbox className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-medium text-gray-500 mb-2">No notifications found</h3>

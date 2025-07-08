@@ -5,7 +5,8 @@ import Student from "@/models/Student.model";
 import Notification from "@/models/Notification.model";
 import Professor from "@/models/Professor.model";
 import Course from "@/models/Course.model";
-import Poll from "@/models/Polls.model"
+import Poll from "@/models/Polls.model";
+
 export async function POST(req) {
   try {
     await connectDB();
@@ -18,15 +19,15 @@ export async function POST(req) {
   }
 
   try {
-    const { studentEmail } = await req.json();
-    if (!studentEmail) {
+    const { profEmail } = await req.json();
+    if (!profEmail) {
       return NextResponse.json({
         success: false,
         message: "Please provide the student email",
       }, { status: 400 });
     }
 
-    const user = await User.findOne({ email: studentEmail });
+    const user = await User.findOne({ email: profEmail });
     if (!user) {
       return NextResponse.json({
         success: false,
@@ -34,40 +35,47 @@ export async function POST(req) {
       }, { status: 404 });
     }
 
-    const student = await Student.findOne({ userId: user._id })
+    const professor = await Professor.findOne({ userId: user._id })
       .populate({
         path: "notifications.notification",
-        model: "Notification"
+        model: "Notification",
       });
 
-    if (!student) {
+    if (!professor) {
       return NextResponse.json({
         success: false,
-        message: "No student found with the given Mail ID",
+        message: "No professor found with the given Mail ID",
       }, { status: 404 });
     }
 
-    // Optionally, populate 'message' if notification type is 'poll'
-    for (const item of student.notifications) {
+    for (const item of professor.notifications) {
       const notif = item.notification;
+
       if (notif && notif.type === "poll") {
-        await notif.populate({path:"message",model:"Poll"}); // populate poll object into `message`
+        await notif.populate({ path: "message", model: "Poll" });
       }
-      if(notif){
-        await notif.populate({path:"prof",model:"Professor"});
+
+      if (notif) {
+        await notif.populate({ path: "prof", model: "Professor" });
+        if(notif.prof)
+        {
         const userId=notif.prof.userId;
         const user=await User.findById(userId);
         notif.prof=user;
-        await notif.populate({path:"course",model:"Course"});
-      }
+        await notif.populate({ path: "course", model: "Course" });
+        }
 
+        if(notif.prof){
+            const isSameProf = String(notif.prof._id) === String(professor._id);
+            notif._doc.isSent = isSameProf;
+        }
+      }
     }
-    
 
     return NextResponse.json({
       success: true,
-      message: "Student notifications fetched successfully",
-      student: student.notifications,
+      message: "professor notifications fetched successfully",
+      professor: professor.notifications,
     }, { status: 200 });
 
   } catch (error) {

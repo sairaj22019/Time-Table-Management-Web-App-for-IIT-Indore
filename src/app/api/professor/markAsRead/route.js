@@ -1,6 +1,6 @@
 import { connectDB } from "@/dbConnection/ConnectDB";
 import { NextResponse } from "next/server";
-import Student from "@/models/Student.model";
+import Professor from "@/models/Professor.model";
 import  User  from "@/models/User.model";
 
 export async function POST(req) {
@@ -18,10 +18,10 @@ export async function POST(req) {
   }
 
   try {
-    const { studentEmail, notificationList } = await req.json();
+    const { profEmail, notificationList } = await req.json();
     console.log(typeof notificationList)
-    console.log(studentEmail,notificationList);
-    if (!studentEmail || !notificationList) {
+    console.log(profEmail,notificationList);
+    if (!profEmail || !notificationList) {
       return NextResponse.json(
         {
           success: false,
@@ -30,13 +30,13 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    const userObject=await User.findOne({email:studentEmail});
-    const student = await Student.findOne({userId:userObject._id });
-    if (!student) {
+    const userObject=await User.findOne({email:profEmail});
+    const professor = await Professor.findOne({userId:userObject._id });
+    if (!professor) {
       return NextResponse.json(
         {
           success: false,
-          message: "Student not found",
+          message: "professor not found",
         },
         { status: 404 }
       );
@@ -44,13 +44,13 @@ export async function POST(req) {
 
     
       let index=-1;
-      for(let i=0;i<student.notifications.length;i++){
-        if(student.notifications[i]){
-          if(student.notifications[i].notification){
-            console.log(student.notifications[i].notification,student.notifications[i].isRead)
-            if(notificationList==student.notifications[i]._id.toString()){
+      for(let i=0;i<professor.notifications.length;i++){
+        if(professor.notifications[i]){
+          if(professor.notifications[i].notification){
+            console.log(professor.notifications[i].notification,professor.notifications[i].isRead)
+            if(notificationList==professor.notifications[i]._id.toString()){
               index=2;
-              student.notifications[i].isRead=true;
+              professor.notifications[i].isRead=true;
               break;
             }
           }
@@ -64,7 +64,7 @@ export async function POST(req) {
       }
     
 
-    await student.save();
+    await professor.save();
 
     return NextResponse.json({
       success: true,

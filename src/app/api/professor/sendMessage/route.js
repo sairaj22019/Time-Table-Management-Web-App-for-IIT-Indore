@@ -31,8 +31,11 @@ export async function POST(req){
                 message:"Course with the given ID does not exist",
             },{status:404});
         }
+        console.log("course",course)
         const userObject=await User.findOne({email:profEmail})
+        console.log("userobject",userObject)
         const profObject=await Professor.findOne({userId:userObject._id});
+        console.log("profObject",profObject)
         const newNotification=new Notification({
             message:message,
             messageTitle:messageTitle,
@@ -40,6 +43,7 @@ export async function POST(req){
             type:"general message",
             course:courseId,
         })
+        console.log("newnotifiaction",newNotification)
         await newNotification.save();
         await course.populate("enrolledStudents");
         for(const student of course.enrolledStudents){

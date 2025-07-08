@@ -518,7 +518,7 @@ export default function ProfessorCoursesPage() {
       courseId: course._id,
       courseCode: course.courseCode,
       courseTitle: course.title,
-      professor: session?.user?.name || "You",
+      professor: session?.user?.email || "",
       studentsCount: course.enrolledStudents?.length || 0,
     })
 
@@ -531,7 +531,7 @@ export default function ProfessorCoursesPage() {
       courseId: course._id,
       courseCode: course.courseCode,
       courseTitle: course.title,
-      professor: session?.user?.name || "You",
+      professor: session?.user?.email || "",
       studentsCount: course.enrolledStudents?.length || 0,
     })
 
