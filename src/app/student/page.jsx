@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useSpring } from "framer-motion"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import {
   HiAcademicCap,
   HiCalendar,
@@ -12,21 +13,11 @@ import {
   HiChevronRight,
   HiStar,
   HiTrendingUp,
-  HiLightBulb,
-  HiHeart,
   HiSparkles,
   HiGlobe,
 } from "react-icons/hi"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-
-// Mock data - replace with your actual data
-const studentData = {
-  name: "Alex Johnson",
-  coursesEnrolled: 4,
-  unreadMessages: 7,
-}
-
 const quickActions = [
   {
     id: 1,
@@ -47,7 +38,6 @@ const quickActions = [
     color: "bg-green-600 hover:bg-green-700",
     iconBg: "bg-green-100",
     iconColor: "text-green-600",
-    badge: studentData.unreadMessages,
     path: "/student/inbox",
     gradient: "from-green-500 to-green-600",
   },
@@ -75,49 +65,23 @@ const quickActions = [
   },
 ]
 
-const motivationalCards = [
-  {
-    id: 1,
-    title: "Keep Learning!",
-    message: "Every day is a new opportunity to grow and discover something amazing.",
-    icon: HiLightBulb,
-    gradient: "from-yellow-100 to-orange-100",
-    iconColor: "text-yellow-600",
-    bgColor: "bg-yellow-50",
-    borderColor: "border-yellow-200",
-  },
-  {
-    id: 2,
-    title: "Stay Organized",
-    message: "Success comes from consistent effort and good planning.",
-    icon: HiStar,
-    gradient: "from-blue-100 to-cyan-100",
-    iconColor: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-  },
-  {
-    id: 3,
-    title: "You're Doing Great!",
-    message: "Remember to take breaks and celebrate your achievements.",
-    icon: HiHeart,
-    gradient: "from-pink-100 to-rose-100",
-    iconColor: "text-pink-600",
-    bgColor: "bg-pink-50",
-    borderColor: "border-pink-200",
-  },
-]
-
 const floatingElements = [
   { id: 1, icon: HiSparkles, delay: 0, duration: 3 },
   { id: 2, icon: HiGlobe, delay: 1, duration: 4 },
   { id: 3, icon: HiStar, delay: 2, duration: 3.5 },
 ]
-
-export default function DashboardHome() {
+export default function DashboardHome({ studentEmail = "cse240001029@iiti.ac.in" }) {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [studentData, setStudentData] = useState({
+    name: "Student",
+    coursesEnrolled: 0,
+    unreadMessages: 0,
+  })
+  const [loading, setLoading] = useState(true)
+
   const router = useRouter()
+  const { data: session } = useSession()
   const containerRef = useRef(null)
 
   const { scrollYProgress } = useScroll({
@@ -133,6 +97,53 @@ export default function DashboardHome() {
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
   const y = useSpring(0, springConfig)
+
+  // Fetch courses count
+  const fetchCoursesCount = async () => {
+    if (!studentEmail) return 0
+
+    try {
+      const response = await fetch("/api/student/myCourses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentEmail }),
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        return data.courses.length
+      }
+      return 0
+    } catch (error) {
+      console.error("Error fetching courses:", error)
+      return 0
+    }
+  }
+
+  // Fetch unread messages count
+  const fetchUnreadCount = async () => {
+    if (!studentEmail) return 0
+
+    try {
+      const response = await fetch("/api/student/getNotifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentEmail }),
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        const unreadCount = data.student.filter(
+          (item) => !item.buffer && item.notification && item.isRead !== true,
+        ).length
+        return unreadCount
+      }
+      return 0
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+      return 0
+    }
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -152,10 +163,48 @@ export default function DashboardHome() {
       }
       setMousePosition({ x: e.clientX, y: e.clientY })
     }
-
     window.addEventListener("mousemove", handleMouseMove)
     return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [x, y])
+
+  // Load student data
+  useEffect(() => {
+    const loadStudentData = async () => {
+      if (!studentEmail) return
+
+      setLoading(true)
+
+      try {
+        const [coursesCount, unreadCount] = await Promise.all([fetchCoursesCount(), fetchUnreadCount()])
+
+        // Get name from studentEmail (you can modify this to use session data)
+        const displayName = studentEmail.split("@")[0] || "Student"
+
+        setStudentData({
+          name: displayName,
+          coursesEnrolled: coursesCount,
+          unreadMessages: unreadCount,
+        })
+      } catch (error) {
+        console.error("Error loading student data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadStudentData()
+  }, [studentEmail])
+
+  const updatedQuickActions = quickActions.map((action) => {
+    if (action.id === 2) {
+      // Inbox action
+      return {
+        ...action,
+        badge: studentData.unreadMessages > 0 ? studentData.unreadMessages : undefined,
+      }
+    }
+    return action
+  })
 
   const getGreeting = () => {
     const hour = currentTime.getHours()
@@ -166,6 +215,17 @@ export default function DashboardHome() {
 
   const handleNavigation = (path) => {
     router.push(path)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -202,7 +262,6 @@ export default function DashboardHome() {
           }}
           transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
         />
-
         {/* Floating Elements */}
         {floatingElements.map((element) => (
           <motion.div
@@ -250,7 +309,6 @@ export default function DashboardHome() {
               <HiSparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-pulse" />
               Campus Sync Dashboard
             </motion.div>
-
             <motion.h1
               className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 px-2"
               style={{ y: textY }}
@@ -263,7 +321,6 @@ export default function DashboardHome() {
                 {getGreeting()}, {studentData.name}! 👋
               </span>
             </motion.h1>
-
             <motion.p
               className="text-gray-600 text-base sm:text-lg"
               initial={{ opacity: 0 }}
@@ -272,7 +329,6 @@ export default function DashboardHome() {
             >
               Welcome to Campus Sync
             </motion.p>
-
             <motion.p
               className="text-gray-500 text-xs sm:text-sm mt-1"
               initial={{ opacity: 0, y: 10 }}
@@ -308,7 +364,7 @@ export default function DashboardHome() {
                 value: studentData.unreadMessages,
                 icon: HiOutlineMail,
                 color: "orange",
-                trend: "Needs attention",
+                trend: studentData.unreadMessages > 0 ? "Needs attention" : "All caught up",
               },
             ].map((stat, index) => (
               <motion.div
@@ -351,7 +407,11 @@ export default function DashboardHome() {
                         </motion.p>
                         <motion.p
                           className={`text-xs sm:text-sm flex items-center mt-1 ${
-                            stat.color === "blue" ? "text-green-600" : "text-orange-600"
+                            stat.color === "blue"
+                              ? "text-green-600"
+                              : stat.value > 0
+                                ? "text-orange-600"
+                                : "text-green-600"
                           }`}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
@@ -399,9 +459,8 @@ export default function DashboardHome() {
                 >
                   Quick Actions
                 </motion.h3>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {quickActions.map((action, index) => (
+                  {updatedQuickActions.map((action, index) => (
                     <motion.div
                       key={action.id}
                       initial={{ opacity: 0, scale: 0.8, y: 50 }}
@@ -427,7 +486,6 @@ export default function DashboardHome() {
                           className={`absolute inset-0 bg-gradient-to-r ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
                         />
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-
                         <div className="flex items-center justify-between w-full relative z-10 px-1">
                           <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                             <div className={`p-2 sm:p-3 ${action.iconBg} rounded-lg sm:rounded-xl flex-shrink-0`}>
@@ -463,68 +521,6 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* Enhanced Motivational Cards with Same Height */}
-          {/* <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 px-2 sm:px-0"
-          >
-            {motivationalCards.map((card, index) => (
-              <motion.div
-                key={card.id}
-                initial={{ opacity: 0, y: 50, rotateX: -30 }}
-                animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                transition={{
-                  delay: 0.8 + index * 0.2,
-                  duration: 0.8,
-                  ease: "easeOut",
-                }}
-                whileHover={{
-                  y: -5,
-                  rotateY: 2,
-                  transition: { duration: 0.3 },
-                }}
-                className="h-full"
-              >
-                <Card
-                  className={`shadow-lg rounded-xl sm:rounded-2xl border bg-gradient-to-br ${card.gradient} backdrop-blur-md hover:shadow-xl sm:hover:shadow-2xl transition-all duration-500 group overflow-hidden relative h-full flex flex-col`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  <CardContent className="p-4 sm:p-6 text-center flex-1 flex flex-col justify-between relative z-10">
-                    <div>
-                      <motion.div
-                        className="flex justify-center mb-3 sm:mb-4"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <div className="p-2 sm:p-3 bg-white/50 rounded-lg sm:rounded-xl">
-                          <card.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${card.iconColor}`} />
-                        </div>
-                      </motion.div>
-                      <motion.h4
-                        className="font-semibold text-gray-800 mb-2 text-sm sm:text-base"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1 + index * 0.1 }}
-                      >
-                        {card.title}
-                      </motion.h4>
-                    </div>
-                    <motion.p
-                      className="text-xs sm:text-sm text-gray-600 leading-relaxed"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.2 + index * 0.1 }}
-                    >
-                      {card.message}
-                    </motion.p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div> */}
 
           {/* Enhanced Campus Sync Info */}
           <motion.div
