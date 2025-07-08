@@ -1,3 +1,5 @@
+ 
+
 
 "use client"
 import React from "react"
@@ -23,29 +25,68 @@ export default function CompleteProfilePage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const studentDepartments = [
+    { value: "che", label: "Chemical Engineering" },
+    { value: "ce", label: "Civil Engineering" },
+    { value: "cse", label: "Computer Science and Engineering" },
+    { value: "ee", label: "Electrical Engineering" },
+    { value: "ep", label: "Engineering Physics" },
+    { value: "sse", label: "Space Sciences and Engineering" },
+    { value: "mc", label: "Mathematics and Computing" },
+    { value: "me", label: "Mechanical Engineering" },
+    { value: "mems", label: "Metallurgical Engineering & Materials Science" },
+  ]
+
+  const professorDepartments = [
+    { value: "che", label: "Chemistry" },
+    { value: "ce", label: "Civil Engineering" },
+    { value: "cse", label: "Computer Science and Engineering" },
+    { value: "ee", label: "Electrical Engineering" },
+    { value: "ep", label: "Engineering Physics" },
+    { value: "hs", label: "Humanities and Social Sciences" },
+    { value: "phy", label: "Physics" },
+    { value: "ma", label: "Mathematics" },
+    { value: "bse", label: "Biosciences and Biomedical Engineering" },
+    { value: "me", label: "Mechanical Engineering" },
+    { value: "mems", label: "Metallurgical Engineering & Materials Science" },
+    { value: "sse", label: "Astronomy, Astrophysics and Space Engineering" },
+  ]
+
   useEffect(() => {
     if (!session?.user?.email) {
       router.push("/login")
       return
     }
 
-  const checkProfileCompletion = async () => {
-        try {
-          const res = await fetch(`/api/auth/profile?email=${session.user.email}`)
-          const data = await res.json()
+    const email = session.user.email
+    const localPart = email.split("@")[0]
+    const numMatch = localPart.match(/\d{9,}/)
 
-          if(data.role){
-            if (data.role === 'student' && data.rollno) {
-              router.push('/student')
-            } else if (data.role === 'professor' && data.department) {
-              router.push('/professor')
-            }
+    if (numMatch) {
+      setRole("student")
+      const deptCode = localPart.split(/\d/)[0].toLowerCase()
+      const matchedDept = studentDepartments.find((dept) => dept.value === deptCode)
+      if (matchedDept) setDepartment(matchedDept.value)
+      setRollno(numMatch[0])
+    } else {
+      setRole("professor")
+    }
+
+    const checkProfileCompletion = async () => {
+      try {
+        const res = await fetch(`/api/auth/profile?email=${email}`)
+        const data = await res.json()
+        if (data.role) {
+          if (data.role === 'student' && data.rollno) {
+            router.push('/student')
+          } else if (data.role === 'professor' && data.department) {
+            router.push('/professor')
           }
-        } catch (err) {
-          console.error('Profile check failed', err)
         }
+      } catch (err) {
+        console.error('Profile check failed', err)
       }
-
+    }
 
     checkProfileCompletion()
   }, [session, router])
@@ -75,13 +116,13 @@ export default function CompleteProfilePage() {
         }),
       })
 
-       const data = await res.json()
+      const data = await res.json()
       if (data.success) {
         if (role === 'student') {
-        router.push('/student')
-      } else if (role === 'professor') {
-        router.push('/professor')
-      }
+          router.push('/student')
+        } else if (role === 'professor') {
+          router.push('/professor')
+        }
       } else {
         setError(data.message || 'Something went wrong.')
       }
@@ -91,33 +132,6 @@ export default function CompleteProfilePage() {
       setLoading(false)
     }
   }
-
-  const studentDepartments = [
-    { value: "che", label: "Chemical Engineering" },
-    { value: "ce", label: "Civil Engineering" },
-    { value: "cse", label: "Computer Science and Engineering" },
-    { value: "ee", label: "Electrical Engineering" },
-    { value: "ep", label: "Engineering Physics" },
-    { value: "sse", label: "Space Sciences and Engineering" },
-    { value: "mc", label: "Mathematics and Computing" },
-    { value: "me", label: "Mechanical Engineering" },
-    { value: "mems", label: "Metallurgical Engineering & Materials Science" },
-  ]
-
-  const professorDepartments = [
-    { value: "che", label: "Chemistry" },
-    { value: "ce", label: "Civil Engineering" },
-    { value: "cse", label: "Computer Science and Engineering" },
-    { value: "ee", label: "Electrical Engineering" },
-    { value: "ep", label: "Engineering Physics" },
-    { value: "hs", label: "Humanities and Social Sciences" },
-    { value: "phy", label: "Physics" },
-    { value: "ma", label: "Mathematics" },
-    { value: "bse", label: "Biosciences and Biomedical Engineering" },
-    { value: "me", label: "Mechanical Engineering" },
-    { value: "mems", label: "Metallurgical Engineering & Materials Science" },
-    { value: "sse", label: "Astronomy, Astrophysics and Space Engineering" },
-  ]
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-100 via-white to-sky-200 px-4">
@@ -155,7 +169,7 @@ export default function CompleteProfilePage() {
               </motion.div>
 
               <div className="flex gap-3 text-xs">
-                {["student", "professor"].map((r) => (
+                {['student', 'professor'].map((r) => (
                   <label
                     key={r}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border ${

@@ -465,7 +465,7 @@ export default function DashboardHome() {
           </motion.div>
 
           {/* Enhanced Motivational Cards with Same Height */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
@@ -524,7 +524,7 @@ export default function DashboardHome() {
                 </Card>
               </motion.div>
             ))}
-          </motion.div>
+          </motion.div> */}
 
           {/* Enhanced Campus Sync Info */}
           <motion.div
