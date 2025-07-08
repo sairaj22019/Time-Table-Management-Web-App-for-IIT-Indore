@@ -65,7 +65,6 @@ export default function ProfessorInboxPage() {
             // Determine direction: sent if isSent is true, received if prof is null or different prof
             const isSent = notification.isSent === true
             const direction = isSent ? "sent" : "received"
-
             if (isPoll) {
               // For polls, process the votes from the message object
               const processedVotes = {}
