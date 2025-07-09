@@ -47,7 +47,7 @@ const quickActions = [
     color: "bg-green-600 hover:bg-green-700",
     iconBg: "bg-green-100",
     iconColor: "text-green-600",
-    path: "/professor/messages",
+    path: "/professor/inbox",
     gradient: "from-green-500 to-green-600",
   },
   {
@@ -58,7 +58,7 @@ const quickActions = [
     color: "bg-purple-600 hover:bg-purple-700",
     iconBg: "bg-purple-100",
     iconColor: "text-purple-600",
-    path: "/professor/timetable",
+    path: "/professor/timeTable",
     gradient: "from-purple-500 to-purple-600",
   },
   {
@@ -133,8 +133,16 @@ const floatingElements = [
   { id: 2, icon: HiGlobe, delay: 1, duration: 4 },
   { id: 3, icon: HiStar, delay: 2, duration: 3.5 },
 ]
-
-export default function ProfessorDashboardHome({ profEmail = "abhinav123@iiti.ac.in" }) {
+// useEffect(() => {
+//   function sess() {
+//     if (!session) return;
+//     // do something with session
+//   }
+//   sess();
+// }, [session]); // <-- dependencies go here
+  
+  // if(status === "loading") return <p>Loading...</p>
+export default function ProfessorDashboardHome() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [currentTipIndex, setCurrentTipIndex] = useState(0)
@@ -147,9 +155,9 @@ export default function ProfessorDashboardHome({ profEmail = "abhinav123@iiti.ac
   const [loading, setLoading] = useState(true)
 
   const router = useRouter()
-  const { data: session } = useSession()
   const containerRef = useRef(null)
-
+  const { data: session,status } = useSession()
+  let profEmail
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
@@ -163,7 +171,10 @@ export default function ProfessorDashboardHome({ profEmail = "abhinav123@iiti.ac
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
   const y = useSpring(0, springConfig)
-
+useEffect(()=>{
+  if(!session) return
+  profEmail = session.user.email
+},[session])
   // Fetch courses count
   const fetchCoursesCount = async () => {
     if (!profEmail) return 0
@@ -242,14 +253,14 @@ export default function ProfessorDashboardHome({ profEmail = "abhinav123@iiti.ac
   useEffect(() => {
     const loadProfessorData = async () => {
       if (!profEmail) return
-
+      if(!session) return
       setLoading(true)
 
       try {
         const [coursesCount, unreadCount] = await Promise.all([fetchCoursesCount(), fetchUnreadCount()])
 
         // Get name from profEmail (you can modify this to use session data)
-        const displayName = profEmail.split("@")[0] || "Professor"
+        const displayName = session.user.username || "Professor"
 
         setProfessorData({
           name: displayName,
@@ -265,7 +276,7 @@ export default function ProfessorDashboardHome({ profEmail = "abhinav123@iiti.ac
     }
 
     loadProfessorData()
-  }, [profEmail])
+  }, [profEmail,session])
 
   const updatedQuickActions = quickActions.map((action) => {
     if (action.id === 2) {

@@ -18,6 +18,7 @@ import {
 } from "react-icons/hi"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+
 const quickActions = [
   {
     id: 1,
@@ -70,7 +71,7 @@ const floatingElements = [
   { id: 2, icon: HiGlobe, delay: 1, duration: 4 },
   { id: 3, icon: HiStar, delay: 2, duration: 3.5 },
 ]
-export default function DashboardHome({ studentEmail = "cse240001029@iiti.ac.in" }) {
+export default function DashboardHome() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [studentData, setStudentData] = useState({
@@ -79,10 +80,10 @@ export default function DashboardHome({ studentEmail = "cse240001029@iiti.ac.in"
     unreadMessages: 0,
   })
   const [loading, setLoading] = useState(true)
-
+  const { data: session,status } = useSession()
   const router = useRouter()
-  const { data: session } = useSession()
   const containerRef = useRef(null)
+  let studentEmail
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -97,7 +98,10 @@ export default function DashboardHome({ studentEmail = "cse240001029@iiti.ac.in"
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
   const y = useSpring(0, springConfig)
-
+  useEffect (()=> {
+    if(!session) return
+    studentEmail = session.user.email
+  },[session])
   // Fetch courses count
   const fetchCoursesCount = async () => {
     if (!studentEmail) return 0
@@ -171,14 +175,14 @@ export default function DashboardHome({ studentEmail = "cse240001029@iiti.ac.in"
   useEffect(() => {
     const loadStudentData = async () => {
       if (!studentEmail) return
-
+      if(!session) return
       setLoading(true)
 
       try {
         const [coursesCount, unreadCount] = await Promise.all([fetchCoursesCount(), fetchUnreadCount()])
 
         // Get name from studentEmail (you can modify this to use session data)
-        const displayName = studentEmail.split("@")[0] || "Student"
+        const displayName = session.user.username || "Student"
 
         setStudentData({
           name: displayName,
@@ -193,7 +197,7 @@ export default function DashboardHome({ studentEmail = "cse240001029@iiti.ac.in"
     }
 
     loadStudentData()
-  }, [studentEmail])
+  }, [studentEmail,session])
 
   const updatedQuickActions = quickActions.map((action) => {
     if (action.id === 2) {

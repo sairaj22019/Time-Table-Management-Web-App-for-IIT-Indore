@@ -261,13 +261,14 @@ export function AppSidebar() {
                   >
                     <Avatar className="w-6 h-6">
                       <AvatarImage src="/placeholder.svg?height=24&width=24" alt="User" />
-                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                      <Image alt="logo" src={session.user.image} width={100} height={100}/>
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                      {session.user.googleProvider ? <Image alt="logo" src={session.user.image} width={100} height={100}/> : <span>{session.user.username.charAt(0).toUpperCase()}</span>
+}
                       </AvatarFallback>
                     </Avatar>
                   </motion.div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">{session.user.name}</p>
+                    <p className="text-sm font-medium">{session.user.username}</p>
                     {/* <p className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
                       Student ID: 12345
                     </p> */}
@@ -301,7 +302,7 @@ export function AppSidebar() {
                       className="bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg overflow-hidden"
                     >
                       <div className="px-3 py-2 border-b border-border/50">
-                        <p className="text-sm font-medium">{session.user.name}</p>
+                        <p className="text-sm font-medium">{session.user.username}</p>
                         <p className="text-xs text-muted-foreground">{session.user.email}</p>
                       </div>
 

@@ -291,16 +291,13 @@ export function AppSidebar() {
                         alt="User"
                       />
                       <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                        {/* {session.user.name
-                          .split(" ")
-                          .map((word) => word[0]?.toUpperCase())
-                          .join("")} */}
-                          <Image alt="logo" src={session.user.image} width={100} height={100}/>
+                          {session.user.googleProvider ? <Image alt="logo" src={session.user.image} width={100} height={100}/> : <span>{session.user.username.charAt(0).toUpperCase()}</span>
+                          }
                       </AvatarFallback>
                     </Avatar>
                   </motion.div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">{session.user.name}</p>
+                    <p className="text-sm font-medium">{session.user.username}</p>
                     
                   </div>
                   <motion.div
@@ -333,7 +330,7 @@ export function AppSidebar() {
                     >
                       <div className="px-3 py-2 border-b border-border/50">
                         <p className="text-sm font-medium">
-                          {session.user.name}
+                          {session.user.username}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {session.user.email}
