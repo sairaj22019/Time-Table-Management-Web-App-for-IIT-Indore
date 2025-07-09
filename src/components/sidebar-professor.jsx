@@ -1,9 +1,7 @@
-
 "use client"
 import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, Send } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-
 import {
   Sidebar,
   SidebarContent,
@@ -117,8 +115,42 @@ export function AppSidebar() {
   const pathname = usePathname()
   const { setOpen, open, isMobile } = useSidebar()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const timeoutRef = useRef(null)
   const [ismenuitemHovered, setIsMenuItemHovered] = useState(false)
+  const { data: session, status } = useSession()
+
+  // Fetch unread notifications count
+  const fetchUnreadCount = async () => {
+    if (!session?.user?.email) return 0
+    try {
+      const response = await fetch("/api/professor/getNotifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profEmail: session.user.email }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        const unreadCount = data.professor.filter((item) => item.notification && item.isRead !== true).length
+        return unreadCount
+      }
+      return 0
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+      return 0
+    }
+  }
+
+  // Load unread count when component mounts or session changes
+  useEffect(() => {
+    const loadUnreadCount = async () => {
+      if (session?.user?.email) {
+        const count = await fetchUnreadCount()
+        setUnreadCount(count)
+      }
+    }
+    loadUnreadCount()
+  }, [session])
 
   const handleOpen = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
@@ -154,22 +186,27 @@ export function AppSidebar() {
         break
       case "signout":
         // Handle sign out
-        signOut({ callbackUrl: '/login' })
+        signOut({ callbackUrl: "/login" })
         break
       default:
         break
     }
   }
 
-  const { data: session, status } = useSession();
-    if (status === 'loading') return <p>Loading...</p>
-    console.log("session",session)
-    if (!session){ return <p>You are not signed in</p>}
+  if (status === "loading") return <p>Loading...</p>
+  console.log("session", session)
+  if (!session) {
+    return <p>You are not signed in</p>
+  }
 
   return (
     <Sidebar className={"shadow-sm"} collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>
       <SidebarHeader className={"mt-2"}>
-        <SidebarGroup className={"flex flex-row items-center justify-start gap-2 relative group-data-[collapsible=icon]:w-12 right-2"}>
+        <SidebarGroup
+          className={
+            "flex flex-row items-center justify-start gap-2 relative group-data-[collapsible=icon]:w-12 right-2"
+          }
+        >
           <div className="w-8 h-8 flex items-center justify-center">
             <Image
               src="/IITI_Logo.svg.png"
@@ -177,29 +214,26 @@ export function AppSidebar() {
               width={32}
               height={32}
               className="rounded-full w-12 h-8 object-cover"
-
             />
           </div>
           <motion.span
-          className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{
-            opacity: (open || isMobile) ? 1 : 0,
-            x: (open || isMobile) ? 0 : -10,
-          }}
-          transition={{
-            duration: 0.3,
-            delay: open ? 0.1 : 0,
-            ease: "easeOut",
-          }}
-        >
+            className="text-lg font-semibold group-data-[collapsible=icon]:hidden"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{
+              opacity: open || isMobile ? 1 : 0,
+              x: open || isMobile ? 0 : -10,
+            }}
+            transition={{
+              duration: 0.3,
+              delay: open ? 0.1 : 0,
+              ease: "easeOut",
+            }}
+          >
             Manager
           </motion.span>
         </SidebarGroup>
       </SidebarHeader>
-
       <div className="h-[1px] bg-sidebar-border mx-2 group-data-[collapsible=icon]:hidden"></div>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -207,7 +241,6 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => {
                 const isActive = pathname === item.url /*||(item.url !== '/' && pathname.startsWith(item.url))*/
-
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className={"text-md"} isActive={isActive}>
@@ -230,9 +263,9 @@ export function AppSidebar() {
                           <item.icon className="w-4 h-4" />
                         </motion.div>
                         <span>{item.title}</span>
-                        {item.title === "Inbox" && (
+                        {item.title === "Inbox" && unreadCount > 0 && (
                           <SidebarMenuBadge className="transition-all duration-300 group-hover:scale-110">
-                            3
+                            {unreadCount}
                           </SidebarMenuBadge>
                         )}
                       </MotionLink>
@@ -244,7 +277,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -262,8 +294,11 @@ export function AppSidebar() {
                     <Avatar className="w-6 h-6">
                       <AvatarImage src="/placeholder.svg?height=24&width=24" alt="User" />
                       <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
-                      {session.user.googleProvider ? <Image alt="logo" src={session.user.image} width={100} height={100}/> : <span>{session.user.username.charAt(0).toUpperCase()}</span>
-}
+                        {session.user.googleProvider ? (
+                          <Image alt="logo" src={session.user.image || "/placeholder.svg"} width={100} height={100} />
+                        ) : (
+                          <span>{session.user.username.charAt(0).toUpperCase()}</span>
+                        )}
                       </AvatarFallback>
                     </Avatar>
                   </motion.div>
@@ -282,11 +317,10 @@ export function AppSidebar() {
                   </motion.div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-
               <AnimatePresence>
                 {isDropdownOpen && (
                   <DropdownMenuContent
-                    side={isMobile? "top" : "right"}
+                    side={isMobile ? "top" : "right"}
                     sideOffset={8}
                     align="end"
                     className="w-56"
@@ -305,7 +339,6 @@ export function AppSidebar() {
                         <p className="text-sm font-medium">{session.user.username}</p>
                         <p className="text-xs text-muted-foreground">{session.user.email}</p>
                       </div>
-
                       {userMenuItems.map((item, index) => (
                         <div key={item.label}>
                           {item.action === "signout" && <DropdownMenuSeparator className="my-1" />}

@@ -311,7 +311,7 @@ export default function DashboardHome() {
               className="inline-flex items-center px-3 py-2 sm:px-4 bg-blue-50/80 backdrop-blur-sm rounded-full text-blue-600 text-xs sm:text-sm mb-3 sm:mb-4 border border-blue-200/50"
             >
               <HiSparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-pulse" />
-              Campus Sync Dashboard
+              Campus Sync Student Dashboard
             </motion.div>
             <motion.h1
               className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 px-2"
