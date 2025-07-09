@@ -449,7 +449,7 @@ useEffect(()=>{
               {
                 label: "Teaching Courses",
                 value: professorData.teachingCourses,
-                icon: HiBookOpen,
+                icon: HiAcademicCap,
                 color: "blue",
                 trend: "Active this semester",
               },

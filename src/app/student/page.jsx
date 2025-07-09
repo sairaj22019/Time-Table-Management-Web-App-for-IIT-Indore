@@ -359,7 +359,7 @@ export default function DashboardHome() {
               {
                 label: "Enrolled Courses",
                 value: studentData.coursesEnrolled,
-                icon: HiBookOpen,
+                icon: HiAcademicCap,
                 color: "blue",
                 trend: "Active this semester",
               },
