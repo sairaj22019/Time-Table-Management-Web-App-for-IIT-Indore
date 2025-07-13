@@ -61,11 +61,13 @@ const items = [
     url: "/admin/createCourses",
     icon: BookPlus,
   },
+
   {
     title: "View Users",
     url: "/admin/viewUsers",
     icon: BookPlus,
   },
+
 ]
 
 const dropdownVariants = {
