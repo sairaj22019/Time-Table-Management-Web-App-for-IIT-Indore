@@ -1235,7 +1235,7 @@ export default function UserSettingsPage() {
     },
     {
       label: "Department",
-      value: userData.department,
+      value: userData.department.toUpperCase(),
       icon: Building,
       color: "text-indigo-600",
     },
