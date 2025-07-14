@@ -777,8 +777,6 @@
 //   )
 // }
 
-
-
 // "use client"
 
 // import { useState, useEffect } from "react"
@@ -1565,15 +1563,12 @@
 //   )
 // }
 
-
-
-
-"use client"
-import { useState, useEffect } from "react"
-import { useForm, useFieldArray } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { motion, AnimatePresence } from "framer-motion"
+"use client";
+import { useState, useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   HiSpeakerphone,
   HiAcademicCap,
@@ -1587,16 +1582,29 @@ import {
   HiPlus,
   HiTrash,
   HiUserGroup,
-} from "react-icons/hi"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useSession } from "next-auth/react"
+} from "react-icons/hi";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // Poll option schema
 const pollOptionSchema = z.object({
@@ -1604,7 +1612,7 @@ const pollOptionSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
   room: z.string().min(1, "Room is required"),
-})
+});
 
 // Main form schema
 const formSchema = z.object({
@@ -1612,18 +1620,18 @@ const formSchema = z.object({
   title: z.string().min(1, "Poll title is required"),
   context: z.string().min(10, "Context must be at least 10 characters long"),
   options: z.array(pollOptionSchema).min(2, "At least 2 options are required"),
-})
+});
 
 export default function CreatePollPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState(null)
-  const [courseSearch, setCourseSearch] = useState("")
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [allCourses, setAllCourses] = useState([])
-  const [prefilledCourse, setPrefilledCourse] = useState(null)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { data: session, status } = useSession()
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+  const [courseSearch, setCourseSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [allCourses, setAllCourses] = useState([]);
+  const [prefilledCourse, setPrefilledCourse] = useState(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -1636,7 +1644,7 @@ export default function CreatePollPage() {
         { date: "", startTime: "", endTime: "", room: "" },
       ],
     },
-  })
+  });
 
   const {
     fields: optionFields,
@@ -1645,54 +1653,54 @@ export default function CreatePollPage() {
   } = useFieldArray({
     control: form.control,
     name: "options",
-  })
+  });
 
   // Fetch user's teaching courses
   useEffect(() => {
-    if (!session) return
+    if (!session) return;
     const fetchCourses = async () => {
       try {
         const res = await fetch("/api/professor/getAllCourses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ profEmail: session.user.email }),
-        })
-        const data = await res.json()
+        });
+        const data = await res.json();
         if (data.success) {
-          setAllCourses(data.data)
+          setAllCourses(data.data);
         } else {
-          console.error("Error fetching courses:", data.message)
+          console.error("Error fetching courses:", data.message);
         }
       } catch (error) {
-        console.error("Fetch error:", error)
+        console.error("Fetch error:", error);
       }
-    }
-    fetchCourses()
-  }, [session])
+    };
+    fetchCourses();
+  }, [session]);
 
   const filteredCourses = allCourses.filter(
     (course) =>
       course.title.toLowerCase().includes(courseSearch.toLowerCase()) ||
-      course.courseCode.toLowerCase().includes(courseSearch.toLowerCase()),
-  )
+      course.courseCode.toLowerCase().includes(courseSearch.toLowerCase())
+  );
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".course-search-container")) {
-        setShowSuggestions(false)
+        setShowSuggestions(false);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handle pre-filled course data from URL params
   useEffect(() => {
-    const courseId = searchParams.get("courseId")
-    const courseCode = searchParams.get("courseCode")
-    const courseTitle = searchParams.get("courseTitle")
-    const professor = searchParams.get("professor")
-    const studentsCount = searchParams.get("studentsCount")
+    const courseId = searchParams.get("courseId");
+    const courseCode = searchParams.get("courseCode");
+    const courseTitle = searchParams.get("courseTitle");
+    const professor = searchParams.get("professor");
+    const studentsCount = searchParams.get("studentsCount");
 
     if (courseId && courseCode && courseTitle) {
       const prefilledData = {
@@ -1701,18 +1709,18 @@ export default function CreatePollPage() {
         title: courseTitle,
         professor: professor || "You",
         enrolledStudents: Array(Number.parseInt(studentsCount) || 0).fill({}),
-      }
-      setPrefilledCourse(prefilledData)
-      form.setValue("selectedCourse", courseId)
-      setCourseSearch(`${courseCode} - ${courseTitle}`)
+      };
+      setPrefilledCourse(prefilledData);
+      form.setValue("selectedCourse", courseId);
+      setCourseSearch(`${courseCode} - ${courseTitle}`);
     }
-  }, [searchParams, form])
+  }, [searchParams, form]);
 
   const handleCourseSelection = (course) => {
-    form.setValue("selectedCourse", course._id)
-    setCourseSearch(`${course.courseCode} - ${course.title}`)
-    setShowSuggestions(false)
-    setPrefilledCourse(null) // Clear prefilled when manually selecting
+    form.setValue("selectedCourse", course._id);
+    setCourseSearch(`${course.courseCode} - ${course.title}`);
+    setShowSuggestions(false);
+    setPrefilledCourse(null); // Clear prefilled when manually selecting
 
     // Update URL with course details
     const queryParams = new URLSearchParams({
@@ -1721,31 +1729,31 @@ export default function CreatePollPage() {
       courseTitle: course.title,
       professor: session?.user?.email || "",
       studentsCount: course.enrolledStudents?.length || 0,
-    })
+    });
 
-    router.push(`/professor/createPoll?${queryParams.toString()}`)
-  }
+    router.push(`/professor/createPoll?${queryParams.toString()}`);
+  };
 
   const handleSubmit = async (data) => {
-    setIsSubmitting(true)
-    setSubmitStatus(null)
+    setIsSubmitting(true);
+    setSubmitStatus(null);
 
     try {
       // Get courseId from selected course or URL params
-      const courseId = data.selectedCourse || searchParams.get("courseId")
+      const courseId = data.selectedCourse || searchParams.get("courseId");
 
       // Get professor email from session
-      const profEmail = session?.user?.email || ""
+      const profEmail = session?.user?.email || "";
 
       // Set default expiry date to 7 days from now
-      const expiryDate = new Date()
-      expiryDate.setDate(expiryDate.getDate() + 7)
+      const expiryDate = new Date();
+      expiryDate.setMinutes(expiryDate.getMinutes() + 5);
 
       // Transform options to match backend format
       const transformedOptions = data.options.map((option) => {
         // Get day name from date
-        const date = new Date(option.date)
-        const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
+        const date = new Date(option.date);
+        const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
 
         return {
           startTime: option.startTime,
@@ -1753,8 +1761,8 @@ export default function CreatePollPage() {
           day: dayName,
           date: option.date,
           room: option.room,
-        }
-      })
+        };
+      });
 
       const requestBody = {
         options: transformedOptions,
@@ -1763,7 +1771,7 @@ export default function CreatePollPage() {
         prof: profEmail,
         courseId: courseId,
         expiryDate: expiryDate.toISOString(),
-      }
+      };
 
       const response = await fetch("/api/professor/createPoll", {
         method: "POST",
@@ -1771,73 +1779,76 @@ export default function CreatePollPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
-        setSubmitStatus("success")
+        setSubmitStatus("success");
         // Reset form after success
         setTimeout(() => {
-          form.reset()
-          setCourseSearch("")
-          setSubmitStatus(null)
-          setPrefilledCourse(null)
-        }, 3000)
+          form.reset();
+          setCourseSearch("");
+          setSubmitStatus(null);
+          setPrefilledCourse(null);
+        }, 3000);
       } else {
-        setSubmitStatus("error")
-        console.error("API Error:", result.message)
+        setSubmitStatus("error");
+        console.error("API Error:", result.message);
       }
     } catch (error) {
-      setSubmitStatus("error")
-      console.error("Network Error:", error)
+      setSubmitStatus("error");
+      console.error("Network Error:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const selectedCourseData = prefilledCourse || allCourses.find((course) => course._id === form.watch("selectedCourse"))
+  const selectedCourseData =
+    prefilledCourse ||
+    allCourses.find((course) => course._id === form.watch("selectedCourse"));
 
   // Capitalize room name with smart formatting
   const capitalizeRoom = (room) => {
     return room
       .split(" ")
       .map((word) => {
-        if (word.length === 0) return word
+        if (word.length === 0) return word;
         // Handle special cases like "l01" -> "L01"
         if (/^[a-z]\d+$/i.test(word)) {
-          return word.toUpperCase()
+          return word.toUpperCase();
         }
         // Regular capitalization
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
-      .join(" ")
-  }
+      .join(" ");
+  };
 
   // Format date to show date and day in DD-MM-YYYY Day format for input display
   const formatDateForInput = (dateString) => {
-    if (!dateString) return ""
-    const date = new Date(dateString)
-    const day = date.getDate().toString().padStart(2, "0")
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const year = date.getFullYear()
-    const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
 
     // Capitalize first letter and add space instead of comma
-    const capitalizedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase()
-    return `${day}-${month}-${year} ${capitalizedDayName}`
-  }
+    const capitalizedDayName =
+      dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase();
+    return `${day}-${month}-${year} ${capitalizedDayName}`;
+  };
 
   // Convert formatted display back to date string for form storage
   const parseDateFromDisplay = (displayValue) => {
-    if (!displayValue) return ""
-    const match = displayValue.match(/^(\d{2})-(\d{2})-(\d{4})/)
+    if (!displayValue) return "";
+    const match = displayValue.match(/^(\d{2})-(\d{2})-(\d{4})/);
     if (match) {
-      const [, day, month, year] = match
-      return `${year}-${month}-${day}`
+      const [, day, month, year] = match;
+      return `${year}-${month}-${day}`;
     }
-    return ""
-  }
+    return "";
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -1847,7 +1858,7 @@ export default function CreatePollPage() {
         staggerChildren: 0.1,
       },
     },
-  }
+  };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -1859,7 +1870,7 @@ export default function CreatePollPage() {
         ease: "easeOut",
       },
     },
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-3 sm:p-6">
@@ -1876,24 +1887,37 @@ export default function CreatePollPage() {
               <HiSpeakerphone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Create Poll</h1>
-              <p className="text-sm sm:text-base text-gray-600">Create a scheduling poll for your course</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+                Create Poll
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">
+                Create a scheduling poll for your course
+              </p>
             </div>
           </div>
         </motion.div>
 
         {/* Main Form */}
-        <motion.div variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <Card className="shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md border-gray-100">
             <CardHeader className="pb-4 sm:pb-6">
               <div className="flex items-center gap-2">
                 <HiPencilAlt className="w-5 h-5 text-purple-600" />
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Poll Details</h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+                  Poll Details
+                </h2>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4 sm:space-y-6"
+                >
                   {/* Course Selection */}
                   <motion.div variants={itemVariants} className="space-y-2">
                     <FormField
@@ -1909,42 +1933,50 @@ export default function CreatePollPage() {
                             <Input
                               value={courseSearch}
                               onChange={(e) => {
-                                setCourseSearch(e.target.value)
-                                setShowSuggestions(true)
-                                setPrefilledCourse(null) // Clear prefilled when manually searching
+                                setCourseSearch(e.target.value);
+                                setShowSuggestions(true);
+                                setPrefilledCourse(null); // Clear prefilled when manually searching
                               }}
                               onFocus={() => setShowSuggestions(true)}
                               placeholder="Search for a course..."
                               className="bg-white/80 backdrop-blur-md border-gray-200"
                             />
                             <AnimatePresence>
-                              {showSuggestions && filteredCourses.length > 0 && !prefilledCourse && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: -10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0, y: -10 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-                                >
-                                  {filteredCourses.map((course) => (
-                                    <motion.div
-                                      key={course._id}
-                                      whileHover={{ backgroundColor: "#f3f4f6" }}
-                                      className="p-3 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                      onClick={() => handleCourseSelection(course)}
-                                    >
-                                      <div className="flex flex-col">
-                                        <span className="font-medium text-gray-800">
-                                          {course.courseCode} - {course.title}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                          {course.enrolledStudents?.length || 0} students enrolled
-                                        </span>
-                                      </div>
-                                    </motion.div>
-                                  ))}
-                                </motion.div>
-                              )}
+                              {showSuggestions &&
+                                filteredCourses.length > 0 &&
+                                !prefilledCourse && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                                  >
+                                    {filteredCourses.map((course) => (
+                                      <motion.div
+                                        key={course._id}
+                                        whileHover={{
+                                          backgroundColor: "#f3f4f6",
+                                        }}
+                                        className="p-3 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                        onClick={() =>
+                                          handleCourseSelection(course)
+                                        }
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium text-gray-800">
+                                            {course.courseCode} - {course.title}
+                                          </span>
+                                          <span className="text-xs text-gray-500">
+                                            {course.enrolledStudents?.length ||
+                                              0}{" "}
+                                            students enrolled
+                                          </span>
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </motion.div>
+                                )}
                             </AnimatePresence>
                           </div>
                           <FormMessage />
@@ -1965,24 +1997,33 @@ export default function CreatePollPage() {
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="font-bold text-gray-800 text-lg mb-2">{selectedCourseData.title}</h3>
+                            <h3 className="font-bold text-gray-800 text-lg mb-2">
+                              {selectedCourseData.title}
+                            </h3>
                             <div className="space-y-1 text-sm text-gray-600">
                               <p>
-                                <span className="font-medium">Course Code:</span> {selectedCourseData.courseCode}
+                                <span className="font-medium">
+                                  Course Code:
+                                </span>{" "}
+                                {selectedCourseData.courseCode}
                               </p>
                               <p>
-                                <span className="font-medium">Professor:</span> {selectedCourseData.professor || "You"}
+                                <span className="font-medium">Professor:</span>{" "}
+                                {selectedCourseData.professor || "You"}
                               </p>
                               <div className="flex items-center gap-1">
                                 <HiUserGroup className="w-4 h-4" />
                                 <span>
                                   <span className="font-medium">Students:</span>{" "}
-                                  {selectedCourseData.enrolledStudents?.length || 0}
+                                  {selectedCourseData.enrolledStudents
+                                    ?.length || 0}
                                 </span>
                               </div>
                             </div>
                           </div>
-                          <Badge className="bg-purple-100 text-purple-700 font-semibold">Selected</Badge>
+                          <Badge className="bg-purple-100 text-purple-700 font-semibold">
+                            Selected
+                          </Badge>
                         </div>
                       </motion.div>
                     )}
@@ -1995,7 +2036,9 @@ export default function CreatePollPage() {
                       name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm sm:text-base font-medium text-gray-700">Poll Title</FormLabel>
+                          <FormLabel className="text-sm sm:text-base font-medium text-gray-700">
+                            Poll Title
+                          </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="e.g., Reschedule Class Due to Holiday"
@@ -2043,13 +2086,22 @@ export default function CreatePollPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <HiCalendar className="w-5 h-5 text-purple-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Schedule Options</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          Schedule Options
+                        </h3>
                       </div>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => appendOption({ date: "", startTime: "", endTime: "", room: "" })}
+                        onClick={() =>
+                          appendOption({
+                            date: "",
+                            startTime: "",
+                            endTime: "",
+                            room: "",
+                          })
+                        }
                         className="flex items-center gap-2 border-purple-200 text-purple-600 hover:bg-purple-50"
                       >
                         <HiPlus className="w-4 h-4" />
@@ -2068,7 +2120,9 @@ export default function CreatePollPage() {
                             className="p-4 sm:p-6 border-2 border-gray-200 rounded-xl bg-gray-50/50 space-y-4"
                           >
                             <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-gray-800">Option {index + 1}</h4>
+                              <h4 className="font-medium text-gray-800">
+                                Option {index + 1}
+                              </h4>
                               {optionFields.length > 2 && (
                                 <Button
                                   type="button"
@@ -2098,14 +2152,22 @@ export default function CreatePollPage() {
                                         <Input
                                           type="text"
                                           className="bg-white border-gray-200 cursor-pointer pr-10"
-                                          value={field.value ? formatDateForInput(field.value) : ""}
+                                          value={
+                                            field.value
+                                              ? formatDateForInput(field.value)
+                                              : ""
+                                          }
                                           placeholder="Click to select date"
                                           readOnly
                                           onClick={() => {
                                             // Trigger the hidden date input
-                                            const hiddenInput = document.getElementById(`date-${index}`)
+                                            const hiddenInput =
+                                              document.getElementById(
+                                                `date-${index}`
+                                              );
                                             if (hiddenInput) {
-                                              hiddenInput.showPicker?.() || hiddenInput.click()
+                                              hiddenInput.showPicker?.() ||
+                                                hiddenInput.click();
                                             }
                                           }}
                                         />
@@ -2118,7 +2180,7 @@ export default function CreatePollPage() {
                                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                           value={field.value || ""}
                                           onChange={(e) => {
-                                            field.onChange(e.target.value)
+                                            field.onChange(e.target.value);
                                           }}
                                           style={{ zIndex: -1 }}
                                         />
@@ -2144,8 +2206,9 @@ export default function CreatePollPage() {
                                         className="bg-white border-gray-200"
                                         {...field}
                                         onChange={(e) => {
-                                          const capitalizedValue = capitalizeRoom(e.target.value)
-                                          field.onChange(capitalizedValue)
+                                          const capitalizedValue =
+                                            capitalizeRoom(e.target.value);
+                                          field.onChange(capitalizedValue);
                                         }}
                                       />
                                     </FormControl>
@@ -2169,19 +2232,38 @@ export default function CreatePollPage() {
                                       <div className="grid grid-cols-3 gap-1">
                                         <Select
                                           onValueChange={(hour) => {
-                                            const currentTime = field.value || ""
-                                            const [, minute = "00", period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
+                                            const currentTime =
+                                              field.value || "";
+                                            const [
+                                              ,
+                                              minute = "00",
+                                              period = "AM",
+                                            ] =
+                                              currentTime.match(
+                                                /(\d{1,2}):(\d{2})\s*(AM|PM)/i
+                                              ) || [];
+                                            field.onChange(
+                                              `${hour}:${minute} ${period}`
+                                            );
                                           }}
-                                          value={field.value?.match(/(\d{1,2}):/)?.[1] || ""}
+                                          value={
+                                            field.value?.match(
+                                              /(\d{1,2}):/
+                                            )?.[1] || ""
+                                          }
                                         >
                                           <SelectTrigger className="h-10 text-sm border-gray-200">
                                             <SelectValue placeholder="Hr" />
                                           </SelectTrigger>
                                           <SelectContent className="max-h-48 overflow-y-auto">
-                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                                              <SelectItem key={hour} value={hour.toString()}>
+                                            {Array.from(
+                                              { length: 12 },
+                                              (_, i) => i + 1
+                                            ).map((hour) => (
+                                              <SelectItem
+                                                key={hour}
+                                                value={hour.toString()}
+                                              >
                                                 {hour}
                                               </SelectItem>
                                             ))}
@@ -2189,12 +2271,26 @@ export default function CreatePollPage() {
                                         </Select>
                                         <Select
                                           onValueChange={(minute) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", , period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
+                                            const currentTime =
+                                              field.value || "";
+                                            const [
+                                              ,
+                                              hour = "1",
+                                              ,
+                                              period = "AM",
+                                            ] =
+                                              currentTime.match(
+                                                /(\d{1,2}):(\d{2})\s*(AM|PM)/i
+                                              ) || [];
+                                            field.onChange(
+                                              `${hour}:${minute} ${period}`
+                                            );
                                           }}
-                                          value={field.value?.match(/:(\d{2})/)?.[1] || ""}
+                                          value={
+                                            field.value?.match(
+                                              /:(\d{2})/
+                                            )?.[1] || ""
+                                          }
                                         >
                                           <SelectTrigger className="h-10 text-sm border-gray-200">
                                             <SelectValue placeholder="Min" />
@@ -2214,7 +2310,10 @@ export default function CreatePollPage() {
                                               "50",
                                               "55",
                                             ].map((minute) => (
-                                              <SelectItem key={minute} value={minute}>
+                                              <SelectItem
+                                                key={minute}
+                                                value={minute}
+                                              >
                                                 {minute}
                                               </SelectItem>
                                             ))}
@@ -2222,19 +2321,36 @@ export default function CreatePollPage() {
                                         </Select>
                                         <Select
                                           onValueChange={(period) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", minute = "00"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
+                                            const currentTime =
+                                              field.value || "";
+                                            const [
+                                              ,
+                                              hour = "1",
+                                              minute = "00",
+                                            ] =
+                                              currentTime.match(
+                                                /(\d{1,2}):(\d{2})/i
+                                              ) || [];
+                                            field.onChange(
+                                              `${hour}:${minute} ${period}`
+                                            );
                                           }}
-                                          value={field.value?.match(/\s*(AM|PM)/i)?.[1] || ""}
+                                          value={
+                                            field.value?.match(
+                                              /\s*(AM|PM)/i
+                                            )?.[1] || ""
+                                          }
                                         >
                                           <SelectTrigger className="h-10 text-sm border-gray-200">
                                             <SelectValue placeholder="AM/PM" />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            <SelectItem value="AM">AM</SelectItem>
-                                            <SelectItem value="PM">PM</SelectItem>
+                                            <SelectItem value="AM">
+                                              AM
+                                            </SelectItem>
+                                            <SelectItem value="PM">
+                                              PM
+                                            </SelectItem>
                                           </SelectContent>
                                         </Select>
                                       </div>
@@ -2257,19 +2373,38 @@ export default function CreatePollPage() {
                                       <div className="grid grid-cols-3 gap-1">
                                         <Select
                                           onValueChange={(hour) => {
-                                            const currentTime = field.value || ""
-                                            const [, minute = "00", period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
+                                            const currentTime =
+                                              field.value || "";
+                                            const [
+                                              ,
+                                              minute = "00",
+                                              period = "AM",
+                                            ] =
+                                              currentTime.match(
+                                                /(\d{1,2}):(\d{2})\s*(AM|PM)/i
+                                              ) || [];
+                                            field.onChange(
+                                              `${hour}:${minute} ${period}`
+                                            );
                                           }}
-                                          value={field.value?.match(/(\d{1,2}):/)?.[1] || ""}
+                                          value={
+                                            field.value?.match(
+                                              /(\d{1,2}):/
+                                            )?.[1] || ""
+                                          }
                                         >
                                           <SelectTrigger className="h-10 text-sm border-gray-200">
                                             <SelectValue placeholder="Hr" />
                                           </SelectTrigger>
                                           <SelectContent className="max-h-48 overflow-y-auto">
-                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                                              <SelectItem key={hour} value={hour.toString()}>
+                                            {Array.from(
+                                              { length: 12 },
+                                              (_, i) => i + 1
+                                            ).map((hour) => (
+                                              <SelectItem
+                                                key={hour}
+                                                value={hour.toString()}
+                                              >
                                                 {hour}
                                               </SelectItem>
                                             ))}
@@ -2277,12 +2412,26 @@ export default function CreatePollPage() {
                                         </Select>
                                         <Select
                                           onValueChange={(minute) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", , period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
+                                            const currentTime =
+                                              field.value || "";
+                                            const [
+                                              ,
+                                              hour = "1",
+                                              ,
+                                              period = "AM",
+                                            ] =
+                                              currentTime.match(
+                                                /(\d{1,2}):(\d{2})\s*(AM|PM)/i
+                                              ) || [];
+                                            field.onChange(
+                                              `${hour}:${minute} ${period}`
+                                            );
                                           }}
-                                          value={field.value?.match(/:(\d{2})/)?.[1] || ""}
+                                          value={
+                                            field.value?.match(
+                                              /:(\d{2})/
+                                            )?.[1] || ""
+                                          }
                                         >
                                           <SelectTrigger className="h-10 text-sm border-gray-200">
                                             <SelectValue placeholder="Min" />
@@ -2302,7 +2451,10 @@ export default function CreatePollPage() {
                                               "50",
                                               "55",
                                             ].map((minute) => (
-                                              <SelectItem key={minute} value={minute}>
+                                              <SelectItem
+                                                key={minute}
+                                                value={minute}
+                                              >
                                                 {minute}
                                               </SelectItem>
                                             ))}
@@ -2310,19 +2462,36 @@ export default function CreatePollPage() {
                                         </Select>
                                         <Select
                                           onValueChange={(period) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", minute = "00"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
+                                            const currentTime =
+                                              field.value || "";
+                                            const [
+                                              ,
+                                              hour = "1",
+                                              minute = "00",
+                                            ] =
+                                              currentTime.match(
+                                                /(\d{1,2}):(\d{2})/i
+                                              ) || [];
+                                            field.onChange(
+                                              `${hour}:${minute} ${period}`
+                                            );
                                           }}
-                                          value={field.value?.match(/\s*(AM|PM)/i)?.[1] || ""}
+                                          value={
+                                            field.value?.match(
+                                              /\s*(AM|PM)/i
+                                            )?.[1] || ""
+                                          }
                                         >
                                           <SelectTrigger className="h-10 text-sm border-gray-200">
                                             <SelectValue placeholder="AM/PM" />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            <SelectItem value="AM">AM</SelectItem>
-                                            <SelectItem value="PM">PM</SelectItem>
+                                            <SelectItem value="AM">
+                                              AM
+                                            </SelectItem>
+                                            <SelectItem value="PM">
+                                              PM
+                                            </SelectItem>
                                           </SelectContent>
                                         </Select>
                                       </div>
@@ -2348,7 +2517,11 @@ export default function CreatePollPage() {
                       {isSubmitting ? (
                         <motion.div
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                          transition={{
+                            duration: 1,
+                            repeat: Number.POSITIVE_INFINITY,
+                            ease: "linear",
+                          }}
                           className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                         />
                       ) : (
@@ -2369,7 +2542,9 @@ export default function CreatePollPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                     className={`p-4 rounded-xl border ${
-                      submitStatus === "success" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                      submitStatus === "success"
+                        ? "bg-green-50 border-green-200"
+                        : "bg-red-50 border-red-200"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -2379,10 +2554,16 @@ export default function CreatePollPage() {
                         <HiX className="w-5 h-5 text-red-600" />
                       )}
                       <div>
-                        <h4 className={`font-medium ${submitStatus === "success" ? "text-green-800" : "text-red-800"}`}>
-                          {submitStatus === "success" ? "Poll Created Successfully!" : "Failed to Create Poll"}
+                        <h4
+                          className={`font-medium ${submitStatus === "success" ? "text-green-800" : "text-red-800"}`}
+                        >
+                          {submitStatus === "success"
+                            ? "Poll Created Successfully!"
+                            : "Failed to Create Poll"}
                         </h4>
-                        <p className={`text-sm ${submitStatus === "success" ? "text-green-600" : "text-red-600"}`}>
+                        <p
+                          className={`text-sm ${submitStatus === "success" ? "text-green-600" : "text-red-600"}`}
+                        >
                           {submitStatus === "success"
                             ? "Your poll has been created and sent to all course participants."
                             : "There was an error creating your poll. Please try again."}
@@ -2403,10 +2584,22 @@ export default function CreatePollPage() {
                   <div className="text-xs sm:text-sm text-purple-700">
                     <p className="font-medium mb-1">Poll Guidelines:</p>
                     <ul className="space-y-1 text-purple-600">
-                      <li>• Provide at least 2 scheduling options for students to choose from</li>
-                      <li>• Include clear context explaining why the poll is needed</li>
-                      <li>• Students will receive notifications to vote on their preferred option</li>
-                      <li>• You can view poll results and responses in your dashboard</li>
+                      <li>
+                        • Provide at least 2 scheduling options for students to
+                        choose from
+                      </li>
+                      <li>
+                        • Include clear context explaining why the poll is
+                        needed
+                      </li>
+                      <li>
+                        • Students will receive notifications to vote on their
+                        preferred option
+                      </li>
+                      <li>
+                        • You can view poll results and responses in your
+                        dashboard
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -2416,6 +2609,5 @@ export default function CreatePollPage() {
         </motion.div>
       </div>
     </main>
-  )
+  );
 }
-

@@ -1,5 +1,5 @@
 "use client"
-import { useSession } from "next-auth/react"
+import React from "react"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -36,11 +36,10 @@ export default function ProfessorInboxPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [readMessages, setReadMessages] = useState([])
-  const { data: session, status } = useSession()
+
   useEffect(() => {
-    if(!session) return 
     fetchNotifications()
-  }, [session])
+  }, [])
 
   const fetchNotifications = async () => {
     try {
@@ -49,7 +48,7 @@ export default function ProfessorInboxPage() {
       const response = await fetch("/api/professor/getNotifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profEmail: session.user.email }),
+        body: JSON.stringify({ profEmail: "abhinav123@iiti.ac.in" }),
       })
       const data = await response.json()
       console.log(response)
@@ -62,9 +61,10 @@ export default function ProfessorInboxPage() {
             const notification = item.notification
             const isPoll = notification.type === "poll"
 
-            // Determine direction: sent if isSent is true, received if prof is null or different prof
-            const isSent = notification.isSent === true
+            // Determine direction: sent if the notification was created by the current professor
+            const isSent = notification.prof && notification.prof.email === "abhinav123@iiti.ac.in"
             const direction = isSent ? "sent" : "received"
+
             if (isPoll) {
               // For polls, process the votes from the message object
               const processedVotes = {}
@@ -101,7 +101,7 @@ export default function ProfessorInboxPage() {
                   })),
                   course: notification.course ? notification.course.title : "Unknown Course",
                   courseCode: notification.course ? notification.course.courseCode : "N/A",
-                  prof: notification.prof ? notification.prof.username || "Unknown" : "Admin",
+                  prof: notification.prof ? notification.prof.profName?.[0] || "Unknown" : "Admin",
                   reason: notification.message.reason,
                   context: notification.message.context,
                   isApproved: notification.message.isApproved,
@@ -109,10 +109,8 @@ export default function ProfessorInboxPage() {
                   totalStudents: notification.course ? notification.course.enrolledStudents?.length || 0 : 0,
                 },
               }
-            } 
-            else {
+            } else {
               // Transform message data to match expected structure
-              console.log("Prof",notification.prof)
               return {
                 _id: item._id,
                 message: notification._id,
@@ -124,7 +122,7 @@ export default function ProfessorInboxPage() {
                 messageData: {
                   title: notification.messageTitle || "No Title",
                   content: typeof notification.message === "string" ? notification.message : "No content",
-                  sender: notification.prof ? notification.prof.username || "Unknown" : "Admin",
+                  sender: notification.prof ? notification.prof.profName?.[0] || "Unknown" : "Admin",
                   course: notification.course ? notification.course.title : "Unknown Course",
                   courseCode: notification.course ? notification.course.courseCode : "N/A",
                 },
@@ -153,7 +151,7 @@ export default function ProfessorInboxPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          profEmail: session.user.email,
+          profEmail: "abhinav123@iiti.ac.in",
           notificationList: notificationId,
         }),
       })
