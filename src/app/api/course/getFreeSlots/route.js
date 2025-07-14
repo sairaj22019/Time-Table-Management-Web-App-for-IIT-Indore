@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Course from "@/models/Course.model";
+import Slot from "@/models/slot.model";
 
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
@@ -29,50 +30,61 @@ function getAllSlots() {
 export async function POST(req) {
   try {
     await connectDB();
-    const { days } = await req.json();
 
-    if (!days || !Array.isArray(days)) {
+    const { day, room } = await req.json();
+
+    if (!day || !room) {
       return NextResponse.json({
         success: false,
-        message: "Please provide an array of days",
+        message: "Please provide both day and room",
       }, { status: 400 });
     }
 
     const allCourses = await Course.find({});
-    const dayWiseFreeSlots = {};
+    const allSlots = await Slot.find({ room });
 
-    for (const day of days) {
-      const occupied = [];
+    const occupied = [];
 
-      for (const course of allCourses) {
-        for (const sch of course.schedule) {
-          if (sch.day === day) {
-            occupied.push({
-              start: new Date(sch.start).getTime(),
-              end: new Date(sch.end).getTime()
-            });
-          }
+    for (const course of allCourses) {
+      for (const sch of course.schedule) {
+        if (sch.day === day && sch.room === room) {
+          occupied.push({
+            start: new Date(sch.start).getTime(),
+            end: new Date(sch.end).getTime(),
+          });
         }
       }
-
-      const allSlots = getAllSlots();
-      const freeSlots = allSlots.filter(slot => {
-        return !occupied.some(occ =>
-          slot.start.getTime() === occ.start && slot.end.getTime() === occ.end
-        );
-      });
-
-      dayWiseFreeSlots[day] = freeSlots.map(s => ({
-        start: s.start.toTimeString().substring(0, 5),
-        end: s.end.toTimeString().substring(0, 5)
-      }));
     }
+
+    for (const slot of allSlots) {
+      const slotDay = slot.day;
+      if (slotDay === day) {
+        occupied.push({
+          start: new Date(slot.start).getTime(),
+          end: new Date(slot.end).getTime(),
+        });
+      }
+    }
+
+    const slots = getAllSlots();
+    const freeSlots = slots.filter(slot => {
+      return !occupied.some(occ =>
+        slot.start.getTime() === occ.start &&
+        slot.end.getTime() === occ.end
+      );
+    });
+
+    const responseFormatted = freeSlots.map(s => ({
+      start: s.start.toTimeString().substring(0, 5),
+      end: s.end.toTimeString().substring(0, 5)
+    }));
 
     return NextResponse.json({
       success: true,
-      message: "Available time slots for the given days",
-      freeSlots: dayWiseFreeSlots
+      message: `Available time slots on ${day} for room ${room}`,
+      freeSlots: responseFormatted,
     }, { status: 200 });
+
   } catch (error) {
     console.error("Internal error:", error);
     return NextResponse.json({
