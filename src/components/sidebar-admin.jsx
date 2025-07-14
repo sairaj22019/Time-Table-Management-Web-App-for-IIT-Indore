@@ -1,7 +1,7 @@
 
 
 "use client"
-import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, GraduationCap, CalendarPlus, BookPlus } from "lucide-react"
+import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, GraduationCap, CalendarPlus, BookPlus, Users } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 
@@ -65,7 +65,7 @@ const items = [
   {
     title: "View Users",
     url: "/admin/viewUsers",
-    icon: BookPlus,
+    icon: Users,
   },
 
 ]

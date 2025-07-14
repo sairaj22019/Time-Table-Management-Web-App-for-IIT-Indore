@@ -1,5 +1,5 @@
 "use client"
-
+import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useSpring } from "framer-motion"
 import { useRouter } from "next/navigation"
@@ -9,7 +9,6 @@ import {
   HiCalendar,
   HiOutlineMail,
   HiCog,
-  HiBookOpen,
   HiChevronRight,
   HiStar,
   HiTrendingUp,
@@ -18,11 +17,9 @@ import {
   HiInformationCircle,
   HiClock,
   HiChevronLeft,
-  HiBadgeCheck,
-  HiNewspaper,
   HiChatAlt,
-  HiUserGroup,
-  HiClipboardList,
+  HiExclamationCircle,
+  HiMail,
 } from "react-icons/hi"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -74,74 +71,12 @@ const quickActions = [
   },
 ]
 
-const teachingTipsAndUpdates = [
-  {
-    id: 1,
-    type: "tip",
-    title: "Engage Your Students",
-    content:
-      "Use interactive teaching methods like polls, Q&A sessions, and group discussions to keep students engaged.",
-    icon: HiUserGroup,
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-50",
-    borderColor: "border-yellow-200",
-  },
-  {
-    id: 2,
-    type: "update",
-    title: "New Grading System",
-    content: "The updated grading portal is now live with enhanced analytics and automated feedback features.",
-    icon: HiNewspaper,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-  },
-  {
-    id: 3,
-    type: "tip",
-    title: "Effective Feedback",
-    content: "Provide specific, actionable feedback that helps students understand how to improve their work.",
-    icon: HiClipboardList,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-  },
-  {
-    id: 4,
-    type: "update",
-    title: "Faculty Meeting Reminder",
-    content: "Monthly faculty meeting scheduled for next Friday at 3:00 PM in Conference Room A.",
-    icon: HiInformationCircle,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-    borderColor: "border-purple-200",
-  },
-  {
-    id: 5,
-    type: "tip",
-    title: "Office Hours Optimization",
-    content: "Schedule regular office hours and encourage students to visit for personalized guidance and support.",
-    icon: HiBadgeCheck,
-    color: "text-indigo-600",
-    bgColor: "bg-indigo-50",
-    borderColor: "border-indigo-200",
-  },
-]
-
 const floatingElements = [
   { id: 1, icon: HiSparkles, delay: 0, duration: 3 },
   { id: 2, icon: HiGlobe, delay: 1, duration: 4 },
   { id: 3, icon: HiStar, delay: 2, duration: 3.5 },
 ]
-// useEffect(() => {
-//   function sess() {
-//     if (!session) return;
-//     // do something with session
-//   }
-//   sess();
-// }, [session]); // <-- dependencies go here
-  
-  // if(status === "loading") return <p>Loading...</p>
+
 export default function ProfessorDashboardHome() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -153,11 +88,12 @@ export default function ProfessorDashboardHome() {
     department: "Computer Science",
   })
   const [loading, setLoading] = useState(true)
-
+  const [latestNotifications, setLatestNotifications] = useState([])
   const router = useRouter()
   const containerRef = useRef(null)
-  const { data: session,status } = useSession()
+  const { data: session, status } = useSession()
   let profEmail
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
@@ -171,14 +107,77 @@ export default function ProfessorDashboardHome() {
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
   const y = useSpring(0, springConfig)
-useEffect(()=>{
-  if(!session) return
-  profEmail = session.user.email
-},[session])
+
+  useEffect(() => {
+    if (!session) return
+    profEmail = session.user.email
+  }, [session])
+
+  // Fetch latest notifications for teaching tips
+  const fetchLatestNotifications = async () => {
+    if (!profEmail) return []
+    try {
+      const response = await fetch("/api/professor/getNotifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profEmail }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        // Transform and get latest 5 notifications
+        const transformedNotifications = data.professor
+          .filter((item) => item.notification)
+          .map((item) => {
+            const notification = item.notification
+            const isPoll = notification.type === "poll"
+            const isSent = notification.prof && notification.prof.email === session.user.email
+
+            if (isPoll) {
+              return {
+                id: item._id,
+                type: "update",
+                title: `Poll: ${notification.course ? notification.course.title : "Course Poll"}`,
+                content: notification.message.reason || "New poll created for your course",
+                icon: HiExclamationCircle,
+                color: "text-purple-600",
+                bgColor: "bg-purple-50",
+                borderColor: "border-purple-200",
+                createdAt: notification.createdAt,
+                direction: isSent ? "sent" : "received",
+              }
+            } else {
+              return {
+                id: item._id,
+                type: "update",
+                title: notification.messageTitle || "New Message",
+                content:
+                  typeof notification.message === "string"
+                    ? notification.message.substring(0, 120) + (notification.message.length > 120 ? "..." : "")
+                    : "New message received",
+                icon: HiMail,
+                color: "text-blue-600",
+                bgColor: "bg-blue-50",
+                borderColor: "border-blue-200",
+                createdAt: notification.createdAt,
+                direction: isSent ? "sent" : "received",
+              }
+            }
+          })
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 5)
+
+        return transformedNotifications
+      }
+      return []
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+      return []
+    }
+  }
+
   // Fetch courses count
   const fetchCoursesCount = async () => {
     if (!profEmail) return 0
-
     try {
       const response = await fetch("/api/professor/getAllCourses", {
         method: "POST",
@@ -186,7 +185,6 @@ useEffect(()=>{
         body: JSON.stringify({ profEmail }),
       })
       const data = await response.json()
-
       if (data.success) {
         return data.data.length
       }
@@ -200,7 +198,6 @@ useEffect(()=>{
   // Fetch unread messages count
   const fetchUnreadCount = async () => {
     if (!profEmail) return 0
-
     try {
       const response = await fetch("/api/professor/getNotifications", {
         method: "POST",
@@ -208,7 +205,6 @@ useEffect(()=>{
         body: JSON.stringify({ profEmail }),
       })
       const data = await response.json()
-
       if (data.success) {
         const unreadCount = data.professor.filter((item) => item.notification && item.isRead !== true).length
         return unreadCount
@@ -228,11 +224,13 @@ useEffect(()=>{
   }, [])
 
   useEffect(() => {
-    const tipTimer = setInterval(() => {
-      setCurrentTipIndex((prev) => (prev + 1) % teachingTipsAndUpdates.length)
-    }, 5000) // Change tip every 5 seconds
-    return () => clearInterval(tipTimer)
-  }, [])
+    if (latestNotifications.length > 0) {
+      const tipTimer = setInterval(() => {
+        setCurrentTipIndex((prev) => (prev + 1) % latestNotifications.length)
+      }, 5000) // Change tip every 5 seconds
+      return () => clearInterval(tipTimer)
+    }
+  }, [latestNotifications])
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -253,21 +251,25 @@ useEffect(()=>{
   useEffect(() => {
     const loadProfessorData = async () => {
       if (!profEmail) return
-      if(!session) return
+      if (!session) return
       setLoading(true)
-
       try {
-        const [coursesCount, unreadCount] = await Promise.all([fetchCoursesCount(), fetchUnreadCount()])
+        const [coursesCount, unreadCount, notifications] = await Promise.all([
+          fetchCoursesCount(),
+          fetchUnreadCount(),
+          fetchLatestNotifications(),
+        ])
 
-        // Get name from profEmail (you can modify this to use session data)
+        // Get name from session
         const displayName = session.user.username || "Professor"
-
         setProfessorData({
           name: displayName,
           teachingCourses: coursesCount,
           unreadMessages: unreadCount,
-          department: "Computer Science", // You can fetch this from API if needed
+          department: "Computer Science",
         })
+
+        setLatestNotifications(notifications)
       } catch (error) {
         console.error("Error loading professor data:", error)
       } finally {
@@ -276,7 +278,7 @@ useEffect(()=>{
     }
 
     loadProfessorData()
-  }, [profEmail,session])
+  }, [profEmail, session])
 
   const updatedQuickActions = quickActions.map((action) => {
     if (action.id === 2) {
@@ -301,14 +303,31 @@ useEffect(()=>{
   }
 
   const nextTip = () => {
-    setCurrentTipIndex((prev) => (prev + 1) % teachingTipsAndUpdates.length)
+    if (latestNotifications.length > 0) {
+      setCurrentTipIndex((prev) => (prev + 1) % latestNotifications.length)
+    }
   }
 
   const prevTip = () => {
-    setCurrentTipIndex((prev) => (prev - 1 + teachingTipsAndUpdates.length) % teachingTipsAndUpdates.length)
+    if (latestNotifications.length > 0) {
+      setCurrentTipIndex((prev) => (prev - 1 + latestNotifications.length) % latestNotifications.length)
+    }
   }
 
-  const currentTip = teachingTipsAndUpdates[currentTipIndex]
+  const getRelativeTime = (date) => {
+    const now = new Date()
+    const diffInHours = Math.floor((now - new Date(date)) / (1000 * 60 * 60))
+    if (diffInHours < 1) return "Just now"
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays}d ago`
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  const currentTip = latestNotifications.length > 0 ? latestNotifications[currentTipIndex] : null
 
   if (loading) {
     return (
@@ -616,7 +635,7 @@ useEffect(()=>{
             </Card>
           </motion.div>
 
-          {/* Teaching Tips & Faculty Updates Carousel */}
+          {/* Latest Notifications Carousel */}
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
@@ -634,73 +653,84 @@ useEffect(()=>{
                 >
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-800 flex items-center">
                     <HiClock className="h-5 w-5 mr-2 text-indigo-600" />
-                    Teaching Tips & Updates
+                    Latest Notifications
                   </h3>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={prevTip}
-                      className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
-                    >
-                      <HiChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={nextTip}
-                      className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
-                    >
-                      <HiChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </motion.div>
-                <motion.div
-                  key={currentTip.id}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.5 }}
-                  className={`p-4 sm:p-6 rounded-xl border-2 ${currentTip.borderColor} ${currentTip.bgColor} relative overflow-hidden group`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  <div className="flex items-start space-x-4 relative z-10">
-                    <motion.div
-                      className="flex-shrink-0 p-3 bg-white/70 rounded-xl"
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <currentTip.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${currentTip.color}`} />
-                    </motion.div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{currentTip.title}</h4>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full font-medium ${
-                            currentTip.type === "tip" ? "bg-yellow-100 text-yellow-800" : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {currentTip.type === "tip" ? "💡 Tip" : "📢 Update"}
-                        </span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{currentTip.content}</p>
+                  {latestNotifications.length > 1 && (
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={prevTip}
+                        className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+                      >
+                        <HiChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={nextTip}
+                        className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+                      >
+                        <HiChevronRight className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </div>
+                  )}
                 </motion.div>
+
+                {currentTip ? (
+                  <motion.div
+                    key={currentTip.id}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.5 }}
+                    className={`p-4 sm:p-6 rounded-xl border-2 ${currentTip.borderColor} ${currentTip.bgColor} relative overflow-hidden group`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <div className="flex items-start space-x-4 relative z-10">
+                      <motion.div
+                        className="flex-shrink-0 p-3 bg-white/70 rounded-xl"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <currentTip.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${currentTip.color}`} />
+                      </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{currentTip.title}</h4>
+                          <span className="px-2 py-1 text-xs rounded-full font-medium bg-blue-100 text-blue-800">
+                            📢 {currentTip.direction === "sent" ? "Sent" : "Received"}
+                          </span>
+                          <span className="text-xs text-gray-500">{getRelativeTime(currentTip.createdAt)}</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{currentTip.content}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="p-4 sm:p-6 rounded-xl border-2 border-gray-200 bg-gray-50 text-center">
+                    <HiInformationCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">No recent notifications</p>
+                    <p className="text-xs text-gray-500 mt-1">Check back later for updates</p>
+                  </div>
+                )}
+
                 {/* Progress Indicators */}
-                <div className="flex justify-center mt-4 space-x-2">
-                  {teachingTipsAndUpdates.map((_, index) => (
-                    <motion.div
-                      key={index}
-                      className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                        index === currentTipIndex ? "bg-indigo-600 w-6" : "bg-gray-300"
-                      }`}
-                      whileHover={{ scale: 1.2 }}
-                      onClick={() => setCurrentTipIndex(index)}
-                      style={{ cursor: "pointer" }}
-                    />
-                  ))}
-                </div>
+                {latestNotifications.length > 1 && (
+                  <div className="flex justify-center mt-4 space-x-2">
+                    {latestNotifications.map((_, index) => (
+                      <motion.div
+                        key={index}
+                        className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                          index === currentTipIndex ? "bg-indigo-600 w-6" : "bg-gray-300"
+                        }`}
+                        whileHover={{ scale: 1.2 }}
+                        onClick={() => setCurrentTipIndex(index)}
+                        style={{ cursor: "pointer" }}
+                      />
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
