@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   HiInbox,
   HiMail,
@@ -17,13 +18,12 @@ import {
   HiUsers,
   HiFilter,
 } from "react-icons/hi"
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { useSession } from "next-auth/react"
 export default function InboxPage() {
   const [notifications, setNotifications] = useState([])
   const [filteredNotifications, setFilteredNotifications] = useState([])
@@ -36,6 +36,21 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [readMessages, setReadMessages] = useState([]) // Track read messages
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { data: session } = useSession()
+
+  useEffect(()=>{
+    if(!session) return;
+  },[session])
+
+  // Check for search parameter from dashboard navigation
+  useEffect(() => {
+    const searchFromDashboard = searchParams.get("search")
+    if (searchFromDashboard) {
+      setSearchTerm(decodeURIComponent(searchFromDashboard))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetchNotifications()
@@ -45,32 +60,32 @@ export default function InboxPage() {
     try {
       console.log("Getting notifications!!")
       setLoading(true)
-      const response = await fetch("/api/student/getNotifications",{
-        method:"POST",
+      const response = await fetch("/api/student/getNotifications", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({studentEmail:"cse240001029@iiti.ac.in"}),
+        body: JSON.stringify({ studentEmail: session.user.email }),
       })
       const data = await response.json()
-      console.log(response);
+      console.log(response)
       if (data.success) {
         // Filter out notifications with buffer and transform the data
         const filteredNotifications = data.student
-          .filter(item => !item.buffer && item.notification)
-          .map(item => {
+          .filter((item) => !item.buffer && item.notification)
+          .map((item) => {
             const notification = item.notification
             const isPoll = notification.type === "poll"
-            
+
             if (isPoll) {
               // For polls that are already read, process the votes from the API response
-              let processedVotes = {}
+              const processedVotes = {}
               let totalVotes = 0
-              
+
               if (item.isRead === true && notification.message && notification.message.votes) {
                 const pollVotes = notification.message.votes || []
                 totalVotes = pollVotes.length
-                
+
                 // Calculate vote counts for each option
-                pollVotes.forEach(vote => {
+                pollVotes.forEach((vote) => {
                   if (processedVotes[vote.option]) {
                     processedVotes[vote.option]++
                   } else {
@@ -78,7 +93,7 @@ export default function InboxPage() {
                   }
                 })
               }
-              
+
               // Transform poll data to match expected structure
               return {
                 _id: item._id,
@@ -90,13 +105,13 @@ export default function InboxPage() {
                 hasResponded: item.isRead === true, // If read, assume user has responded
                 pollData: {
                   _id: notification.message._id,
-                  options: notification.message.options.map(option => ({
+                  options: notification.message.options.map((option) => ({
                     ...option,
-                    voteCount: item.isRead === true ? (processedVotes[option._id] || 0) : 0,
+                    voteCount: item.isRead === true ? processedVotes[option._id] || 0 : 0,
                   })),
                   course: notification.course.title,
                   courseCode: notification.course.courseCode,
-                  prof: notification.prof.username,
+                  prof: notification.prof.username || "admin",
                   reason: notification.message.reason,
                   context: notification.message.context,
                   isApproved: notification.message.isApproved,
@@ -115,14 +130,13 @@ export default function InboxPage() {
                 messageData: {
                   title: notification.messageTitle,
                   content: notification.message,
-                  sender: notification.prof.username,
+                  sender: notification.prof.username || "admin",
                   course: notification.course.title,
                   courseCode: notification.course.courseCode,
                 },
               }
             }
           })
-
         setNotifications(filteredNotifications)
         setFilteredNotifications(filteredNotifications)
       } else {
@@ -144,16 +158,16 @@ export default function InboxPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentEmail: "cse240001029@iiti.ac.in",
-          notificationList: notificationId
+          studentEmail: session.user.email,
+          notificationList: notificationId,
         }),
       })
       const data = await response.json()
-      
+
       if (data.success) {
         console.log("Message marked as read successfully")
         // Add to read messages array
-        setReadMessages(prev => [...prev, notificationId])
+        setReadMessages((prev) => [...prev, notificationId])
       } else {
         console.error("Failed to mark message as read:", data.message)
       }
@@ -170,7 +184,6 @@ export default function InboxPage() {
 
   const filterNotifications = () => {
     let filtered = notifications
-
     if (searchTerm) {
       filtered = filtered.filter((notification) => {
         const searchLower = searchTerm.toLowerCase()
@@ -190,16 +203,13 @@ export default function InboxPage() {
         }
       })
     }
-
     if (filterType !== "all") {
       filtered = filtered.filter((notification) => notification.type === filterType)
     }
-
     if (filterRead !== "all") {
       const isReadFilter = filterRead === "read"
       filtered = filtered.filter((notification) => notification.isRead === isReadFilter)
     }
-
     setFilteredNotifications(filtered)
   }
 
@@ -209,19 +219,17 @@ export default function InboxPage() {
       newExpanded.delete(id)
     } else {
       newExpanded.add(id)
-      
+
       // Find the notification
-      const notification = notifications.find(n => n._id === id)
-      
+      const notification = notifications.find((n) => n._id === id)
+
       // If message was unread, mark as read and make API call
       if (notification && !notification.isRead) {
         // Update local state immediately
         setNotifications((prev) =>
-          prev.map((notification) => 
-            notification._id === id ? { ...notification, isRead: true } : notification
-          )
+          prev.map((notification) => (notification._id === id ? { ...notification, isRead: true } : notification)),
         )
-        
+
         // Make API call to mark as read
         await markMessageAsRead(id)
       }
@@ -233,66 +241,63 @@ export default function InboxPage() {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
       console.log(`Submitting poll response: ${selectedOption} for notification: ${notificationId}`)
-
       try {
-        const body={
-          option:selectedOption,
-          notificationId:notificationId,
-          userEmail:"cse240001029@iiti.ac.in"
+        const body = {
+          option: selectedOption,
+          notificationId: notificationId,
+          userEmail: session.user.email,
         }
-        const response = await fetch("/api/student/voteForPolls",{  
-          method:"POST",
+        const response = await fetch("/api/student/voteForPolls", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body:JSON.stringify(body)
-       })
-       const data=await response.json();
-       if (data.success) {
-        console.log("Vote added successfully")
-        
-        // Process the votes array from the poll data in the response
-        const pollVotes = data.poll.votes || []
-        
-        // Calculate vote counts for each option
-        const voteCountsByOption = {}
-        pollVotes.forEach(vote => {
-          if (voteCountsByOption[vote.option]) {
-            voteCountsByOption[vote.option]++
-          } else {
-            voteCountsByOption[vote.option] = 1
-          }
+          body: JSON.stringify(body),
         })
-        
-        const totalVotes = pollVotes.length
-        
-        // Update the notification with real vote data
-        setNotifications((prev) =>
-          prev.map((notification) =>
-            notification._id === notificationId
-              ? {
-                  ...notification,
-                  hasResponded: true,
-                  selectedOption: selectedOption,
-                  isRead: true,
-                  pollData: {
-                    ...notification.pollData,
-                    options: notification.pollData.options.map(option => ({
-                      ...option,
-                      voteCount: voteCountsByOption[option._id] || 0
-                    })),
-                    totalVotes: totalVotes
-                  }
-                }
-              : notification,
-          ),
-        )
-        
-      } else {
-        console.error("Failed to add vote :", data.message)
-      }
-      } catch (error) {
-      console.error("Error adding vote :", error)
-      }
+        const data = await response.json()
+        if (data.success) {
+          console.log("Vote added successfully")
 
+          // Process the votes array from the poll data in the response
+          const pollVotes = data.poll.votes || []
+
+          // Calculate vote counts for each option
+          const voteCountsByOption = {}
+          pollVotes.forEach((vote) => {
+            if (voteCountsByOption[vote.option]) {
+              voteCountsByOption[vote.option]++
+            } else {
+              voteCountsByOption[vote.option] = 1
+            }
+          })
+
+          const totalVotes = pollVotes.length
+
+          // Update the notification with real vote data
+          setNotifications((prev) =>
+            prev.map((notification) =>
+              notification._id === notificationId
+                ? {
+                    ...notification,
+                    hasResponded: true,
+                    selectedOption: selectedOption,
+                    isRead: true,
+                    pollData: {
+                      ...notification.pollData,
+                      options: notification.pollData.options.map((option) => ({
+                        ...option,
+                        voteCount: voteCountsByOption[option._id] || 0,
+                      })),
+                      totalVotes: totalVotes,
+                    },
+                  }
+                : notification,
+            ),
+          )
+        } else {
+          console.error("Failed to add vote :", data.message)
+        }
+      } catch (error) {
+        console.error("Error adding vote :", error)
+      }
       // Clear the selected option from state
       setSelectedPollOptions((prev) => {
         const newState = { ...prev }
@@ -325,7 +330,7 @@ export default function InboxPage() {
     const selectedOption = selectedPollOptions[notificationId]
     if (selectedOption) {
       console.log(`Updating poll response: ${selectedOption} for notification: ${notificationId}`)
-      await submitPollResponse(notificationId);
+      await submitPollResponse(notificationId)
       // Update the notification with new selection
       setNotifications((prev) =>
         prev.map((notification) =>
@@ -337,7 +342,6 @@ export default function InboxPage() {
             : notification,
         ),
       )
-
       setEditingPoll(null)
       setSelectedPollOptions((prev) => {
         const newState = { ...prev }
@@ -366,7 +370,6 @@ export default function InboxPage() {
   const getRelativeTime = (date) => {
     const now = new Date()
     const diffInHours = Math.floor((now - new Date(date)) / (1000 * 60 * 60))
-
     if (diffInHours < 1) return "Just now"
     if (diffInHours < 24) return `${diffInHours}h ago`
     const diffInDays = Math.floor(diffInHours / 24)
@@ -480,7 +483,6 @@ export default function InboxPage() {
               </div>
             </div>
           </div>
-
           {/* Search and Filter Section */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="relative sm:flex-grow">
@@ -526,7 +528,6 @@ export default function InboxPage() {
               const isPoll = notification.type === "poll"
               const data = isPoll ? notification.pollData : notification.messageData
               const isEditing = editingPoll === notification._id
-
               return (
                 <motion.div
                   key={notification._id}
@@ -558,7 +559,6 @@ export default function InboxPage() {
                               <HiMail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             )}
                           </motion.div>
-
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start gap-2 mb-1">
                               <h3 className="font-bold text-gray-800 text-sm sm:text-lg leading-tight">
@@ -574,7 +574,6 @@ export default function InboxPage() {
                                 </Badge>
                               )}
                             </div>
-
                             {/* Light text - hidden on small screens, visible on large screens */}
                             <div className="hidden sm:flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-2 flex-wrap">
                               <span className="flex items-center gap-1">
@@ -594,7 +593,6 @@ export default function InboxPage() {
                                 </span>
                               )}
                             </div>
-
                             <p className="text-gray-700 text-sm leading-relaxed font-semibold line-clamp-2">
                               {isPoll
                                 ? data.reason
@@ -602,7 +600,6 @@ export default function InboxPage() {
                             </p>
                           </div>
                         </div>
-
                         <div className="flex items-start gap-2 flex-shrink-0">
                           <Badge
                             variant={isPoll ? "secondary" : "outline"}
@@ -623,7 +620,6 @@ export default function InboxPage() {
                         </div>
                       </div>
                     </CardHeader>
-
                     {/* Expandable Content */}
                     <AnimatePresence>
                       {isExpanded && (
@@ -662,7 +658,6 @@ export default function InboxPage() {
                                     </span>
                                   </div>
                                 </div>
-
                                 {/* Poll Context */}
                                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-purple-100 ">
                                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
@@ -673,7 +668,6 @@ export default function InboxPage() {
                                     {data.context}
                                   </p>
                                 </div>
-
                                 {/* Poll Options */}
                                 <div className="space-y-3">
                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
@@ -696,7 +690,6 @@ export default function InboxPage() {
                                       </Button>
                                     )}
                                   </div>
-
                                   <div className="space-y-2 sm:space-y-3">
                                     {data.options.map((option, index) => {
                                       const isSelected =
@@ -708,7 +701,6 @@ export default function InboxPage() {
                                         : notification.hasResponded
                                           ? isSelected
                                           : isCurrentlySelected
-
                                       return (
                                         <motion.div
                                           key={option._id}
@@ -739,7 +731,6 @@ export default function InboxPage() {
                                               />
                                             </div>
                                           )}
-
                                           <div className="relative flex items-center justify-between">
                                             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                               <div
@@ -778,7 +769,6 @@ export default function InboxPage() {
                                                 </div>
                                               </div>
                                             </div>
-
                                             {/* Vote count and percentage */}
                                             {notification.hasResponded && !isEditing && (
                                               <div className="text-right flex-shrink-0 ml-2">
@@ -795,7 +785,6 @@ export default function InboxPage() {
                                     })}
                                   </div>
                                 </div>
-
                                 {/* Poll Actions */}
                                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
                                   {!notification.hasResponded ? (
@@ -857,12 +846,10 @@ export default function InboxPage() {
                                   </div>
                                   <div className="text-xs text-gray-600">by {data.sender}</div>
                                 </div>
-
                                 {/* Full Message Content */}
                                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 sm:p-4 rounded-xl border border-green-100">
                                   <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{data.content}</p>
                                 </div>
-
                                 {/* Message Actions */}
                                 <div className="flex gap-3">
                                   {readMessages.includes(notification._id) ? (
@@ -911,3 +898,4 @@ export default function InboxPage() {
     </main>
   )
 }
+
