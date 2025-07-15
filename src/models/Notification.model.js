@@ -5,6 +5,7 @@ const notificationSchema = new Schema(
     message: {
       type: Schema.Types.Mixed, // Can be String or ObjectId
       required: false,
+      ref:"Poll"
     },
     messageTitle:{
       type:String,
@@ -18,9 +19,11 @@ const notificationSchema = new Schema(
     prof:{
       type:Schema.Types.ObjectId,
       default:null,
+      ref:"Professor"
     },
     course:{
       type:Schema.Types.ObjectId,
+      ref:"Course"
       // required:[true,"Course ID is required sending a notification"],
     }
   },

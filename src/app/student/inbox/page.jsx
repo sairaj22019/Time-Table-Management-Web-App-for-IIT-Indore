@@ -1,28 +1,31 @@
 "use client"
-import { useState, useEffect } from "react"
+
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
-  HiInbox,
-  HiMail,
-  HiClock,
-  HiCalendar,
-  HiLocationMarker,
-  HiAcademicCap,
-  HiExclamationCircle,
-  HiInformationCircle,
-  HiCheck,
-  HiSearch,
-  HiChevronRight,
-  HiPencil,
-  HiUsers,
-  HiFilter,
-} from "react-icons/hi"
+  Inbox,
+  Mail,
+  Clock,
+  Calendar,
+  MapPin,
+  GraduationCap,
+  AlertCircle,
+  Info,
+  Check,
+  Search,
+  ChevronRight,
+  Pencil,
+  Users,
+  Filter,
+} from "lucide-react"
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useSession } from "next-auth/react"
 
 export default function InboxPage() {
   const [notifications, setNotifications] = useState([])
@@ -38,6 +41,7 @@ export default function InboxPage() {
   const [readMessages, setReadMessages] = useState([]) // Track read messages
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session, status } = useSession()
 
   // Check for search parameter from dashboard navigation
   useEffect(() => {
@@ -47,38 +51,41 @@ export default function InboxPage() {
     }
   }, [searchParams])
 
-  useEffect(() => {
-    fetchNotifications()
-  }, [])
+  const fetchNotifications = useCallback(async () => {
+    if (status !== "authenticated" || !session?.user?.email) {
+      setLoading(false) // Stop loading if not authenticated or email is missing
+      if (status === "unauthenticated") {
+        setError("Please log in to view notifications.")
+      }
+      return
+    }
 
-  const fetchNotifications = async () => {
     try {
       console.log("Getting notifications!!")
       setLoading(true)
       const response = await fetch("/api/student/getNotifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentEmail: "cse240001029@iiti.ac.in" }),
+        body: JSON.stringify({ studentEmail: session.user.email }),
       })
       const data = await response.json()
       console.log(response)
       if (data.success) {
         // Filter out notifications with buffer and transform the data
-        const filteredNotifications = data.student
+        const transformedNotifications = data.student
           .filter((item) => !item.buffer && item.notification)
           .map((item) => {
             const notification = item.notification
             const isPoll = notification.type === "poll"
+            const senderUser = notification.prof // This is the User object from backend
 
             if (isPoll) {
               // For polls that are already read, process the votes from the API response
               const processedVotes = {}
               let totalVotes = 0
-
               if (item.isRead === true && notification.message && notification.message.votes) {
                 const pollVotes = notification.message.votes || []
                 totalVotes = pollVotes.length
-
                 // Calculate vote counts for each option
                 pollVotes.forEach((vote) => {
                   if (processedVotes[vote.option]) {
@@ -88,7 +95,6 @@ export default function InboxPage() {
                   }
                 })
               }
-
               // Transform poll data to match expected structure
               return {
                 _id: item._id,
@@ -99,17 +105,19 @@ export default function InboxPage() {
                 updatedAt: notification.updatedAt,
                 hasResponded: item.isRead === true, // If read, assume user has responded
                 pollData: {
-                  _id: notification.message._id,
-                  options: notification.message.options.map((option) => ({
-                    ...option,
-                    voteCount: item.isRead === true ? processedVotes[option._id] || 0 : 0,
-                  })),
-                  course: notification.course.title,
-                  courseCode: notification.course.courseCode,
-                  prof: notification.prof.username,
-                  reason: notification.message.reason,
-                  context: notification.message.context,
-                  isApproved: notification.message.isApproved,
+                  _id: notification.message?._id, // Optional chaining
+                  options:
+                    notification.message?.options?.map((option) => ({
+                      // Optional chaining
+                      ...option,
+                      voteCount: item.isRead === true ? processedVotes[option._id] || 0 : 0,
+                    })) || [], // Default to empty array if options is null
+                  course: notification.course?.title, // Optional chaining
+                  courseCode: notification.course?.courseCode, // Optional chaining
+                  prof: senderUser ? { username: senderUser.username, role: senderUser.role } : null, // Pass username and role
+                  reason: notification.message?.reason, // Optional chaining
+                  context: notification.message?.context, // Optional chaining
+                  isApproved: notification.message?.isApproved, // Optional chaining
                   totalVotes: item.isRead === true ? totalVotes : 0,
                 },
               }
@@ -125,15 +133,15 @@ export default function InboxPage() {
                 messageData: {
                   title: notification.messageTitle,
                   content: notification.message,
-                  sender: notification.prof.username,
-                  course: notification.course.title,
-                  courseCode: notification.course.courseCode,
+                  sender: senderUser ? { username: senderUser.username, role: senderUser.role } : null, // Pass username and role
+                  course: notification.course?.title, // Optional chaining
+                  courseCode: notification.course?.courseCode, // Optional chaining
                 },
               }
             }
           })
-        setNotifications(filteredNotifications)
-        setFilteredNotifications(filteredNotifications)
+        setNotifications(transformedNotifications)
+        setFilteredNotifications(transformedNotifications)
       } else {
         setError("Failed to fetch notifications: " + data.message)
       }
@@ -143,7 +151,16 @@ export default function InboxPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.user?.email, status])
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.email) {
+      fetchNotifications()
+    } else if (status === "unauthenticated") {
+      setLoading(false)
+      setError("Please log in to view notifications.")
+    }
+  }, [status, session?.user?.email, fetchNotifications])
 
   // API call to mark message as read
   const markMessageAsRead = async (notificationId) => {
@@ -153,12 +170,11 @@ export default function InboxPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentEmail: "cse240001029@iiti.ac.in",
+          studentEmail: session.user.email,
           notificationList: notificationId,
         }),
       })
       const data = await response.json()
-
       if (data.success) {
         console.log("Message marked as read successfully")
         // Add to read messages array
@@ -171,29 +187,28 @@ export default function InboxPage() {
     }
   }
 
-  useEffect(() => {
-    if (!loading) {
-      filterNotifications()
-    }
-  }, [searchTerm, filterType, filterRead, notifications, loading])
-
-  const filterNotifications = () => {
+  const filterNotifications = useCallback(() => {
     let filtered = notifications
     if (searchTerm) {
       filtered = filtered.filter((notification) => {
         const searchLower = searchTerm.toLowerCase()
         if (notification.type === "poll") {
           return (
-            notification.pollData.course.toLowerCase().includes(searchLower) ||
-            notification.pollData.courseCode.toLowerCase().includes(searchLower) ||
-            notification.pollData.reason.toLowerCase().includes(searchLower)
+            notification.pollData.course
+              ?.toLowerCase()
+              ?.includes(searchLower) || // Optional chaining
+            notification.pollData.courseCode?.toLowerCase()?.includes(searchLower) || // Optional chaining
+            notification.pollData.reason?.toLowerCase()?.includes(searchLower) || // Optional chaining
+            notification.pollData.prof?.username?.toLowerCase()?.includes(searchLower) // Optional chaining
           )
         } else {
           return (
-            notification.messageData.title.toLowerCase().includes(searchLower) ||
-            notification.messageData.course.toLowerCase().includes(searchLower) ||
-            notification.messageData.sender.toLowerCase().includes(searchLower) ||
-            notification.messageData.content.toLowerCase().includes(searchLower)
+            notification.messageData.title
+              ?.toLowerCase()
+              ?.includes(searchLower) || // Optional chaining
+            notification.messageData.course?.toLowerCase()?.includes(searchLower) || // Optional chaining
+            notification.messageData.sender?.username?.toLowerCase()?.includes(searchLower) || // Optional chaining
+            notification.messageData.content?.toLowerCase()?.includes(searchLower) // Optional chaining
           )
         }
       })
@@ -206,7 +221,13 @@ export default function InboxPage() {
       filtered = filtered.filter((notification) => notification.isRead === isReadFilter)
     }
     setFilteredNotifications(filtered)
-  }
+  }, [searchTerm, filterType, filterRead, notifications])
+
+  useEffect(() => {
+    if (!loading) {
+      filterNotifications()
+    }
+  }, [searchTerm, filterType, filterRead, notifications, loading, filterNotifications])
 
   const toggleExpanded = async (id) => {
     const newExpanded = new Set(expandedItems)
@@ -214,17 +235,12 @@ export default function InboxPage() {
       newExpanded.delete(id)
     } else {
       newExpanded.add(id)
-
       // Find the notification
       const notification = notifications.find((n) => n._id === id)
-
       // If message was unread, mark as read and make API call
       if (notification && !notification.isRead) {
         // Update local state immediately
-        setNotifications((prev) =>
-          prev.map((notification) => (notification._id === id ? { ...notification, isRead: true } : notification)),
-        )
-
+        setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)))
         // Make API call to mark as read
         await markMessageAsRead(id)
       }
@@ -240,7 +256,7 @@ export default function InboxPage() {
         const body = {
           option: selectedOption,
           notificationId: notificationId,
-          userEmail: "cse240001029@iiti.ac.in",
+          userEmail: session.user.email,
         }
         const response = await fetch("/api/student/voteForPolls", {
           method: "POST",
@@ -250,10 +266,8 @@ export default function InboxPage() {
         const data = await response.json()
         if (data.success) {
           console.log("Vote added successfully")
-
           // Process the votes array from the poll data in the response
           const pollVotes = data.poll.votes || []
-
           // Calculate vote counts for each option
           const voteCountsByOption = {}
           pollVotes.forEach((vote) => {
@@ -263,9 +277,7 @@ export default function InboxPage() {
               voteCountsByOption[vote.option] = 1
             }
           })
-
           const totalVotes = pollVotes.length
-
           // Update the notification with real vote data
           setNotifications((prev) =>
             prev.map((notification) =>
@@ -277,10 +289,12 @@ export default function InboxPage() {
                     isRead: true,
                     pollData: {
                       ...notification.pollData,
-                      options: notification.pollData.options.map((option) => ({
-                        ...option,
-                        voteCount: voteCountsByOption[option._id] || 0,
-                      })),
+                      options:
+                        notification.pollData.options?.map((option) => ({
+                          // Optional chaining
+                          ...option,
+                          voteCount: voteCountsByOption[option._id] || 0,
+                        })) || [], // Default to empty array
                       totalVotes: totalVotes,
                     },
                   }
@@ -429,7 +443,7 @@ export default function InboxPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <HiExclamationCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-800 mb-2">Error Loading Notifications</h3>
               <p className="text-gray-600 mb-4">{error}</p>
               <Button onClick={fetchNotifications} className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -456,7 +470,7 @@ export default function InboxPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
-                  <HiInbox className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <Inbox className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Inbox</h1>
@@ -481,7 +495,7 @@ export default function InboxPage() {
           {/* Search and Filter Section */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="relative sm:flex-grow">
-              <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search notifications..."
                 className="pl-10 bg-white/80 backdrop-blur-md border-gray-200 text-sm sm:text-base"
@@ -492,7 +506,7 @@ export default function InboxPage() {
             <div className="flex gap-2">
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="flex-1 max-w-48 sm:w-36 sm:flex-none bg-white/80 backdrop-blur-md border-gray-200 text-sm">
-                  <HiFilter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -514,7 +528,6 @@ export default function InboxPage() {
             </div>
           </div>
         </motion.div>
-
         {/* Notifications List */}
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3 sm:space-y-4">
           <AnimatePresence>
@@ -549,22 +562,22 @@ export default function InboxPage() {
                             transition={{ duration: 0.2 }}
                           >
                             {isPoll ? (
-                              <HiExclamationCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             ) : (
-                              <HiMail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                              <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             )}
                           </motion.div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start gap-2 mb-1">
                               <h3 className="font-bold text-gray-800 text-sm sm:text-lg leading-tight">
-                                {isPoll ? `Poll: ${data.course}` : data.title}
+                                {isPoll ? `Poll: ${data.course ?? "N/A"}` : (data.title ?? "N/A")}
                               </h3>
                               {!notification.isRead && (
                                 <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
                               )}
                               {isPoll && notification.hasResponded && (
                                 <Badge className="bg-green-100 text-green-700 text-xs py-1 flex-shrink-0">
-                                  <HiCheck className="w-3 h-3 mr-1" />
+                                  <Check className="w-3 h-3 mr-1" />
                                   <span className="hidden sm:inline">Responded</span>
                                 </Badge>
                               )}
@@ -572,26 +585,36 @@ export default function InboxPage() {
                             {/* Light text - hidden on small screens, visible on large screens */}
                             <div className="hidden sm:flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-2 flex-wrap">
                               <span className="flex items-center gap-1">
-                                <HiAcademicCap className="w-3 h-3 sm:w-4 sm:h-4" />
-                                {isPoll ? data.courseCode : data.courseCode}
+                                <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4" />
+                                {isPoll ? (data.courseCode ?? "N/A") : (data.courseCode ?? "N/A")}
                               </span>
                               <span className="flex items-center gap-1">
-                                <HiClock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                                 {getRelativeTime(notification.createdAt)}
                               </span>
-                              {isPoll && data.prof && <span className="">by {data.prof}</span>}
-                              {!isPoll && <span className="">by {data.sender}</span>}
+                              {/* Display sender name and role */}
+                              {isPoll && data.prof?.username && (
+                                <span className="">
+                                  by {data.prof.username} ({data.prof.role})
+                                </span>
+                              )}
+                              {!isPoll && data.sender?.username && (
+                                <span className="">
+                                  by {data.sender.username} ({data.sender.role})
+                                </span>
+                              )}
                               {isPoll && (
                                 <span className="flex items-center gap-1">
-                                  <HiUsers className="w-3 h-3 sm:w-4 sm:h-4" />
+                                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                                   {data.totalVotes}
                                 </span>
                               )}
                             </div>
                             <p className="text-gray-700 text-sm leading-relaxed font-semibold line-clamp-2">
                               {isPoll
-                                ? data.reason
-                                : data.content.substring(0, 80) + (data.content.length > 80 ? "..." : "")}
+                                ? (data.reason ?? "No reason provided")
+                                : (data.content ?? "No content").substring(0, 80) +
+                                  ((data.content?.length ?? 0) > 80 ? "..." : "")}
                             </p>
                           </div>
                         </div>
@@ -609,7 +632,7 @@ export default function InboxPage() {
                             className="text-gray-500 hover:text-gray-700 p-1 sm:p-2"
                           >
                             <motion.div animate={{ rotate: isExpanded ? 90 : 0 }} transition={{ duration: 0.2 }}>
-                              <HiChevronRight className="w-4 h-4" />
+                              <ChevronRight className="w-4 h-4" />
                             </motion.div>
                           </Button>
                         </div>
@@ -637,18 +660,22 @@ export default function InboxPage() {
                                 <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
                                   <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
                                     <span className="flex items-center gap-1">
-                                      <HiAcademicCap className="w-3 h-3" />
-                                      {data.courseCode}
+                                      <GraduationCap className="w-3 h-3" />
+                                      {data.courseCode ?? "N/A"}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                      <HiClock className="w-3 h-3" />
+                                      <Clock className="w-3 h-3" />
                                       {getRelativeTime(notification.createdAt)}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
-                                    {data.prof && <span className="">by {data.prof}</span>}
+                                    {data.prof?.username && (
+                                      <span className="">
+                                        by {data.prof.username} ({data.prof.role})
+                                      </span>
+                                    )}
                                     <span className="flex items-center gap-1">
-                                      <HiUsers className="w-3 h-3" />
+                                      <Users className="w-3 h-3" />
                                       {data.totalVotes}
                                     </span>
                                   </div>
@@ -656,18 +683,18 @@ export default function InboxPage() {
                                 {/* Poll Context */}
                                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-purple-100 ">
                                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                                    <HiInformationCircle className="w-4 h-4 text-purple-600" />
+                                    <Info className="w-4 h-4 text-purple-600" />
                                     Context
                                   </h4>
                                   <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-3">
-                                    {data.context}
+                                    {data.context ?? "No context provided"}
                                   </p>
                                 </div>
                                 {/* Poll Options */}
                                 <div className="space-y-3">
                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                                     <h4 className="font-semibold text-gray-800 flex items-center gap-2 text-sm sm:text-base">
-                                      <HiCalendar className="w-4 h-4 text-blue-600" />
+                                      <Calendar className="w-4 h-4 text-blue-600" />
                                       {notification.hasResponded && !isEditing
                                         ? "Poll Results:"
                                         : "Select your preferred option:"}
@@ -679,14 +706,15 @@ export default function InboxPage() {
                                         onClick={() => startEditingPoll(notification._id)}
                                         className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs sm:text-sm"
                                       >
-                                        <HiPencil className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                        <Pencil className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                                         <span className="hidden sm:inline">Edit Response</span>
                                         <span className="sm:hidden">Edit</span>
                                       </Button>
                                     )}
                                   </div>
                                   <div className="space-y-2 sm:space-y-3">
-                                    {data.options.map((option, index) => {
+                                    {(data.options || []).map((option, index) => {
+                                      // Ensure data.options is an array
                                       const isSelected =
                                         notification.hasResponded && notification.selectedOption === option._id
                                       const isCurrentlySelected = selectedPollOptions[notification._id] === option._id
@@ -754,11 +782,11 @@ export default function InboxPage() {
                                                 {/* Time and Location side by side for all screen sizes */}
                                                 <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-600">
                                                   <span className="flex items-center gap-1">
-                                                    <HiClock className="w-3 h-3" />
+                                                    <Clock className="w-3 h-3" />
                                                     {formatTime(option.start)} - {formatTime(option.end)}
                                                   </span>
                                                   <span className="flex items-center gap-1">
-                                                    <HiLocationMarker className="w-3 h-3" />
+                                                    <MapPin className="w-3 h-3" />
                                                     {option.room}
                                                   </span>
                                                 </div>
@@ -768,7 +796,7 @@ export default function InboxPage() {
                                             {notification.hasResponded && !isEditing && (
                                               <div className="text-right flex-shrink-0 ml-2">
                                                 <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-700">
-                                                  <HiUsers className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                                                   {option.voteCount}
                                                 </div>
                                                 <div className="text-xs text-gray-500">{votePercentage}%</div>
@@ -788,7 +816,7 @@ export default function InboxPage() {
                                       disabled={!selectedPollOptions[notification._id]}
                                       className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                                     >
-                                      <HiCheck className="w-4 h-4 mr-2" />
+                                      <Check className="w-4 h-4 mr-2" />
                                       Submit Response
                                     </Button>
                                   ) : isEditing ? (
@@ -798,7 +826,7 @@ export default function InboxPage() {
                                         disabled={!selectedPollOptions[notification._id]}
                                         className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                                       >
-                                        <HiCheck className="w-4 h-4 mr-2" />
+                                        <Check className="w-4 h-4 mr-2" />
                                         Update Response
                                       </Button>
                                       <Button
@@ -811,7 +839,7 @@ export default function InboxPage() {
                                     </>
                                   ) : (
                                     <div className="text-xs sm:text-sm text-gray-600 flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
-                                      <HiInformationCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                      <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                       <span>
                                         You have already responded to this poll. Click "Edit Response" to change your
                                         selection.
@@ -831,37 +859,45 @@ export default function InboxPage() {
                                 <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
                                   <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
                                     <span className="flex items-center gap-1">
-                                      <HiAcademicCap className="w-3 h-3" />
-                                      {data.courseCode}
+                                      <GraduationCap className="w-3 h-3" />
+                                      {data.courseCode ?? "N/A"}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                      <HiClock className="w-3 h-3" />
+                                      <Clock className="w-3 h-3" />
                                       {getRelativeTime(notification.createdAt)}
                                     </span>
                                   </div>
-                                  <div className="text-xs text-gray-600">by {data.sender}</div>
+                                  <div className="text-xs text-gray-600">
+                                    {data.sender?.username && (
+                                      <span className="">
+                                        by {data.sender.username} ({data.sender.role})
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                                 {/* Full Message Content */}
                                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 sm:p-4 rounded-xl border border-green-100">
-                                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{data.content}</p>
+                                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                                    {data.content ?? "No content provided"}
+                                  </p>
                                 </div>
                                 {/* Message Actions */}
                                 <div className="flex gap-3">
                                   {readMessages.includes(notification._id) ? (
                                     <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                                      <HiCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
                                       <span className="text-green-700 font-medium">
                                         Message opened and marked as read
                                       </span>
                                     </div>
                                   ) : notification.isRead ? (
                                     <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                                      <HiCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
                                       <span className="text-green-700 font-medium">Message marked as read</span>
                                     </div>
                                   ) : (
                                     <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                      <HiInformationCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                      <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
                                       <span className="text-blue-700 font-medium">
                                         Notification opened - marked as read
                                       </span>
@@ -880,11 +916,10 @@ export default function InboxPage() {
             })}
           </AnimatePresence>
         </motion.div>
-
         {/* Empty State */}
         {filteredNotifications.length === 0 && !loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8 sm:py-12">
-            <HiInbox className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+            <Inbox className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-medium text-gray-500 mb-2">No notifications found</h3>
             <p className="text-sm sm:text-base text-gray-400">Try adjusting your search or filter criteria</p>
           </motion.div>
