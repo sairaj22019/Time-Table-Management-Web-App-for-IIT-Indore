@@ -103,7 +103,7 @@ export default function ApprovePollPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/admin/approvePoll");
+      const response = await fetch("/api/admin/approvePolls");
       const data = await response.json();
       if (data.success && data.notifications) {
         setPolls(data.notifications.map(transformNotificationToPoll));
@@ -124,7 +124,7 @@ export default function ApprovePollPage() {
   const handleApprove = async (pollId) => {
     setProcessingId(pollId);
     try {
-      const response = await fetch("/api/admin/approvePoll", {
+      const response = await fetch("/api/admin/approvePolls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pollId, status: true }), // or notificationId: pollId
@@ -150,7 +150,7 @@ export default function ApprovePollPage() {
   const handleDisapprove = async (pollId) => {
     setProcessingId(pollId);
     try {
-      const response = await fetch("/api/admin/approvePoll", {
+      const response = await fetch("/api/admin/approvePolls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pollId, status: false }), // or notificationId: pollId
