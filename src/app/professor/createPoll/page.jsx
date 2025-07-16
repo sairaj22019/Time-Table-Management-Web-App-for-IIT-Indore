@@ -1738,8 +1738,8 @@ export default function CreatePollPage() {
       const profEmail = session?.user?.email || ""
 
       // Set default expiry date to 7 days from now
-      const expiryDate = new Date()
-      expiryDate.setDate(expiryDate.getDate() + 7)
+      const expiryDate = new Date();
+      expiryDate.setMinutes(expiryDate.getMinutes() + 5);
 
       // Transform options to match backend format
       const transformedOptions = data.options.map((option) => {

@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -18,8 +17,8 @@ import {
   Pencil,
   Users,
   Filter,
+  Shield,
 } from "lucide-react"
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -51,6 +50,15 @@ export default function InboxPage() {
     }
   }, [searchParams])
 
+  // Helper function to check if message is from admin
+  const isAdminMessage = (notification) => {
+    if (notification.type === "poll") {
+      return !notification.pollData.prof || notification.pollData.prof.role === "admin"
+    } else {
+      return !notification.messageData.sender || notification.messageData.sender.role === "admin"
+    }
+  }
+
   const fetchNotifications = useCallback(async () => {
     if (status !== "authenticated" || !session?.user?.email) {
       setLoading(false) // Stop loading if not authenticated or email is missing
@@ -59,7 +67,6 @@ export default function InboxPage() {
       }
       return
     }
-
     try {
       console.log("Getting notifications!!")
       setLoading(true)
@@ -78,7 +85,6 @@ export default function InboxPage() {
             const notification = item.notification
             const isPoll = notification.type === "poll"
             const senderUser = notification.prof // This is the User object from backend
-
             if (isPoll) {
               // For polls that are already read, process the votes from the API response
               const processedVotes = {}
@@ -95,6 +101,7 @@ export default function InboxPage() {
                   }
                 })
               }
+
               // Transform poll data to match expected structure
               return {
                 _id: item._id,
@@ -278,6 +285,7 @@ export default function InboxPage() {
             }
           })
           const totalVotes = pollVotes.length
+
           // Update the notification with real vote data
           setNotifications((prev) =>
             prev.map((notification) =>
@@ -531,389 +539,439 @@ export default function InboxPage() {
         {/* Notifications List */}
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3 sm:space-y-4">
           <AnimatePresence>
-            {filteredNotifications.map((notification) => {
-              const isExpanded = expandedItems.has(notification._id)
-              const isPoll = notification.type === "poll"
-              const data = isPoll ? notification.pollData : notification.messageData
-              const isEditing = editingPoll === notification._id
-              return (
-                <motion.div
-                  key={notification._id}
-                  variants={itemVariants}
-                  layout
-                  whileHover={{ scale: 1.01, y: -2 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card
-                    className={`shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-2 pb-6 ${
-                      !notification.isRead ? "border-blue-200 bg-blue-50/30" : "border-gray-100"
-                    }`}
+            {filteredNotifications
+              .slice()
+              .reverse()
+              .map((notification) => {
+                const isExpanded = expandedItems.has(notification._id)
+                const isPoll = notification.type === "poll"
+                const data = isPoll ? notification.pollData : notification.messageData
+                const isEditing = editingPoll === notification._id
+                const isFromAdmin = isAdminMessage(notification)
+                return (
+                  <motion.div
+                    key={notification._id}
+                    variants={itemVariants}
+                    layout
+                    whileHover={{ scale: 1.01, y: -2 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <CardHeader className="pt-4 sm:pt-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                          <motion.div
-                            className={`p-1.5 sm:p-2 rounded-lg shadow-sm flex-shrink-0 ${
-                              isPoll
-                                ? "bg-gradient-to-br from-purple-500 to-purple-600"
-                                : "bg-gradient-to-br from-green-500 to-green-600"
-                            }`}
-                            whileHover={{ scale: 1.05, rotate: 5 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            {isPoll ? (
-                              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                            ) : (
-                              <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                            )}
-                          </motion.div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start gap-2 mb-1">
-                              <h3 className="font-bold text-gray-800 text-sm sm:text-lg leading-tight">
-                                {isPoll ? `Poll: ${data.course ?? "N/A"}` : (data.title ?? "N/A")}
-                              </h3>
-                              {!notification.isRead && (
-                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                    <Card
+                      className={`shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md hover:shadow-xl transition-all duration-300 overflow-hidden py-2 pb-6 ${
+                        !notification.isRead ? "border-blue-200 bg-blue-50/30" : "border-gray-100"
+                      }`}
+                    >
+                      <CardHeader className="pt-4 sm:pt-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                            <motion.div
+                              className={`p-1.5 sm:p-2 rounded-lg shadow-sm flex-shrink-0 ${
+                                isPoll
+                                  ? "bg-gradient-to-br from-purple-500 to-purple-600"
+                                  : isFromAdmin
+                                    ? "bg-gradient-to-br from-orange-500 to-orange-600"
+                                    : "bg-gradient-to-br from-green-500 to-green-600"
+                              }`}
+                              whileHover={{ scale: 1.05, rotate: 5 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {isPoll ? (
+                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                              ) : isFromAdmin ? (
+                                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                              ) : (
+                                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                               )}
-                              {isPoll && notification.hasResponded && (
-                                <Badge className="bg-green-100 text-green-700 text-xs py-1 flex-shrink-0">
-                                  <Check className="w-3 h-3 mr-1" />
-                                  <span className="hidden sm:inline">Responded</span>
-                                </Badge>
-                              )}
-                            </div>
-                            {/* Light text - hidden on small screens, visible on large screens */}
-                            <div className="hidden sm:flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-2 flex-wrap">
-                              <span className="flex items-center gap-1">
-                                <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4" />
-                                {isPoll ? (data.courseCode ?? "N/A") : (data.courseCode ?? "N/A")}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                {getRelativeTime(notification.createdAt)}
-                              </span>
-                              {/* Display sender name and role */}
-                              {isPoll && data.prof?.username && (
-                                <span className="">
-                                  by {data.prof.username} ({data.prof.role})
-                                </span>
-                              )}
-                              {!isPoll && data.sender?.username && (
-                                <span className="">
-                                  by {data.sender.username} ({data.sender.role})
-                                </span>
-                              )}
-                              {isPoll && (
-                                <span className="flex items-center gap-1">
-                                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                                  {data.totalVotes}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-gray-700 text-sm leading-relaxed font-semibold line-clamp-2">
-                              {isPoll
-                                ? (data.reason ?? "No reason provided")
-                                : (data.content ?? "No content").substring(0, 80) +
-                                  ((data.content?.length ?? 0) > 80 ? "..." : "")}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 flex-shrink-0">
-                          <Badge
-                            variant={isPoll ? "secondary" : "outline"}
-                            className={`${isPoll ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"} text-xs`}
-                          >
-                            {isPoll ? "Poll" : "Message"}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleExpanded(notification._id)}
-                            className="text-gray-500 hover:text-gray-700 p-1 sm:p-2"
-                          >
-                            <motion.div animate={{ rotate: isExpanded ? 90 : 0 }} transition={{ duration: 0.2 }}>
-                              <ChevronRight className="w-4 h-4" />
                             </motion.div>
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    {/* Expandable Content */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
-                          className="overflow-hidden"
-                        >
-                          <CardContent className="pt-0 pb-4 sm:pb-6 px-4 sm:px-6">
-                            {isPoll ? (
-                              <motion.div
-                                initial={{ y: -20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.1 }}
-                                className="space-y-4 sm:space-y-6"
-                              >
-                                {/* Light text - visible on small screens only when expanded */}
-                                <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                  <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
-                                    <span className="flex items-center gap-1">
-                                      <GraduationCap className="w-3 h-3" />
-                                      {data.courseCode ?? "N/A"}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {getRelativeTime(notification.createdAt)}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
-                                    {data.prof?.username && (
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start gap-2 mb-1">
+                                <h3 className="font-bold text-gray-800 text-sm sm:text-lg leading-tight">
+                                  {isPoll ? `Poll: ${data.course ?? "N/A"}` : (data.title ?? "N/A")}
+                                </h3>
+                                {!notification.isRead && (
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                                )}
+                                {isPoll && notification.hasResponded && (
+                                  <Badge className="bg-green-100 text-green-700 text-xs py-1 flex-shrink-0">
+                                    <Check className="w-3 h-3 mr-1" />
+                                    <span className="hidden sm:inline">Responded</span>
+                                  </Badge>
+                                )}
+                              </div>
+                              {/* Light text - hidden on small screens, visible on large screens */}
+                              <div className="hidden sm:flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-2 flex-wrap">
+                                {/* Only show course info if not from admin */}
+                                {!isFromAdmin && (
+                                  <span className="flex items-center gap-1">
+                                    <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    {isPoll ? (data.courseCode ?? "N/A") : (data.courseCode ?? "N/A")}
+                                  </span>
+                                )}
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                  {getRelativeTime(notification.createdAt)}
+                                </span>
+                                {/* Display sender name and role */}
+                                {isFromAdmin ? (
+                                  <span className="flex items-center gap-1">
+                                    <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    by admin
+                                  </span>
+                                ) : (
+                                  <>
+                                    {isPoll && data.prof?.username && (
                                       <span className="">
                                         by {data.prof.username} ({data.prof.role})
                                       </span>
                                     )}
-                                    <span className="flex items-center gap-1">
-                                      <Users className="w-3 h-3" />
-                                      {data.totalVotes}
-                                    </span>
-                                  </div>
-                                </div>
-                                {/* Poll Context */}
-                                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-purple-100 ">
-                                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                                    <Info className="w-4 h-4 text-purple-600" />
-                                    Context
-                                  </h4>
-                                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-3">
-                                    {data.context ?? "No context provided"}
-                                  </p>
-                                </div>
-                                {/* Poll Options */}
-                                <div className="space-y-3">
-                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                                    <h4 className="font-semibold text-gray-800 flex items-center gap-2 text-sm sm:text-base">
-                                      <Calendar className="w-4 h-4 text-blue-600" />
-                                      {notification.hasResponded && !isEditing
-                                        ? "Poll Results:"
-                                        : "Select your preferred option:"}
-                                    </h4>
-                                    {notification.hasResponded && !isEditing && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => startEditingPoll(notification._id)}
-                                        className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs sm:text-sm"
-                                      >
-                                        <Pencil className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                                        <span className="hidden sm:inline">Edit Response</span>
-                                        <span className="sm:hidden">Edit</span>
-                                      </Button>
-                                    )}
-                                  </div>
-                                  <div className="space-y-2 sm:space-y-3">
-                                    {(data.options || []).map((option, index) => {
-                                      // Ensure data.options is an array
-                                      const isSelected =
-                                        notification.hasResponded && notification.selectedOption === option._id
-                                      const isCurrentlySelected = selectedPollOptions[notification._id] === option._id
-                                      const votePercentage = getVotePercentage(option.voteCount, data.totalVotes)
-                                      const showAsSelected = isEditing
-                                        ? isCurrentlySelected
-                                        : notification.hasResponded
-                                          ? isSelected
-                                          : isCurrentlySelected
-                                      return (
-                                        <motion.div
-                                          key={option._id}
-                                          initial={{ opacity: 0, x: -20 }}
-                                          animate={{ opacity: 1, x: 0 }}
-                                          transition={{ delay: index * 0.1 }}
-                                          className={`relative p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl transition-all duration-200 ${
-                                            showAsSelected
-                                              ? "border-blue-500 bg-blue-50"
-                                              : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30"
-                                          } ${!notification.hasResponded || isEditing ? "cursor-pointer" : ""}`}
-                                          onClick={() => {
-                                            if (!notification.hasResponded || isEditing) {
-                                              handlePollOptionSelect(notification._id, option._id)
-                                            }
-                                          }}
-                                          whileHover={!notification.hasResponded || isEditing ? { scale: 1.02 } : {}}
-                                          whileTap={!notification.hasResponded || isEditing ? { scale: 0.98 } : {}}
-                                        >
-                                          {/* Vote percentage bar */}
-                                          {notification.hasResponded && !isEditing && (
-                                            <div className="absolute inset-0 rounded-lg sm:rounded-xl overflow-hidden">
-                                              <motion.div
-                                                className="h-full bg-gradient-to-r from-blue-100 to-blue-200 opacity-30"
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${votePercentage}%` }}
-                                                transition={{ duration: 1, delay: 0.5 }}
-                                              />
-                                            </div>
-                                          )}
-                                          <div className="relative flex items-center justify-between">
-                                            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                                              <div
-                                                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                                                  showAsSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
-                                                }`}
-                                              >
-                                                {showAsSelected && (
-                                                  <motion.div
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    className="w-2 h-2 bg-white rounded-full"
-                                                  />
-                                                )}
-                                              </div>
-                                              <div className="flex-1 min-w-0">
-                                                {/* Day and Date side by side for all screen sizes */}
-                                                <div className="flex items-center gap-2 mb-1">
-                                                  <span className="font-medium text-gray-800 text-sm sm:text-base">
-                                                    {option.day}
-                                                  </span>
-                                                  <span className="text-xs sm:text-sm text-gray-600">
-                                                    {formatDate(option.date)}
-                                                  </span>
-                                                </div>
-                                                {/* Time and Location side by side for all screen sizes */}
-                                                <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-600">
-                                                  <span className="flex items-center gap-1">
-                                                    <Clock className="w-3 h-3" />
-                                                    {formatTime(option.start)} - {formatTime(option.end)}
-                                                  </span>
-                                                  <span className="flex items-center gap-1">
-                                                    <MapPin className="w-3 h-3" />
-                                                    {option.room}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                            {/* Vote count and percentage */}
-                                            {notification.hasResponded && !isEditing && (
-                                              <div className="text-right flex-shrink-0 ml-2">
-                                                <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-700">
-                                                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                  {option.voteCount}
-                                                </div>
-                                                <div className="text-xs text-gray-500">{votePercentage}%</div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </motion.div>
-                                      )
-                                    })}
-                                  </div>
-                                </div>
-                                {/* Poll Actions */}
-                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-                                  {!notification.hasResponded ? (
-                                    <Button
-                                      onClick={() => submitPollResponse(notification._id)}
-                                      disabled={!selectedPollOptions[notification._id]}
-                                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                                    >
-                                      <Check className="w-4 h-4 mr-2" />
-                                      Submit Response
-                                    </Button>
-                                  ) : isEditing ? (
-                                    <>
-                                      <Button
-                                        onClick={() => updatePollResponse(notification._id)}
-                                        disabled={!selectedPollOptions[notification._id]}
-                                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                                      >
-                                        <Check className="w-4 h-4 mr-2" />
-                                        Update Response
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => cancelEditingPoll(notification._id)}
-                                        className="border-gray-300 hover:bg-gray-100 text-sm"
-                                      >
-                                        Cancel
-                                      </Button>
-                                    </>
-                                  ) : (
-                                    <div className="text-xs sm:text-sm text-gray-600 flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
-                                      <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                      <span>
-                                        You have already responded to this poll. Click "Edit Response" to change your
-                                        selection.
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </motion.div>
-                            ) : (
-                              <motion.div
-                                initial={{ y: -20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.1 }}
-                                className="space-y-4"
-                              >
-                                {/* Light text for messages - visible on small screens only when expanded */}
-                                <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                  <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
-                                    <span className="flex items-center gap-1">
-                                      <GraduationCap className="w-3 h-3" />
-                                      {data.courseCode ?? "N/A"}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {getRelativeTime(notification.createdAt)}
-                                    </span>
-                                  </div>
-                                  <div className="text-xs text-gray-600">
-                                    {data.sender?.username && (
+                                    {!isPoll && data.sender?.username && (
                                       <span className="">
                                         by {data.sender.username} ({data.sender.role})
                                       </span>
                                     )}
-                                  </div>
-                                </div>
-                                {/* Full Message Content */}
-                                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 sm:p-4 rounded-xl border border-green-100">
-                                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                                    {data.content ?? "No content provided"}
-                                  </p>
-                                </div>
-                                {/* Message Actions */}
-                                <div className="flex gap-3">
-                                  {readMessages.includes(notification._id) ? (
-                                    <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                                      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-                                      <span className="text-green-700 font-medium">
-                                        Message opened and marked as read
-                                      </span>
-                                    </div>
-                                  ) : notification.isRead ? (
-                                    <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                                      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-                                      <span className="text-green-700 font-medium">Message marked as read</span>
-                                    </div>
-                                  ) : (
-                                    <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                      <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                                      <span className="text-blue-700 font-medium">
-                                        Notification opened - marked as read
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
+                                  </>
+                                )}
+                                {isPoll && (
+                                  <span className="flex items-center gap-1">
+                                    <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    {data.totalVotes}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-gray-700 text-sm leading-relaxed font-semibold line-clamp-2">
+                                {isPoll
+                                  ? (data.reason ?? "No reason provided")
+                                  : (data.content ?? "No content").substring(0, 80) +
+                                    ((data.content?.length ?? 0) > 80 ? "..." : "")}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2 flex-shrink-0">
+                            <Badge
+                              variant={isPoll ? "secondary" : isFromAdmin ? "default" : "outline"}
+                              className={`${
+                                isPoll
+                                  ? "bg-purple-100 text-purple-700"
+                                  : isFromAdmin
+                                    ? "bg-orange-100 text-orange-700"
+                                    : "bg-green-100 text-green-700"
+                              } text-xs`}
+                            >
+                              {isPoll ? "Poll" : "Message"}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleExpanded(notification._id)}
+                              className="text-gray-500 hover:text-gray-700 p-1 sm:p-2"
+                            >
+                              <motion.div animate={{ rotate: isExpanded ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                                <ChevronRight className="w-4 h-4" />
                               </motion.div>
-                            )}
-                          </CardContent>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </Card>
-                </motion.div>
-              )
-            })}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      {/* Expandable Content */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <CardContent className="pt-0 pb-4 sm:pb-6 px-4 sm:px-6">
+                              {isPoll ? (
+                                <motion.div
+                                  initial={{ y: -20, opacity: 0 }}
+                                  animate={{ y: 0, opacity: 1 }}
+                                  transition={{ delay: 0.1 }}
+                                  className="space-y-4 sm:space-y-6"
+                                >
+                                  {/* Light text - visible on small screens only when expanded */}
+                                  <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                    <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
+                                      {!isFromAdmin && (
+                                        <span className="flex items-center gap-1">
+                                          <GraduationCap className="w-3 h-3" />
+                                          {data.courseCode ?? "N/A"}
+                                        </span>
+                                      )}
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {getRelativeTime(notification.createdAt)}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
+                                      {isFromAdmin ? (
+                                        <span className="flex items-center gap-1">
+                                          <Shield className="w-3 h-3" />
+                                          by admin
+                                        </span>
+                                      ) : (
+                                        data.prof?.username && (
+                                          <span className="">
+                                            by {data.prof.username} ({data.prof.role})
+                                          </span>
+                                        )
+                                      )}
+                                      <span className="flex items-center gap-1">
+                                        <Users className="w-3 h-3" />
+                                        {data.totalVotes}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {/* Poll Context */}
+                                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-purple-100 ">
+                                    <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                                      <Info className="w-4 h-4 text-purple-600" />
+                                      Context
+                                    </h4>
+                                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-3">
+                                      {data.context ?? "No context provided"}
+                                    </p>
+                                  </div>
+                                  {/* Poll Options */}
+                                  <div className="space-y-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                                      <h4 className="font-semibold text-gray-800 flex items-center gap-2 text-sm sm:text-base">
+                                        <Calendar className="w-4 h-4 text-blue-600" />
+                                        {notification.hasResponded && !isEditing
+                                          ? "Poll Results:"
+                                          : "Select your preferred option:"}
+                                      </h4>
+                                      {notification.hasResponded && !isEditing && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => startEditingPoll(notification._id)}
+                                          className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs sm:text-sm"
+                                        >
+                                          <Pencil className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                          <span className="hidden sm:inline">Edit Response</span>
+                                          <span className="sm:hidden">Edit</span>
+                                        </Button>
+                                      )}
+                                    </div>
+                                    <div className="space-y-2 sm:space-y-3">
+                                      {(data.options || []).map((option, index) => {
+                                        // Ensure data.options is an array
+                                        const isSelected =
+                                          notification.hasResponded && notification.selectedOption === option._id
+                                        const isCurrentlySelected = selectedPollOptions[notification._id] === option._id
+                                        const votePercentage = getVotePercentage(option.voteCount, data.totalVotes)
+                                        const showAsSelected = isEditing
+                                          ? isCurrentlySelected
+                                          : notification.hasResponded
+                                            ? isSelected
+                                            : isCurrentlySelected
+                                        return (
+                                          <motion.div
+                                            key={option._id}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: index * 0.1 }}
+                                            className={`relative p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl transition-all duration-200 ${
+                                              showAsSelected
+                                                ? "border-blue-500 bg-blue-50"
+                                                : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30"
+                                            } ${!notification.hasResponded || isEditing ? "cursor-pointer" : ""}`}
+                                            onClick={() => {
+                                              if (!notification.hasResponded || isEditing) {
+                                                handlePollOptionSelect(notification._id, option._id)
+                                              }
+                                            }}
+                                            whileHover={!notification.hasResponded || isEditing ? { scale: 1.02 } : {}}
+                                            whileTap={!notification.hasResponded || isEditing ? { scale: 0.98 } : {}}
+                                          >
+                                            {/* Vote percentage bar */}
+                                            {notification.hasResponded && !isEditing && (
+                                              <div className="absolute inset-0 rounded-lg sm:rounded-xl overflow-hidden">
+                                                <motion.div
+                                                  className="h-full bg-gradient-to-r from-blue-100 to-blue-200 opacity-30"
+                                                  initial={{ width: 0 }}
+                                                  animate={{ width: `${votePercentage}%` }}
+                                                  transition={{ duration: 1, delay: 0.5 }}
+                                                />
+                                              </div>
+                                            )}
+                                            <div className="relative flex items-center justify-between">
+                                              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                                <div
+                                                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                                    showAsSelected ? "border-blue-500 bg-blue-500" : "border-gray-300"
+                                                  }`}
+                                                >
+                                                  {showAsSelected && (
+                                                    <motion.div
+                                                      initial={{ scale: 0 }}
+                                                      animate={{ scale: 1 }}
+                                                      className="w-2 h-2 bg-white rounded-full"
+                                                    />
+                                                  )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                  {/* Day and Date side by side for all screen sizes */}
+                                                  <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-medium text-gray-800 text-sm sm:text-base">
+                                                      {option.day}
+                                                    </span>
+                                                    <span className="text-xs sm:text-sm text-gray-600">
+                                                      {formatDate(option.date)}
+                                                    </span>
+                                                  </div>
+                                                  {/* Time and Location side by side for all screen sizes */}
+                                                  <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-600">
+                                                    <span className="flex items-center gap-1">
+                                                      <Clock className="w-3 h-3" />
+                                                      {formatTime(option.start)} - {formatTime(option.end)}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                      <MapPin className="w-3 h-3" />
+                                                      {option.room}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              {/* Vote count and percentage */}
+                                              {notification.hasResponded && !isEditing && (
+                                                <div className="text-right flex-shrink-0 ml-2">
+                                                  <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-700">
+                                                    <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                    {option.voteCount}
+                                                  </div>
+                                                  <div className="text-xs text-gray-500">{votePercentage}%</div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </motion.div>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                  {/* Poll Actions */}
+                                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+                                    {!notification.hasResponded ? (
+                                      <Button
+                                        onClick={() => submitPollResponse(notification._id)}
+                                        disabled={!selectedPollOptions[notification._id]}
+                                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                      >
+                                        <Check className="w-4 h-4 mr-2" />
+                                        Submit Response
+                                      </Button>
+                                    ) : isEditing ? (
+                                      <>
+                                        <Button
+                                          onClick={() => updatePollResponse(notification._id)}
+                                          disabled={!selectedPollOptions[notification._id]}
+                                          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                        >
+                                          <Check className="w-4 h-4 mr-2" />
+                                          Update Response
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => cancelEditingPoll(notification._id)}
+                                          className="border-gray-300 hover:bg-gray-100 text-sm"
+                                        >
+                                          Cancel
+                                        </Button>
+                                      </>
+                                    ) : (
+                                      <div className="text-xs sm:text-sm text-gray-600 flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+                                        <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                        <span>
+                                          You have already responded to this poll. Click "Edit Response" to change your
+                                          selection.
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              ) : (
+                                <motion.div
+                                  initial={{ y: -20, opacity: 0 }}
+                                  animate={{ y: 0, opacity: 1 }}
+                                  transition={{ delay: 0.1 }}
+                                  className="space-y-4"
+                                >
+                                  {/* Light text for messages - visible on small screens only when expanded */}
+                                  <div className="sm:hidden bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                    <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
+                                      {!isFromAdmin && (
+                                        <span className="flex items-center gap-1">
+                                          <GraduationCap className="w-3 h-3" />
+                                          {data.courseCode ?? "N/A"}
+                                        </span>
+                                      )}
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {getRelativeTime(notification.createdAt)}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {isFromAdmin ? (
+                                        <span className="flex items-center gap-1">
+                                          <Shield className="w-3 h-3" />
+                                          by admin
+                                        </span>
+                                      ) : (
+                                        data.sender?.username && (
+                                          <span className="">
+                                            by {data.sender.username} ({data.sender.role})
+                                          </span>
+                                        )
+                                      )}
+                                    </div>
+                                  </div>
+                                  {/* Full Message Content */}
+                                  <div
+                                    className={`p-3 sm:p-4 rounded-xl border ${
+                                      isFromAdmin
+                                        ? "bg-gradient-to-r from-orange-50 to-amber-50 border-orange-100"
+                                        : "bg-gradient-to-r from-green-50 to-emerald-50 border-green-100"
+                                    }`}
+                                  >
+                                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                                      {data.content ?? "No content provided"}
+                                    </p>
+                                  </div>
+                                  {/* Message Actions */}
+                                  <div className="flex gap-3">
+                                    {readMessages.includes(notification._id) ? (
+                                      <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                                        <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                        <span className="text-green-700 font-medium">
+                                          Message opened and marked as read
+                                        </span>
+                                      </div>
+                                    ) : notification.isRead ? (
+                                      <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                                        <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                        <span className="text-green-700 font-medium">Message marked as read</span>
+                                      </div>
+                                    ) : (
+                                      <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                        <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                        <span className="text-blue-700 font-medium">
+                                          Notification opened - marked as read
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </CardContent>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Card>
+                  </motion.div>
+                )
+              })}
           </AnimatePresence>
         </motion.div>
         {/* Empty State */}
