@@ -625,7 +625,7 @@ export default function GridDetailPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ gridId: "685a7869e91c8c8e4777d904" }),
+        body: JSON.stringify({ gridId: params.id }),
       });
 
       const result = await response.json();
