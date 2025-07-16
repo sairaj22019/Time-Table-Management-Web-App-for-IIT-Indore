@@ -1,23 +1,14 @@
-
-"use client";
-import { useState } from "react";
-import React from "react";
-
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Save, RotateCcw, GraduationCap, Clock } from "lucide-react";
-import { motion } from "framer-motion";
-
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+"use client"
+import { useState } from "react"
+import React from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Save, RotateCcw, GraduationCap, Clock } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Time slots configuration
 const timeSlots = [
@@ -37,7 +28,7 @@ const timeSlots = [
   { id: "slot7", label: "15:30-16:25", start: "15:30", end: "16:25" },
   { id: "slot8", label: "16:30-17:25", start: "16:30", end: "17:25" },
   { id: "slot9", label: "17:30-18:25", start: "17:30", end: "18:25" },
-];
+]
 
 const daysOfWeek = [
   { id: "monday", label: "Mon", fullName: "Monday" },
@@ -46,46 +37,44 @@ const daysOfWeek = [
   { id: "thursday", label: "Thu", fullName: "Thursday" },
   { id: "friday", label: "Fri", fullName: "Friday" },
   { id: "saturday", label: "Sat", fullName: "Saturday" },
-];
+]
 
 // Cell input component
 const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
-  const [localValue, setLocalValue] = useState(value || "");
-  const [isEditing, setIsEditing] = useState(false);
-  const slotInputRef = React.useRef(null);
+  const [localValue, setLocalValue] = useState(value || "")
+  const [isEditing, setIsEditing] = useState(false)
+  const slotInputRef = React.useRef(null)
 
   const handleChange = (newValue) => {
-    setLocalValue(newValue);
-    onChange(newValue);
-  };
+    setLocalValue(newValue)
+    onChange(newValue)
+  }
 
   const handleCellClick = (e) => {
-    e.stopPropagation();
-    setIsEditing(true);
-  };
+    e.stopPropagation()
+    setIsEditing(true)
+  }
 
   const handleSlotKeyDown = (e) => {
     if (e.key === "Enter") {
-      e.preventDefault();
-      setIsEditing(false);
+      e.preventDefault()
+      setIsEditing(false)
     }
-  };
+  }
 
   const handleEditingEnd = () => {
-    setIsEditing(false);
-  };
+    setIsEditing(false)
+  }
 
   // Don't show empty cells in display mode
-  const hasContent = localValue && localValue.trim();
+  const hasContent = localValue && localValue.trim()
 
   if (isLunch) {
     return (
       <div className="h-12 sm:h-16 md:h-20 bg-orange-50 border border-orange-200 rounded-md sm:rounded-lg flex items-center justify-center px-1">
-        <span className="text-xs sm:text-sm font-medium text-orange-700 text-center leading-tight">
-          Lunch Break
-        </span>
+        <span className="text-xs sm:text-sm font-medium text-orange-700 text-center leading-tight">Lunch Break</span>
       </div>
-    );
+    )
   }
 
   return (
@@ -94,10 +83,7 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
       onClick={handleCellClick}
     >
       {isEditing ? (
-        <div
-          className="h-full flex flex-col justify-center"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="h-full flex flex-col justify-center" onClick={(e) => e.stopPropagation()}>
           <Input
             ref={slotInputRef}
             placeholder="Slot"
@@ -105,7 +91,7 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
             onChange={(e) => handleChange(e.target.value.toUpperCase())}
             onKeyDown={handleSlotKeyDown}
             onBlur={() => {
-              handleEditingEnd();
+              handleEditingEnd()
             }}
             className="h-6 sm:h-8 text-xs sm:text-sm border-0 p-1 bg-blue-50 focus:bg-white text-center"
             autoFocus
@@ -114,9 +100,7 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
       ) : (
         <div className="h-full flex flex-col justify-center items-center text-center group-hover:bg-blue-50 rounded transition-colors">
           {hasContent ? (
-            <div className="text-xs sm:text-sm md:text-lg font-bold text-blue-700 leading-tight">
-              {localValue}
-            </div>
+            <div className="text-xs sm:text-sm md:text-lg font-bold text-blue-700 leading-tight">{localValue}</div>
           ) : (
             <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
               Click to add
@@ -125,102 +109,133 @@ const TimetableCell = ({ day, slot, value, onChange, isLunch }) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 export default function TimetablePage() {
-  const router = useRouter();
-  const [timetableData, setTimetableData] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [timetableTitle, setTimetableTitle] = useState("");
-  const [academicYear, setAcademicYear] = useState("");
-  const [semester, setSemester] = useState("");
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [lunchBreakSlot, setLunchBreakSlot] = useState("lunch");
-  const [year, setYear] = useState("");
+  const router = useRouter()
+  const [timetableData, setTimetableData] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [timetableTitle, setTimetableTitle] = useState("")
+  const [academicYear, setAcademicYear] = useState("")
+  const [semester, setSemester] = useState("")
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [lunchBreakSlot, setLunchBreakSlot] = useState("lunch")
+  const [years, setYears] = useState("") // Changed from year to years (string input)
+  const [parsedYears, setParsedYears] = useState([])
 
   const handleCellChange = (day, slot, value) => {
     setTimetableData((prev) => ({
       ...prev,
       [`${day}-${slot}`]: value,
-    }));
-  };
+    }))
+  }
 
   const handleReset = () => {
-    setShowResetConfirm(true);
-  };
+    setShowResetConfirm(true)
+  }
 
   const confirmReset = () => {
-    setTimetableData({});
-    setTimetableTitle("");
-    setAcademicYear("");
-    setSemester("");
-    setYear("");
-    setLunchBreakSlot("lunch");
-    setShowResetConfirm(false);
+    setTimetableData({})
+    setTimetableTitle("")
+    setAcademicYear("")
+    setSemester("")
+    setYears("") // Reset years
+    setParsedYears([]) // Reset parsed years display
+    setLunchBreakSlot("lunch")
+    setShowResetConfirm(false)
     // Force re-render of all cells
-    window.location.reload();
-  };
+    window.location.reload()
+  }
 
   const cancelReset = () => {
-    setShowResetConfirm(false);
-  };
+    setShowResetConfirm(false)
+  }
+
+  // Function to parse and validate years input
+  const parseYears = (yearsInput) => {
+    if (!yearsInput || !yearsInput.trim()) {
+      return []
+    }
+
+    // Split by comma or space, filter out empty strings, and convert to numbers
+    const yearArray = yearsInput
+      .split(/[,\s]+/)
+      .map((year) => year.trim())
+      .filter((year) => year !== "")
+      .map((year) => Number.parseInt(year))
+      .filter((year) => !isNaN(year) && year >= 1 && year <= 6) // Validate year range
+
+    // Remove duplicates
+    return [...new Set(yearArray)]
+  }
+
+  const handleYearsInputChange = (value) => {
+    setYears(value)
+    const parsed = parseYears(value)
+    setParsedYears(parsed)
+  }
 
   const handleSave = async () => {
     if (!timetableTitle.trim()) {
-      alert("Please enter a timetable title");
-      return;
+      alert("Please enter a timetable title")
+      return
     }
 
-    if (!academicYear || !semester || !year) {
-      alert("Please select semester year, semester, and year");
-      return;
+    if (!academicYear || !semester) {
+      alert("Please select semester year and semester")
+      return
     }
 
-    setLoading(true);
+    // Parse and validate years
+    const parsedYears = parseYears(years)
+    if (parsedYears.length === 0) {
+      alert(
+        "Please enter valid year(s). Enter numbers between 1-6, separated by commas or spaces (e.g., '1, 2, 3' or '1 2 3')",
+      )
+      return
+    }
 
+    setLoading(true)
     try {
       // Convert timetableData to 6x10 grid format
       const grid = daysOfWeek.map((day) => {
         return timeSlots.map((timeSlot) => {
-          const cellKey = `${day.id}-${timeSlot.id}`;
-          const cellData = timetableData[cellKey];
+          const cellKey = `${day.id}-${timeSlot.id}`
+          const cellData = timetableData[cellKey]
 
           // Handle lunch break
           if (timeSlot.id === lunchBreakSlot) {
             return {
               slot: "LB",
-            };
+            }
           }
 
           // Handle filled slots
           if (cellData && cellData.trim()) {
             return {
               slot: cellData.trim(),
-            };
+            }
           }
 
           // Handle free slots
           return {
             slot: "FS",
-          };
-        });
-      });
+          }
+        })
+      })
 
-      // const payload = {
-      //   grid: grid,
-      //   semester: academicYear + " " + semester,
-      //   year: Number.parseInt(year), // Convert to number
-      // }
-      const capitalizedSemester =
-        semester.charAt(0).toUpperCase() + semester.slice(1);
+      const capitalizedSemester = semester.charAt(0).toUpperCase() + semester.slice(1)
 
+      // Updated payload with years as array
       const payload = {
         grid: grid,
         semester: academicYear + " " + capitalizedSemester,
-        year: Number.parseInt(year),
-      };
+        year: parsedYears, // Send as array instead of single year
+      }
+
       console.log(payload)
+
       // Send to backend
       const response = await fetch("/api/course/createGrid", {
         method: "POST",
@@ -228,23 +243,22 @@ export default function TimetablePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      });
+      })
 
-      const result = await response.json();
-
+      const result = await response.json()
       if (result.success) {
-        alert("Timetable saved successfully!");
-        console.log("Grid saved:", result.grid);
+        alert("Timetable saved successfully!")
+        console.log("Grid saved:", result.grid)
       } else {
-        throw new Error(result.message || "Failed to save timetable");
+        throw new Error(result.message || "Failed to save timetable")
       }
     } catch (error) {
-      console.error("Save error:", error);
-      alert(`Failed to save timetable: ${error.message}`);
+      console.error("Save error:", error)
+      alert(`Failed to save timetable: ${error.message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 px-2 sm:px-4 py-4 sm:py-8">
@@ -276,9 +290,7 @@ export default function TimetablePage() {
             <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
               {/* Title - Full width */}
               <div className="space-y-2">
-                <label className="text-sm sm:text-base font-semibold text-gray-700">
-                  Timetable Title *
-                </label>
+                <label className="text-sm sm:text-base font-semibold text-gray-700">Timetable Title *</label>
                 <Input
                   placeholder="e.g., B.Tech 2nd Year - Spring 2024"
                   value={timetableTitle}
@@ -290,28 +302,49 @@ export default function TimetablePage() {
               {/* Form fields - 2 columns initially, 4 columns on large screens */}
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-1 sm:gap-2">
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">
-                    Year *
-                  </label>
-                  <Select value={year} onValueChange={setYear}>
-                    <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
-                      <SelectValue placeholder="Select Year" />
-                    </SelectTrigger>
-                    <SelectContent className="z-50">
-                      <SelectItem value="1">1st Year</SelectItem>
-                      <SelectItem value="2">2nd Year</SelectItem>
-                      <SelectItem value="3">3rd Year</SelectItem>
-                      <SelectItem value="4">4th Year</SelectItem>
-                      <SelectItem value="5">5th Year</SelectItem>
-                      <SelectItem value="6">6th Year</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">Student Years *</label>
+                  <Input
+                    placeholder="e.g., 1, 2, 3 or 1 2 3"
+                    value={years}
+                    onChange={(e) => handleYearsInputChange(e.target.value)}
+                    className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400"
+                  />
+                  <p className="text-xs text-gray-500">Enter years 1-6, separated by commas or spaces</p>
+                  {/* Parsed Years Display */}
+                  <AnimatePresence>
+                    {parsedYears.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-2 p-4 bg-blue-50/50 rounded-xl border-2 border-blue-200"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-gray-700">Selected Years ({parsedYears.length})</h4>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {parsedYears.map((year, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium shadow-sm"
+                            >
+                              <span className="font-bold">
+                                {year}
+                                {year === 1 ? "st" : year === 2 ? "nd" : year === 3 ? "rd" : "th"} Year
+                              </span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">
-                    Sem Year *
-                  </label>
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">Sem Year *</label>
                   <Select value={academicYear} onValueChange={setAcademicYear}>
                     <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
                       <SelectValue placeholder="Select Semester Year" />
@@ -325,9 +358,7 @@ export default function TimetablePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">
-                    Semester *
-                  </label>
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">Semester *</label>
                   <Select value={semester} onValueChange={setSemester}>
                     <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
                       <SelectValue placeholder="Select Semester" />
@@ -340,13 +371,8 @@ export default function TimetablePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-semibold text-gray-700">
-                    Lunch Slot
-                  </label>
-                  <Select
-                    value={lunchBreakSlot}
-                    onValueChange={setLunchBreakSlot}
-                  >
+                  <label className="text-sm sm:text-base font-semibold text-gray-700">Lunch Slot</label>
+                  <Select value={lunchBreakSlot} onValueChange={setLunchBreakSlot}>
                     <SelectTrigger className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400 w-full">
                       <SelectValue placeholder="Select Lunch Slot" />
                     </SelectTrigger>
@@ -373,6 +399,7 @@ export default function TimetablePage() {
                     <li>• Slot letters will be automatically capitalized</li>
                     <li>• Press Enter to confirm entry</li>
                     <li>• Lunch break is automatically handled</li>
+                    <li>• Enter multiple student years separated by commas or spaces (e.g., "1, 2, 3" or "1 2 3")</li>
                   </ul>
                 </div>
               </div>
@@ -384,39 +411,26 @@ export default function TimetablePage() {
                 {/* Header Row */}
                 <div className="grid grid-cols-11 gap-1 sm:gap-2 mb-2">
                   <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 sm:p-3 text-center">
-                    <div className="text-xs sm:text-sm font-bold text-gray-700">
-                      Day/
-                    </div>
-                    <div className="text-xs sm:text-sm font-bold text-gray-700">
-                      Time
-                    </div>
+                    <div className="text-xs sm:text-sm font-bold text-gray-700">Day/</div>
+                    <div className="text-xs sm:text-sm font-bold text-gray-700">Time</div>
                   </div>
                   {timeSlots.map((slot) => (
                     <div
                       key={slot.id}
                       className={`border border-gray-300 rounded-lg p-1 sm:p-2 text-center ${
-                        slot.id === lunchBreakSlot
-                          ? "bg-orange-100"
-                          : "bg-blue-50"
+                        slot.id === lunchBreakSlot ? "bg-orange-100" : "bg-blue-50"
                       }`}
                     >
-                      <div className="text-xs font-semibold text-gray-700 leading-tight">
-                        {slot.label}
-                      </div>
+                      <div className="text-xs font-semibold text-gray-700 leading-tight">{slot.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Timetable Rows */}
                 {daysOfWeek.map((day) => (
-                  <div
-                    key={day.id}
-                    className="grid grid-cols-11 gap-1 sm:gap-2 mb-2"
-                  >
+                  <div key={day.id} className="grid grid-cols-11 gap-1 sm:gap-2 mb-2">
                     <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 sm:p-3 flex items-center justify-center">
-                      <span className="text-sm sm:text-base font-bold text-gray-700">
-                        {day.label}
-                      </span>
+                      <span className="text-sm sm:text-base font-bold text-gray-700">{day.label}</span>
                     </div>
                     {timeSlots.map((slot) => (
                       <TimetableCell
@@ -424,9 +438,7 @@ export default function TimetablePage() {
                         day={day.id}
                         slot={slot.id}
                         value={timetableData[`${day.id}-${slot.id}`]}
-                        onChange={(value) =>
-                          handleCellChange(day.id, slot.id, value)
-                        }
+                        onChange={(value) => handleCellChange(day.id, slot.id, value)}
                         isLunch={slot.id === lunchBreakSlot}
                       />
                     ))}
@@ -454,14 +466,16 @@ export default function TimetablePage() {
                   </div>
                 )}
               </Button>
+
               <Button
                 onClick={handleReset}
                 variant="outline"
-                className="px-6 sm:px-8 h-12 sm:h-14 border-2 border-gray-300 hover:bg-gray-50 font-semibold text-sm sm:text-base md:text-lg transition-colors"
+                className="px-6 sm:px-8 h-12 sm:h-14 border-2 border-gray-300 hover:bg-gray-50 font-semibold text-sm sm:text-base md:text-lg transition-colors bg-transparent"
               >
                 <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Reset
               </Button>
+
               <Button
                 onClick={() => router.push("/courses")}
                 variant="outline"
@@ -478,25 +492,20 @@ export default function TimetablePage() {
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[300] p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Confirm Reset
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Reset</h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to reset the entire timetable? This action
-              cannot be undone and will clear all entered data.
+              Are you sure you want to reset the entire timetable? This action cannot be undone and will clear all
+              entered data.
             </p>
             <div className="flex gap-3 justify-end">
               <Button
                 onClick={cancelReset}
                 variant="outline"
-                className="px-4 py-2 border-2 border-gray-300 hover:bg-gray-50"
+                className="px-4 py-2 border-2 border-gray-300 hover:bg-gray-50 bg-transparent"
               >
                 Cancel
               </Button>
-              <Button
-                onClick={confirmReset}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
-              >
+              <Button onClick={confirmReset} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white">
                 Reset All
               </Button>
             </div>
@@ -504,5 +513,5 @@ export default function TimetablePage() {
         </div>
       )}
     </main>
-  );
+  )
 }

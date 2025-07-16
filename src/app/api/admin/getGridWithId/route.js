@@ -58,8 +58,8 @@ export async function POST(req) {
     );
   }
   try {
-    const { gridId } = await req.body();
-
+    const { gridId } = await req.json();
+    console.log("gridId", gridId);
     if (!gridId) {
       return NextResponse.json(
         { success: false, message: "Grid ID is required" },
@@ -67,7 +67,7 @@ export async function POST(req) {
       );
     }
 
-    const grid = await Grid.findOne({_id:"685a7869e91c8c8e4777d904"})
+    const grid = await Grid.findById(gridId);
 
     if (!grid) {
       return NextResponse.json(
@@ -75,11 +75,12 @@ export async function POST(req) {
         { status: 404 }
       );
     }
-    console.log("next response", grid)
     return NextResponse.json({ success: true, grid }, { status: 200 });
   } catch (error) {
     return NextResponse.json({
         sucesss: false,
-    })
+        message: "An error occurred while fetching the grid",
+        error:  "Internal Server Error",
+    },{status: 500});
   }
 }
