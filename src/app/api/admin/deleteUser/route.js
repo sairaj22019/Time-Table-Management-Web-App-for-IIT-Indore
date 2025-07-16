@@ -1,4 +1,5 @@
 
+
 import { NextResponse } from "next/server";
 import User from "@/models/User.model";
 import Student from "@/models/Student.model";
@@ -39,3 +40,4 @@ export async function DELETE(req) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
+

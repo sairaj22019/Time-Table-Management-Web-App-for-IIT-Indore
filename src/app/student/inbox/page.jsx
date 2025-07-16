@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useSession } from "next-auth/react"
+
 export default function InboxPage() {
   const [notifications, setNotifications] = useState([])
   const [filteredNotifications, setFilteredNotifications] = useState([])
@@ -38,11 +38,6 @@ export default function InboxPage() {
   const [readMessages, setReadMessages] = useState([]) // Track read messages
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session } = useSession()
-
-  useEffect(()=>{
-    if(!session) return;
-  },[session])
 
   // Check for search parameter from dashboard navigation
   useEffect(() => {
@@ -63,7 +58,7 @@ export default function InboxPage() {
       const response = await fetch("/api/student/getNotifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentEmail: session.user.email }),
+        body: JSON.stringify({ studentEmail: "cse240001029@iiti.ac.in" }),
       })
       const data = await response.json()
       console.log(response)
@@ -111,7 +106,7 @@ export default function InboxPage() {
                   })),
                   course: notification.course.title,
                   courseCode: notification.course.courseCode,
-                  prof: notification.prof.username || "admin",
+                  prof: notification.prof.username,
                   reason: notification.message.reason,
                   context: notification.message.context,
                   isApproved: notification.message.isApproved,
@@ -130,7 +125,7 @@ export default function InboxPage() {
                 messageData: {
                   title: notification.messageTitle,
                   content: notification.message,
-                  sender: notification.prof.username || "admin",
+                  sender: notification.prof.username,
                   course: notification.course.title,
                   courseCode: notification.course.courseCode,
                 },
@@ -158,7 +153,7 @@ export default function InboxPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentEmail: session.user.email,
+          studentEmail: "cse240001029@iiti.ac.in",
           notificationList: notificationId,
         }),
       })
@@ -245,7 +240,7 @@ export default function InboxPage() {
         const body = {
           option: selectedOption,
           notificationId: notificationId,
-          userEmail: session.user.email,
+          userEmail: "cse240001029@iiti.ac.in",
         }
         const response = await fetch("/api/student/voteForPolls", {
           method: "POST",
@@ -898,4 +893,3 @@ export default function InboxPage() {
     </main>
   )
 }
-

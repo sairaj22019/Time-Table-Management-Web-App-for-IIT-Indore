@@ -21,7 +21,7 @@ const notificationSchema = new Schema(
     },
     course:{
       type:Schema.Types.ObjectId,
-      required:[true,"Course ID is required sending a notification"],
+      // required:[true,"Course ID is required sending a notification"],
     }
   },
   { timestamps: true }
