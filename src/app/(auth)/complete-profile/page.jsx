@@ -1,4 +1,3 @@
- 
 
 
 // "use client"
@@ -13,7 +12,6 @@
 // import { Card, CardContent } from "@/components/ui/card"
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-
 // export default function CompleteProfilePage() {
 //   const { data: session } = useSession()
 //   const router = useRouter()
@@ -26,29 +24,68 @@
 //   const [error, setError] = useState("")
 //   const [loading, setLoading] = useState(false)
 
+//   const studentDepartments = [
+//     { value: "che", label: "Chemical Engineering" },
+//     { value: "ce", label: "Civil Engineering" },
+//     { value: "cse", label: "Computer Science and Engineering" },
+//     { value: "ee", label: "Electrical Engineering" },
+//     { value: "ep", label: "Engineering Physics" },
+//     { value: "sse", label: "Space Sciences and Engineering" },
+//     { value: "mc", label: "Mathematics and Computing" },
+//     { value: "me", label: "Mechanical Engineering" },
+//     { value: "mems", label: "Metallurgical Engineering & Materials Science" },
+//   ]
+
+//   const professorDepartments = [
+//     { value: "che", label: "Chemistry" },
+//     { value: "ce", label: "Civil Engineering" },
+//     { value: "cse", label: "Computer Science and Engineering" },
+//     { value: "ee", label: "Electrical Engineering" },
+//     { value: "ep", label: "Engineering Physics" },
+//     { value: "hs", label: "Humanities and Social Sciences" },
+//     { value: "phy", label: "Physics" },
+//     { value: "ma", label: "Mathematics" },
+//     { value: "bse", label: "Biosciences and Biomedical Engineering" },
+//     { value: "me", label: "Mechanical Engineering" },
+//     { value: "mems", label: "Metallurgical Engineering & Materials Science" },
+//     { value: "sse", label: "Astronomy, Astrophysics and Space Engineering" },
+//   ]
+
 //   useEffect(() => {
 //     if (!session?.user?.email) {
 //       router.push("/login")
 //       return
 //     }
 
-//   const checkProfileCompletion = async () => {
-//         try {
-//           const res = await fetch(`/api/auth/profile?email=${session.user.email}`)
-//           const data = await res.json()
-//           console.log("sessionsss" , session.user.email)
-//           if(data.role){
-//             if (data.role === 'student' && data.rollno) {
-//               router.push('/student')
-//             } else if (data.role === 'professor' && data.department) {
-//               router.push('/professor')
-//             }
-//           }
-//         } catch (err) {
-//           console.error('Profile check failed', err)
-//         }
-//       }
+//     const email = session.user.email
+//     const localPart = email.split("@")[0]
+//     const numMatch = localPart.match(/\d{9,}/)
 
+//     if (numMatch) {
+//       setRole("student")
+//       const deptCode = localPart.split(/\d/)[0].toLowerCase()
+//       const matchedDept = studentDepartments.find((dept) => dept.value === deptCode)
+//       if (matchedDept) setDepartment(matchedDept.value)
+//       setRollno(numMatch[0])
+//     } else {
+//       setRole("professor")
+//     }
+
+//     const checkProfileCompletion = async () => {
+//       try {
+//         const res = await fetch(`/api/auth/profile?email=${email}`)
+//         const data = await res.json()
+//         if (data.role) {
+//           if (data.role === 'student' && data.rollno) {
+//             router.push('/student')
+//           } else if (data.role === 'professor' && data.department) {
+//             router.push('/professor')
+//           }
+//         }
+//       } catch (err) {
+//         console.error('Profile check failed', err)
+//       }
+//     }
 
 //     checkProfileCompletion()
 //   }, [session, router])
@@ -78,13 +115,13 @@
 //         }),
 //       })
 
-//        const data = await res.json()
+//       const data = await res.json()
 //       if (data.success) {
 //         if (role === 'student') {
-//         router.push('/student')
-//       } else if (role === 'professor') {
-//         router.push('/professor')
-//       }
+//           router.push('/student')
+//         } else if (role === 'professor') {
+//           router.push('/professor')
+//         }
 //       } else {
 //         setError(data.message || 'Something went wrong.')
 //       }
@@ -94,33 +131,6 @@
 //       setLoading(false)
 //     }
 //   }
-
-//   const studentDepartments = [
-//     { value: "che", label: "Chemical Engineering" },
-//     { value: "ce", label: "Civil Engineering" },
-//     { value: "cse", label: "Computer Science and Engineering" },
-//     { value: "ee", label: "Electrical Engineering" },
-//     { value: "ep", label: "Engineering Physics" },
-//     { value: "sse", label: "Space Sciences and Engineering" },
-//     { value: "mc", label: "Mathematics and Computing" },
-//     { value: "me", label: "Mechanical Engineering" },
-//     { value: "mems", label: "Metallurgical Engineering & Materials Science" },
-//   ]
-
-//   const professorDepartments = [
-//     { value: "che", label: "Chemistry" },
-//     { value: "ce", label: "Civil Engineering" },
-//     { value: "cse", label: "Computer Science and Engineering" },
-//     { value: "ee", label: "Electrical Engineering" },
-//     { value: "ep", label: "Engineering Physics" },
-//     { value: "hs", label: "Humanities and Social Sciences" },
-//     { value: "phy", label: "Physics" },
-//     { value: "ma", label: "Mathematics" },
-//     { value: "bse", label: "Biosciences and Biomedical Engineering" },
-//     { value: "me", label: "Mechanical Engineering" },
-//     { value: "mems", label: "Metallurgical Engineering & Materials Science" },
-//     { value: "sse", label: "Astronomy, Astrophysics and Space Engineering" },
-//   ]
 
 //   return (
 //     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-100 via-white to-sky-200 px-4">
@@ -158,7 +168,7 @@
 //               </motion.div>
 
 //               <div className="flex gap-3 text-xs">
-//                 {["student", "professor"].map((r) => (
+//                 {['student', 'professor'].map((r) => (
 //                   <label
 //                     key={r}
 //                     className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border ${
@@ -247,11 +257,9 @@
 
 
 
-
 "use client"
-import React from "react"
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import React, { useState, useEffect } from "react"
+import { useSession, update } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 
@@ -261,7 +269,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function CompleteProfilePage() {
-  const { data: session } = useSession()
+  const { data: session,update , status } = useSession()
   const router = useRouter()
 
   const [username, setUsername] = useState("")
@@ -299,44 +307,85 @@ export default function CompleteProfilePage() {
     { value: "sse", label: "Astronomy, Astrophysics and Space Engineering" },
   ]
 
+  // useEffect(() => {
+  //   if (!session?.user?.email) {
+  //     router.push("/login")
+  //     return
+  //   }
+
+  //   const email = session.user.email
+  //   const localPart = email.split("@")[0]
+  //   const numMatch = localPart.match(/\d{9,}/)
+
+  //   if (numMatch) {
+  //     setRole("student")
+  //     const deptCode = localPart.split(/\d/)[0].toLowerCase()
+  //     const matchedDept = studentDepartments.find((dept) => dept.value === deptCode)
+  //     if (matchedDept) setDepartment(matchedDept.value)
+  //     setRollno(numMatch[0])
+  //   } else {
+  //     setRole("professor")
+  //   }
+
+  //   const checkProfileCompletion = async () => {
+  //     try {
+  //       const res = await fetch(`/api/auth/profile?email=${email}`)
+  //       const data = await res.json()
+  //       await update({ role, username })
+  //       if (data.role) {
+  //         if (data.role === 'student' && data.rollno) {
+  //           router.push('/student')
+  //         } else if (data.role === 'professor' && data.department) {
+  //           router.push('/professor')
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error('Profile check failed', err)
+  //     }
+  //   }
+
+  //   checkProfileCompletion()
+  // }, [session, router])
+
   useEffect(() => {
-    if (!session?.user?.email) {
-      router.push("/login")
-      return
-    }
+  if (status !== 'authenticated' || !session?.user?.email) return;
 
-    const email = session.user.email
-    const localPart = email.split("@")[0]
-    const numMatch = localPart.match(/\d{9,}/)
+  const email = session.user.email
+  const localPart = email.split("@")[0]
+  const numMatch = localPart.match(/\d{9,}/)
 
-    if (numMatch) {
-      setRole("student")
-      const deptCode = localPart.split(/\d/)[0].toLowerCase()
-      const matchedDept = studentDepartments.find((dept) => dept.value === deptCode)
-      if (matchedDept) setDepartment(matchedDept.value)
-      setRollno(numMatch[0])
-    } else {
-      setRole("professor")
-    }
+  if (numMatch) {
+    setRole("student")
+    const deptCode = localPart.split(/\d/)[0].toLowerCase()
+    const matchedDept = studentDepartments.find((dept) => dept.value === deptCode)
+    if (matchedDept) setDepartment(matchedDept.value)
+    setRollno(numMatch[0])
+  } else {
+    setRole("professor")
+  }
 
-    const checkProfileCompletion = async () => {
-      try {
-        const res = await fetch(`/api/auth/profile?email=${email}`)
-        const data = await res.json()
-        if (data.role) {
-          if (data.role === 'student' && data.rollno) {
-            router.push('/student')
-          } else if (data.role === 'professor' && data.department) {
-            router.push('/professor')
-          }
+  const checkProfileCompletion = async () => {
+    try {
+      const res = await fetch(`/api/auth/profile?email=${email}`)
+      const data = await res.json()
+      // remove update() unless you really need it
+      if (data.role) {
+        if (data.role === 'student' && data.rollno) {
+          router.push('/student')
+        } else if (data.role === 'professor' && data.department) {
+          router.push('/professor')
         }
-      } catch (err) {
-        console.error('Profile check failed', err)
       }
+    } catch (err) {
+      console.error('Profile check failed', err)
     }
+  }
 
-    checkProfileCompletion()
-  }, [session, router])
+  checkProfileCompletion()
+}, [session?.user?.email, status, router])
+
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -365,6 +414,8 @@ export default function CompleteProfilePage() {
 
       const data = await res.json()
       if (data.success) {
+        await update({ role, username })
+
         if (role === 'student') {
           router.push('/student')
         } else if (role === 'professor') {
@@ -374,7 +425,7 @@ export default function CompleteProfilePage() {
         setError(data.message || 'Something went wrong.')
       }
     } catch (err) {
-      setError('Server error.')
+      setError('Server error.', err)
     } finally {
       setLoading(false)
     }
@@ -438,28 +489,13 @@ export default function CompleteProfilePage() {
                 ))}
               </div>
 
-              {role === "student" && (
+              {(role === "student" || role === "professor") && (
                 <Select value={department} onValueChange={setDepartment}>
                   <SelectTrigger className="text-sm w-full">
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px]">
-                    {studentDepartments.map((dept) => (
-                      <SelectItem key={dept.value} value={dept.value} className="text-xs">
-                        {dept.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {role === "professor" && (
-                <Select value={department} onValueChange={setDepartment}>
-                  <SelectTrigger className="text-sm w-full">
-                    <SelectValue placeholder="Select Department" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {professorDepartments.map((dept) => (
+                    {(role === "student" ? studentDepartments : professorDepartments).map((dept) => (
                       <SelectItem key={dept.value} value={dept.value} className="text-xs">
                         {dept.label}
                       </SelectItem>
