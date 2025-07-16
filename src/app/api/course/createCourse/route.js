@@ -393,7 +393,7 @@ async function addCourseToStudents(students, courseId, rollNumbers, session) {
 
   return s;
 }
-const sendNotificationToStudents=async (newCourse)=>{
+const sendNotificationToStudents=async (newCourse,session)=>{
   await newCourse.populate("enrolledStudents");
   const newNotification= new Notification({
     message:`You have been enrolled in a new course with course code: ${newCourse.courseCode}`,
@@ -403,11 +403,12 @@ const sendNotificationToStudents=async (newCourse)=>{
   })
   await newNotification.save({session});
   for(const student of newCourse.enrolledStudents){
+    console.log("pushing notification to student",student._id);
     student.notifications.push({notification:newNotification._id,isRead:false});
     await student.save({session});
   }
 }
-const sendNotificationToProfessors=async (newCourse)=>{
+const sendNotificationToProfessors=async (newCourse,session)=>{
   await newCourse.populate("prof");
   if(newCourse.prof.length===0) return;
   const newNotification= new Notification({
@@ -569,7 +570,7 @@ export async function POST(req) {
     }
     const newPoll=new Poll({
       options:allOptions,
-      reason:`For fixture of course schdule for the course ${newCourse.courseCode}`,
+      reason:`For fixture of course schdule for the course ${newCourse.courseCode} and lectures ${newCourse.lectures}`,
       context:"Sending this poll to ask for the verification of slots which will be used for the given course",
       expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     })
@@ -594,8 +595,8 @@ export async function POST(req) {
     professorObject.notifications.push({notification:newNotification._id,isRead:false});
     await professorObject.save({session});
     await newCourse.save({ session });
-    sendNotificationToStudents(newCourse, session);
-    sendNotificationToProfessors(newCourse, session);
+    await sendNotificationToStudents(newCourse, session);
+    await sendNotificationToProfessors(newCourse, session);
     await session.commitTransaction();
     session.endSession();
     
