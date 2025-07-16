@@ -1,164 +1,199 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Users, Clock, MapPin, CheckCircle, XCircle, Calendar, AlertCircle } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Users,
+  Clock,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// --- TRANSFORM FUNCTION ---
+function transformNotificationToPoll(notification) {
+  const { message, prof, course, type, messageTitle } = notification;
+  // Find vote counts for each option
+  const voteCounts = {};
+  if (message.votes && Array.isArray(message.votes)) {
+    message.votes.forEach((vote) => {
+      const optionId = vote.option?.toString();
+      if (optionId) voteCounts[optionId] = (voteCounts[optionId] || 0) + 1;
+    });
+  }
+  // Find winning option
+  const topVotedOptionId = Object.entries(voteCounts).sort(
+    (a, b) => b[1] - a[1]
+  )[0]?.[0];
+  const topOption = message.options.find(
+    (opt) => opt._id.toString() === topVotedOptionId
+  );
+  const topVotes = voteCounts[topVotedOptionId] || 0;
+  const totalVotes = message.votes?.length || 0;
+  const percentage =
+    totalVotes > 0 ? Math.round((topVotes / totalVotes) * 100) : 0;
+
+  // --- FIX PROFESSOR NAME LOGIC ---
+  let professor =
+    prof?.name ||
+    (Array.isArray(prof?.profName)
+      ? prof.profName.join(", ")
+      : prof?.profName) ||
+    (Array.isArray(course?.profName)
+      ? course.profName.join(", ")
+      : course?.profName) ||
+    "Professor";
+
+  return {
+    id: notification._id,
+    title:
+      messageTitle ||
+      message.reason ||
+      (course?.title ? `${course.title} Poll` : "Poll"),
+    course: course?.courseCode || "Course",
+    professor,
+    status: message.isApproved ? "approved" : "pending",
+    totalVotes: totalVotes,
+    winningOption: topOption
+      ? {
+          date: new Date(topOption.date).toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          time: `${new Date(topOption.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${new Date(topOption.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+          location: topOption.room || "TBD",
+          votes: topVotes,
+          percentage: percentage,
+        }
+      : {
+          date: "No votes",
+          time: "No votes",
+          location: "No votes",
+          votes: 0,
+          percentage: 0,
+        },
+  };
+}
 
 export default function ApprovePollPage() {
-  const [polls, setPolls] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [processingId, setProcessingId] = useState(null)
+  const [polls, setPolls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [processingId, setProcessingId] = useState(null);
 
-  // Fetch polls from backend
+  // Fetch polls from backend on mount
   useEffect(() => {
-    fetchPolls()
-  }, [])
+    fetchPolls();
+  }, []);
 
   const fetchPolls = async () => {
     try {
-      setLoading(true)
-      const response = await fetch("/api/admin/approvePolls")
-      const data = await response.json()
-
-      if (data.success) {
-        // Transform backend data to match frontend expectations
-        const transformedPolls = data.polls.map((poll) => {
-          // Calculate vote counts for each option
-          const voteCounts = {}
-          poll.votes.forEach((vote) => {
-            const optionId = vote.option.toString()
-            voteCounts[optionId] = (voteCounts[optionId] || 0) + 1
-          })
-
-          // Find winning option
-          const topVotedOptionId = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-
-          const topOption = poll.options.find((opt) => opt._id.toString() === topVotedOptionId)
-          const topVotes = voteCounts[topVotedOptionId] || 0
-          const totalVotes = poll.votes.length
-          const percentage = totalVotes > 0 ? Math.round((topVotes / totalVotes) * 100) : 0
-
-          return {
-            id: poll._id,
-            title: poll.title || `${poll.subject} Session`,
-            course: poll.subject || "Course",
-            professor: poll.createdBy?.name || "Professor",
-            status: poll.isApproved ? "approved" : "pending",
-            totalVotes: totalVotes,
-            winningOption: topOption
-              ? {
-                  date: new Date(topOption.date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  }),
-                  time: `${topOption.start} - ${topOption.end}`,
-                  location: topOption.room || "TBD",
-                  votes: topVotes,
-                  percentage: percentage,
-                }
-              : {
-                  date: "No votes",
-                  time: "No votes",
-                  location: "No votes",
-                  votes: 0,
-                  percentage: 0,
-                },
-          }
-        })
-
-        setPolls(transformedPolls)
+      setLoading(true);
+      setError(null);
+      const response = await fetch("/api/admin/approvePolls");
+      const data = await response.json();
+      if (data.success && data.notifications) {
+        setPolls(data.notifications.map(transformNotificationToPoll));
+      } else if (data.success && data.polls) {
+        // fallback for old API
+        setPolls(data.polls.map(transformNotificationToPoll));
       } else {
-        setError(data.message)
+        setError(data.message || "Unknown error");
       }
     } catch (err) {
-      setError("Failed to fetch polls")
-      console.error("Error fetching polls:", err)
+      setError("Failed to fetch polls");
+      console.error("Error fetching polls:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleApprove = async (pollId) => {
-    setProcessingId(pollId)
+    setProcessingId(pollId);
     try {
       const response = await fetch("/api/admin/approvePolls", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ pollId }),
-      })
-
-      const data = await response.json()
-
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pollId, status: true }), // or notificationId: pollId
+      });
+      const data = await response.json();
       if (data.success) {
-        // Update the poll status in the local state
-        setPolls(polls.map((poll) => (poll.id === pollId ? { ...poll, status: "approved" } : poll)))
+        setPolls(
+          polls.map((poll) =>
+            poll.id === pollId ? { ...poll, status: "approved" } : poll
+          )
+        );
       } else {
-        setError(data.message)
+        setError(data.message);
       }
     } catch (err) {
-      setError("Failed to approve poll")
-      console.error("Error approving poll:", err)
+      setError("Failed to approve poll");
+      console.error("Error approving poll:", err);
     } finally {
-      setProcessingId(null)
+      setProcessingId(null);
     }
-  }
+  };
 
-//   const handleDisapprove = async (pollId) => {
-//     setProcessingId(pollId)
-//     try {
-//       const response = await fetch("/api/disapprove-polls", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({ pollId }),
-//       })
-
-//       const data = await response.json()
-
-//       if (data.success) {
-//         // Update the poll status in the local state
-//         setPolls(polls.map((poll) => (poll.id === pollId ? { ...poll, status: "disapproved" } : poll)))
-//       } else {
-//         setError(data.message)
-//       }
-//     } catch (err) {
-//       setError("Failed to disapprove poll")
-//       console.error("Error disapproving poll:", err)
-//     } finally {
-//       setProcessingId(null)
-//     }
-//   }
+  const handleDisapprove = async (pollId) => {
+    setProcessingId(pollId);
+    try {
+      const response = await fetch("/api/admin/approvePolls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pollId, status: false }), // or notificationId: pollId
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPolls(
+          polls.map((poll) =>
+            poll.id === pollId ? { ...poll, status: "disapproved" } : poll
+          )
+        );
+      } else {
+        setError(data.message);
+      }
+    } catch (err) {
+      setError("Failed to disapprove poll");
+      console.error("Error disapproving poll:", err);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "approved":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-100 text-green-800 border-green-200";
       case "disapproved":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-blue-100 text-blue-800 border-blue-200";
     }
-  }
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {
       case "approved":
-        return <CheckCircle className="h-4 w-4" />
+        return <CheckCircle className="h-4 w-4" />;
       case "disapproved":
-        return <XCircle className="h-4 w-4" />
+        return <XCircle className="h-4 w-4" />;
       default:
-        return <Clock className="h-4 w-4" />
+        return <Clock className="h-4 w-4" />;
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -166,13 +201,17 @@ export default function ApprovePollPage() {
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+            transition={{
+              duration: 1,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "linear",
+            }}
             className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
           />
           <p className="text-gray-600 text-lg">Loading polls...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -180,14 +219,19 @@ export default function ApprovePollPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 flex items-center justify-center">
         <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Polls</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            Error Loading Polls
+          </h3>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={fetchPolls} className="bg-blue-500 hover:bg-blue-600">
+          <Button
+            onClick={fetchPolls}
+            className="bg-blue-500 hover:bg-blue-600"
+          >
             Try Again
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -199,8 +243,12 @@ export default function ApprovePollPage() {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold mb-2 text-gray-800">Poll Approval Dashboard</h1>
-          <p className="text-gray-600 text-lg">Review and approve poll results from professors and students</p>
+          <h1 className="text-4xl font-bold mb-2 text-gray-800">
+            Poll Approval Dashboard
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Review and approve poll results from professors and students
+          </p>
         </motion.div>
 
         <div className="grid gap-6">
@@ -223,7 +271,9 @@ export default function ApprovePollPage() {
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-xl mb-2 text-gray-800">{poll.title}</CardTitle>
+                        <CardTitle className="text-xl mb-2 text-gray-800">
+                          {poll.title}
+                        </CardTitle>
                         <CardDescription className="text-base text-gray-600">
                           {poll.course} • Professor: {poll.professor}
                         </CardDescription>
@@ -231,13 +281,18 @@ export default function ApprovePollPage() {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                        transition={{
+                          delay: 0.3,
+                          type: "spring",
+                          stiffness: 200,
+                        }}
                       >
                         <Badge
                           className={`${getStatusColor(poll.status)} flex items-center gap-1 px-3 py-1 font-medium`}
                         >
                           {getStatusIcon(poll.status)}
-                          {poll.status.charAt(0).toUpperCase() + poll.status.slice(1)}
+                          {poll.status.charAt(0).toUpperCase() +
+                            poll.status.slice(1)}
                         </Badge>
                       </motion.div>
                     </div>
@@ -254,7 +309,9 @@ export default function ApprovePollPage() {
                         <div className="flex items-center gap-2 mb-4">
                           <Calendar className="h-5 w-5 text-blue-600" />
                           <h3 className="font-semibold text-lg text-gray-800">
-                            {poll.totalVotes > 0 ? "Winning Poll Option" : "No Votes Yet"}
+                            {poll.totalVotes > 0
+                              ? "Winning Poll Option"
+                              : "No Votes Yet"}
                           </h3>
                         </div>
                         <div className="grid md:grid-cols-3 gap-6">
@@ -267,8 +324,12 @@ export default function ApprovePollPage() {
                               <Clock className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-800">{poll.winningOption.date}</p>
-                              <p className="text-sm text-gray-600">{poll.winningOption.time}</p>
+                              <p className="font-semibold text-gray-800">
+                                {poll.winningOption.date}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {poll.winningOption.time}
+                              </p>
                             </div>
                           </motion.div>
                           <motion.div
@@ -280,7 +341,9 @@ export default function ApprovePollPage() {
                               <MapPin className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-800">{poll.winningOption.location}</p>
+                              <p className="font-semibold text-gray-800">
+                                {poll.winningOption.location}
+                              </p>
                               <p className="text-sm text-gray-600">Venue</p>
                             </div>
                           </motion.div>
@@ -293,8 +356,12 @@ export default function ApprovePollPage() {
                               <Users className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-800">{poll.winningOption.votes} votes</p>
-                              <p className="text-sm text-gray-600">{poll.winningOption.percentage}% support</p>
+                              <p className="font-semibold text-gray-800">
+                                {poll.winningOption.votes} votes
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {poll.winningOption.percentage}% support
+                              </p>
                             </div>
                           </motion.div>
                         </div>
@@ -307,7 +374,9 @@ export default function ApprovePollPage() {
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <motion.div
                               initial={{ width: 0 }}
-                              animate={{ width: `${poll.winningOption.percentage}%` }}
+                              animate={{
+                                width: `${poll.winningOption.percentage}%`,
+                              }}
                               transition={{ duration: 1, delay: 0.5 }}
                               className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full"
                             />
@@ -323,7 +392,11 @@ export default function ApprovePollPage() {
                           transition={{ delay: 0.4 }}
                           className="flex gap-4 pt-4 border-t border-gray-100"
                         >
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1"
+                          >
                             <Button
                               onClick={() => handleApprove(poll.id)}
                               disabled={processingId === poll.id}
@@ -340,7 +413,11 @@ export default function ApprovePollPage() {
                                   >
                                     <motion.div
                                       animate={{ rotate: 360 }}
-                                      transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                                      transition={{
+                                        duration: 1,
+                                        repeat: Number.POSITIVE_INFINITY,
+                                        ease: "linear",
+                                      }}
                                       className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                                     />
                                     Processing...
@@ -360,7 +437,11 @@ export default function ApprovePollPage() {
                               </AnimatePresence>
                             </Button>
                           </motion.div>
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1"
+                          >
                             <Button
                               onClick={() => handleDisapprove(poll.id)}
                               disabled={processingId === poll.id}
@@ -377,7 +458,11 @@ export default function ApprovePollPage() {
                                   >
                                     <motion.div
                                       animate={{ rotate: 360 }}
-                                      transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                                      transition={{
+                                        duration: 1,
+                                        repeat: Number.POSITIVE_INFINITY,
+                                        ease: "linear",
+                                      }}
                                       className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                                     />
                                     Processing...
@@ -418,7 +503,9 @@ export default function ApprovePollPage() {
                             ) : (
                               <XCircle className="h-5 w-5" />
                             )}
-                            <span className="font-semibold">Poll has been {poll.status}</span>
+                            <span className="font-semibold">
+                              Poll has been {poll.status}
+                            </span>
                           </div>
                           <p className="text-sm mt-1 opacity-80">
                             {poll.status === "approved"
@@ -444,12 +531,17 @@ export default function ApprovePollPage() {
           >
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
               <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No polls to review</h3>
-              <p className="text-gray-500">All polls have been processed or there are no pending polls at this time.</p>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No polls to review
+              </h3>
+              <p className="text-gray-500">
+                All polls have been processed or there are no pending polls at
+                this time.
+              </p>
             </div>
           </motion.div>
         )}
       </div>
     </div>
-  )
+  );
 }
