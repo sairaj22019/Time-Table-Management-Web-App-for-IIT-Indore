@@ -393,7 +393,35 @@ async function addCourseToStudents(students, courseId, rollNumbers, session) {
 
   return s;
 }
-
+const sendNotificationToStudents=async (newCourse)=>{
+  await newCourse.populate("enrolledStudents");
+  const newNotification= new Notification({
+    message:`You have been enrolled in a new course with course code: ${newCourse.courseCode}`,
+    messageTitle:"New Course Enrollment",
+    type:"general message",
+    course:newCourse._id,
+  })
+  await newNotification.save({session});
+  for(const student of newCourse.enrolledStudents){
+    student.notifications.push({notification:newNotification._id,isRead:false});
+    await student.save({session});
+  }
+}
+const sendNotificationToProfessors=async (newCourse)=>{
+  await newCourse.populate("prof");
+  if(newCourse.prof.length===0) return;
+  const newNotification= new Notification({
+    message:`You have been assigned to teach the course: ${newCourse.courseCode}`,
+    messageTitle:"New Course Assignment",
+    type:"general message",
+    course:newCourse._id,
+  });
+  await newNotification.save({session});
+  for(const prof of newCourse.prof){
+    prof.notifications.push({notification:newNotification._id,isRead:false});
+    await prof.save({session});
+  }
+}
 export async function POST(req) {
   await connectDB();
 
@@ -548,7 +576,7 @@ export async function POST(req) {
     await newPoll.save({session});
     const newNotification=new Notification({
       message:newPoll._id,
-      messageTitle:"Confirmation of course schedule",
+      messageTitle:`Confirmation of course schedule with course code: ${newCourse.courseCode} and lectures ${newCourse.lectures}`,
       type:"schedule selection",
       course:newCourse._id,
     })
@@ -566,6 +594,8 @@ export async function POST(req) {
     professorObject.notifications.push({notification:newNotification._id,isRead:false});
     await professorObject.save({session});
     await newCourse.save({ session });
+    sendNotificationToStudents(newCourse, session);
+    sendNotificationToProfessors(newCourse, session);
     await session.commitTransaction();
     session.endSession();
     
