@@ -51,7 +51,7 @@ export async function POST(req) {
     for (const item of professor.notifications) {
       const notif = item.notification;
 
-      if (notif && notif.type === "poll") {
+      if (notif && (notif.type === "poll"||notif.type === "schedule selection")) {
         await notif.populate({ path: "message", model: "Poll" });
       }
 
