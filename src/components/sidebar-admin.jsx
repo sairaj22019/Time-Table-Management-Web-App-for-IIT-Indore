@@ -1,7 +1,7 @@
 
 
 "use client"
-import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, GraduationCap, CalendarPlus, BookPlus } from "lucide-react"
+import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, GraduationCap, CalendarPlus, BookPlus, Users } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 
@@ -31,7 +31,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { HiAcademicCap } from "react-icons/hi"
-import { useSession } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 
 const MotionLink = motion(Link)
 
@@ -61,11 +61,25 @@ const items = [
     url: "/admin/createCourses",
     icon: BookPlus,
   },
-
   {
     title: "View Users",
     url: "/admin/viewUsers",
-    icon: BookPlus,
+    icon: Users,
+  },
+  {
+    title: "View Grids",
+    url: "/admin/viewGrids",
+    icon: Users,
+  },
+  {
+    title: "Approve Polls",
+    url: "/admin/approvePolls",
+    icon: Users,
+  },
+  {
+    title: "Send Message",
+    url: "/admin/sendMessage",
+    icon: Users,
   },
 
 ]
@@ -112,8 +126,8 @@ const chevronVariants = {
 
 // User menu items
 const userMenuItems = [
-  { label: "Account", icon: UserCog, action: "account" },
-  { label: "Settings", icon: Settings, action: "settings" },
+  // { label: "Account", icon: UserCog, action: "account" },
+  // { label: "Settings", icon: Settings, action: "settings" },
   { label: "Logout", icon: LogOut, action: "signout", variant: "destructive" },
 ]
 
@@ -158,6 +172,7 @@ export function AppSidebar() {
         break
       case "signout":
         // Handle sign out
+        console.log("signout")
         signOut({ callbackUrl: '/login' })
         break
       default:

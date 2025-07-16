@@ -9,7 +9,7 @@ export default function RootLayout({ children }) {
         <main className="w-full">
           <SidebarTrigger />
           {children}
-      </main>
+        </main>
       </div>
     </SidebarProvider>
   );
