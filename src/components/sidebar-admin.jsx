@@ -61,10 +61,19 @@ const items = [
     url: "/admin/createCourses",
     icon: BookPlus,
   },
-
   {
     title: "View Users",
     url: "/admin/viewUsers",
+    icon: Users,
+  },
+  {
+    title: "View Grids",
+    url: "/admin/viewGrids",
+    icon: Users,
+  },
+  {
+    title: "Approve Polls",
+    url: "/admin/approvePolls",
     icon: Users,
   },
 

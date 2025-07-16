@@ -128,35 +128,43 @@ export default function DashboardHome() {
             const notification = item.notification
             const isPoll = notification.type === "poll"
             const isRead = item.isRead === true
-
             if (isPoll) {
+              const courseTitle = notification.course ? notification.course.title : "Course Poll"
+              const courseCode = notification.course ? notification.course.courseCode : ""
+              const reason = notification.message.reason || "New poll available for your course"
               return {
                 id: item._id,
                 type: "update",
-                title: `Poll: ${notification.course ? notification.course.title : "Course Poll"}`,
-                content: notification.message.reason || "New poll available for your course",
+                title: `Poll: ${courseTitle}`,
+                content: reason,
                 icon: HiExclamationCircle,
                 color: "text-purple-600",
                 bgColor: "bg-purple-50",
                 borderColor: "border-purple-200",
                 createdAt: notification.createdAt,
                 isRead: isRead,
+                searchTerm: courseTitle,
+                courseCode: courseCode,
               }
             } else {
+              const messageTitle = notification.messageTitle || "New Message"
+              const messageContent =
+                typeof notification.message === "string"
+                  ? notification.message.substring(0, 120) + (notification.message.length > 120 ? "..." : "")
+                  : "New message received"
               return {
                 id: item._id,
                 type: "update",
-                title: notification.messageTitle || "New Message",
-                content:
-                  typeof notification.message === "string"
-                    ? notification.message.substring(0, 120) + (notification.message.length > 120 ? "..." : "")
-                    : "New message received",
+                title: messageTitle,
+                content: messageContent,
                 icon: HiMail,
                 color: "text-blue-600",
                 bgColor: "bg-blue-50",
                 borderColor: "border-blue-200",
                 createdAt: notification.createdAt,
                 isRead: isRead,
+                searchTerm: messageTitle,
+                courseCode: notification.course ? notification.course.courseCode : "",
               }
             }
           })
@@ -257,16 +265,13 @@ export default function DashboardHome() {
           fetchUnreadCount(),
           fetchLatestNotifications(),
         ])
-
         // Get name from session
         const displayName = session.user.username || "Student"
-
         setStudentData({
           name: displayName,
           coursesEnrolled: coursesCount,
           unreadMessages: unreadCount,
         })
-
         setLatestNotifications(notifications)
       } catch (error) {
         console.error("Error loading student data:", error)
@@ -274,7 +279,6 @@ export default function DashboardHome() {
         setLoading(false)
       }
     }
-
     loadStudentData()
   }, [studentEmail, session])
 
@@ -298,6 +302,16 @@ export default function DashboardHome() {
 
   const handleNavigation = (path) => {
     router.push(path)
+  }
+
+  // Handle notification click - redirect to inbox with search term
+  const handleNotificationClick = (notification) => {
+    const searchTerm = notification.searchTerm || notification.title || ""
+    if (searchTerm) {
+      router.push(`/student/inbox?search=${encodeURIComponent(searchTerm)}`)
+    } else {
+      router.push("/student/inbox")
+    }
   }
 
   const nextTip = () => {
@@ -680,7 +694,8 @@ export default function DashboardHome() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className={`p-4 sm:p-6 rounded-xl border-2 ${currentTip.borderColor} ${currentTip.bgColor} relative overflow-hidden group`}
+                    className={`p-4 sm:p-6 rounded-xl border-2 ${currentTip.borderColor} ${currentTip.bgColor} relative overflow-hidden group cursor-pointer hover:shadow-md transition-all duration-300`}
+                    onClick={() => handleNotificationClick(currentTip)}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     <div className="flex items-start space-x-4 relative z-10">
@@ -704,6 +719,10 @@ export default function DashboardHome() {
                           <span className="text-xs text-gray-500">{getRelativeTime(currentTip.createdAt)}</span>
                         </div>
                         <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{currentTip.content}</p>
+                        <div className="mt-2 text-xs text-blue-600 font-medium flex items-center">
+                          <span>Click to view in inbox</span>
+                          <HiChevronRight className="h-3 w-3 ml-1" />
+                        </div>
                       </div>
                     </div>
                   </motion.div>
