@@ -246,6 +246,7 @@ import { connectDB } from "@/dbConnection/ConnectDB";
 import Professor from "@/models/Professor.model";
 import User from "@/models/User.model";
 import Student from "@/models/Student.model";
+import Notification from "@/models/Notification.model";
 
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
@@ -313,7 +314,36 @@ async function addCourseToStudents(students, courseId, rollNumbers, session) {
   }
   return s;
 }
-
+const sendNotificationToStudents=async (newCourse,session)=>{
+  await newCourse.populate("enrolledStudents");
+  const newNotification= new Notification({
+    message:`You have been enrolled in a new course with course code: ${newCourse.courseCode}`,
+    messageTitle:"New Course Enrollment",
+    type:"general message",
+    course:newCourse._id,
+  })
+  await newNotification.save({session});
+  for(const student of newCourse.enrolledStudents){
+    console.log("pushing notification to student",student._id);
+    student.notifications.push({notification:newNotification._id,isRead:false});
+    await student.save({session});
+  }
+}
+const sendNotificationToProfessors=async (newCourse,session)=>{
+  await newCourse.populate("prof");
+  if(newCourse.prof.length===0) return;
+  const newNotification= new Notification({
+    message:`You have been assigned to teach the course: ${newCourse.courseCode}`,
+    messageTitle:"New Course Assignment",
+    type:"general message",
+    course:newCourse._id,
+  });
+  await newNotification.save({session});
+  for(const prof of newCourse.prof){
+    prof.notifications.push({notification:newNotification._id,isRead:false});
+    await prof.save({session});
+  }
+}
 export async function POST(req) {
   await connectDB();
   const session = await mongoose.startSession();
@@ -420,6 +450,8 @@ export async function POST(req) {
     }
 
     await newCourse.save({ session });
+    await sendNotificationToStudents(newCourse, session);
+    await sendNotificationToProfessors(newCourse, session);
     await session.commitTransaction();
     session.endSession();
 

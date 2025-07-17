@@ -1,3 +1,4 @@
+
 // import { NextAuthOptions } from "next-auth";
 // import CredentialsProvider from "next-auth/providers/credentials";
 // import GoogleProvider from "next-auth/providers/google";
@@ -75,8 +76,8 @@
 //             dbUser = await User.create({
 //               email: user.email,
 //               googleProvider: true,
-//               role: "student", 
-//               isVerified: true, 
+//               role: "student",
+//               isVerified: true,
 //             });
 //           }
 //           user.id = dbUser._id.toString();
@@ -96,7 +97,8 @@
 //           console.error("user not found")
 //         }
 //         token.role = userdata.role
-
+//         token.username = userdata.username || ""
+//         token.googleProvider = userdata.googleProvider
 //       }
 //       return token;
 //     },
@@ -104,9 +106,10 @@
 //       if (session.user) {
 //         session.user.id = String(token.id);
 //         session.user.role = token.role
-
+//         session.user.username = token.username || ""
+//         session.user.googleProvider = token.googleProvider
 //       }
-//       console.log("session.user" , session.user)
+//       console.log("session" , session.user)
 //       return session;
 //     },
 //   },
@@ -126,14 +129,12 @@
 
 
 
-
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { connectDB } from "@/dbConnection/ConnectDB";
 import User from "@/models/User.model";
 import bcrypt from "bcryptjs";
-
 
 export const authOptions = {
   providers: [
@@ -151,19 +152,10 @@ export const authOptions = {
         try {
           await connectDB();
           const user = await User.findOne({ email: credentials.email });
+          if (!user) throw new Error("No user found");
 
-          if (!user) {
-            throw new Error("No user found");
-          }
-
-          const isValid = await bcrypt.compare(
-            credentials.password,
-            user.password
-          );
-
-          if (!isValid) {
-            throw new Error("Invalid password");
-          }
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isValid) throw new Error("Invalid password");
 
           return {
             id: user._id.toString(),
@@ -175,13 +167,12 @@ export const authOptions = {
       },
     }),
 
-
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       authorization: {
         params: {
-          hd: "iiti.ac.in", 
+          hd: "iiti.ac.in",
           prompt: "select_account",
         }
       }
@@ -191,7 +182,6 @@ export const authOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-
         if (!user.email?.endsWith("@iiti.ac.in")) {
           return "/login?error=invalid_domain";
         }
@@ -199,13 +189,12 @@ export const authOptions = {
         try {
           await connectDB();
           let dbUser = await User.findOne({ email: user.email });
-
           if (!dbUser) {
             dbUser = await User.create({
               email: user.email,
               googleProvider: true,
-              role: "student", 
-              isVerified: true, 
+              role: "student",
+              isVerified: true,
             });
           }
           user.id = dbUser._id.toString();
@@ -217,27 +206,36 @@ export const authOptions = {
       return true;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // On first login
       if (user) {
         token.id = user.id;
-        const userdata = await User.findById(user.id)
-        if(!userdata){
-          console.error("user not found")
+        const userdata = await User.findById(user.id);
+        if (userdata) {
+          token.role = userdata.role || null;
+          token.username = userdata.username || "";
+          token.googleProvider = userdata.googleProvider || false;
+        } else {
+          console.error("user not found");
         }
-        token.role = userdata.role
-        token.username = userdata.username || ""
-        token.googleProvider = userdata.googleProvider
       }
+
+      // On client update() call (after complete-profile)
+      if (trigger === "update" && session) {
+        if (session.role) token.role = session.role;
+        if (session.username) token.username = session.username;
+      }
+
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
         session.user.id = String(token.id);
-        session.user.role = token.role
-        session.user.username = token.username || ""
-        session.user.googleProvider = token.googleProvider
+        session.user.role = token.role || null;
+        session.user.username = token.username || "";
+        session.user.googleProvider = token.googleProvider || false;
       }
-      console.log("session" , session.user)
       return session;
     },
   },
@@ -249,8 +247,9 @@ export const authOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 30*24*60*60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
   secret: process.env.NEXTAUTH_SECRET,
 };
+
