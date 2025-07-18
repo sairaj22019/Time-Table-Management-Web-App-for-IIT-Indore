@@ -367,7 +367,7 @@
 
 "use client"
 
-import { ChevronUp, Home, Inbox, LogOut, GraduationCap, CalendarPlus, BookPlus, Users, UserPlus } from "lucide-react"
+import { ChevronUp, Home, CircleCheckBig,CalendarSearch, Send, LogOut, GraduationCap, CalendarPlus, BookPlus, Users, UserPlus } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -409,11 +409,6 @@ const items = [
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "/admin/inbox",
-    icon: Inbox,
-  },
-  {
     title: "all Courses",
     url: "/admin/courses",
     icon: GraduationCap,
@@ -436,17 +431,17 @@ const items = [
   {
     title: "View Grids",
     url: "/admin/viewGrids",
-    icon: Users,
+    icon: CalendarSearch,
   },
   {
     title: "Approve Polls",
     url: "/admin/approvePolls",
-    icon: Users,
+    icon: CircleCheckBig,
   },
   {
     title: "Send Message",
     url: "/admin/sendMessage",
-    icon: Users,
+    icon: Send,
   },
 ]
 
