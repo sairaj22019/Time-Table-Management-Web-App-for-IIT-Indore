@@ -571,7 +571,7 @@ export function AppSidebar() {
         break
       case "settings":
         // Navigate to settings page
-        router.push("/students/setting")
+        router.push("/student/settings")
         break
       case "signout":
         // Handle sign out
