@@ -1,3 +1,4 @@
+
 // import { NextRequest, NextResponse } from "next/server";
 // import Course from "@/models/Course.model";
 // import mongoose from "mongoose";
@@ -333,7 +334,7 @@ const sendNotificationToProfessors=async (newCourse,session)=>{
   await newCourse.populate("prof");
   if(newCourse.prof.length===0) return;
   const newNotification= new Notification({
-    message:`You have been assigned to teach the course: ${newCourse.courseCode}`,
+    message:`You have been assigned to teach the course: ${newCourse.title} (${newCourse.courseCode})`,
     messageTitle:"New Course Assignment",
     type:"general message",
     course:newCourse._id,

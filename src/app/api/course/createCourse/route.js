@@ -1,3 +1,4 @@
+
 // import { connectDB } from "@/dbConnection/ConnectDB";
 // import Course from "@/models/Course.model";
 // import { NextRequest, NextResponse } from "next/server";
@@ -412,7 +413,7 @@ const sendNotificationToProfessors=async (newCourse,session)=>{
   await newCourse.populate("prof");
   if(newCourse.prof.length===0) return;
   const newNotification= new Notification({
-    message:`You have been assigned to teach the course: ${newCourse.courseCode}`,
+    message:`You have been assigned to teach the course: ${newCourse.title} (${newCourse.courseCode})`,
     messageTitle:"New Course Assignment",
     type:"general message",
     course:newCourse._id,
@@ -570,7 +571,7 @@ export async function POST(req) {
     }
     const newPoll=new Poll({
       options:allOptions,
-      reason:`For fixture of course schdule for the course ${newCourse.courseCode} and lectures ${newCourse.lectures}`,
+      reason:`For fixture of course schdule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures} and tutorials ${newCourse.tutorials}`,
       context:"Sending this poll to ask for the verification of slots which will be used for the given course",
       expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     })
