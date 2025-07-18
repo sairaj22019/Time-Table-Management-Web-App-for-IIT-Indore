@@ -1,3 +1,4 @@
+
 // import { connectDB } from "@/dbConnection/ConnectDB";
 // import Course from "@/models/Course.model";
 // import { NextRequest, NextResponse } from "next/server";

@@ -1,3 +1,4 @@
+
 // import { NextRequest, NextResponse } from "next/server";
 // import Course from "@/models/Course.model";
 // import mongoose from "mongoose";

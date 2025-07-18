@@ -1,5 +1,5 @@
-"use client"
 
+"use client"
 import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useSpring } from "framer-motion"
 import { useRouter } from "next/navigation"
@@ -7,7 +7,8 @@ import { useSession } from "next-auth/react"
 import {
   HiAcademicCap,
   HiCalendar,
-  HiUsers,
+  HiOutlineMail,
+  HiCog,
   HiChevronRight,
   HiStar,
   HiTrendingUp,
@@ -16,9 +17,8 @@ import {
   HiInformationCircle,
   HiClock,
   HiChevronLeft,
-  HiChatAlt,
-  HiPlus,
-  HiClipboardCheck,
+  HiExclamationCircle,
+  HiMail,
 } from "react-icons/hi"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,68 +27,46 @@ const quickActions = [
   {
     id: 1,
     title: "View All Courses",
-    description: "Manage all university courses",
+    description: "Access your enrolled courses",
     icon: HiAcademicCap,
     color: "bg-blue-600 hover:bg-blue-700",
     iconBg: "bg-blue-100",
     iconColor: "text-blue-600",
-    path: "/admin/courses",
+    path: "/student/courses",
     gradient: "from-blue-500 to-blue-600",
   },
   {
     id: 2,
-    title: "Create Course",
-    description: "Add new courses to the system",
-    icon: HiPlus,
+    title: "Check Inbox",
+    description: "Read your messages and notifications",
+    icon: HiOutlineMail,
     color: "bg-green-600 hover:bg-green-700",
     iconBg: "bg-green-100",
     iconColor: "text-green-600",
-    path: "/admin/createCourses",
+    path: "/student/inbox",
     gradient: "from-green-500 to-green-600",
   },
   {
     id: 3,
-    title: "Create Timetable",
-    description: "Manage student timetables",
+    title: "View Timetable",
+    description: "Check your class schedule",
     icon: HiCalendar,
     color: "bg-purple-600 hover:bg-purple-700",
     iconBg: "bg-purple-100",
     iconColor: "text-purple-600",
-    path: "/admin/grid",
+    path: "/student/timetable",
     gradient: "from-purple-500 to-purple-600",
   },
   {
     id: 4,
-    title: "View All Users",
-    description: "Manage students and professors",
-    icon: HiUsers,
-    color: "bg-orange-600 hover:bg-orange-700",
-    iconBg: "bg-orange-100",
-    iconColor: "text-orange-600",
-    path: "/admin/viewUsers",
-    gradient: "from-orange-500 to-orange-600",
-  },
-  {
-    id: 5,
-    title: "Approve Polls",
-    description: "Review and approve pending polls",
-    icon: HiClipboardCheck,
-    color: "bg-red-600 hover:bg-red-700",
-    iconBg: "bg-red-100",
-    iconColor: "text-red-600",
-    path: "/admin/polls",
-    gradient: "from-red-500 to-red-600",
-  },
-  {
-    id: 6,
-    title: "Send Messages",
-    description: "Send announcements to all users",
-    icon: HiChatAlt,
-    color: "bg-indigo-600 hover:bg-indigo-700",
-    iconBg: "bg-indigo-100",
-    iconColor: "text-indigo-600",
-    path: "/admin/messages",
-    gradient: "from-indigo-500 to-indigo-600",
+    title: "Settings",
+    description: "Manage your account preferences",
+    icon: HiCog,
+    color: "bg-gray-600 hover:bg-gray-700",
+    iconBg: "bg-gray-100",
+    iconColor: "text-gray-600",
+    path: "/student/settings",
+    gradient: "from-gray-500 to-gray-600",
   },
 ]
 
@@ -98,79 +76,21 @@ const floatingElements = [
   { id: 3, icon: HiStar, delay: 2, duration: 3.5 },
 ]
 
-// Transform function for poll notifications
-function transformNotificationToPoll(notification) {
-  const { message, prof, course, type, messageTitle } = notification
-
-  // Find vote counts for each option
-  const voteCounts = {}
-  if (message.votes && Array.isArray(message.votes)) {
-    message.votes.forEach((vote) => {
-      const optionId = vote.option?.toString()
-      if (optionId) voteCounts[optionId] = (voteCounts[optionId] || 0) + 1
-    })
-  }
-
-  // Find winning option
-  const topVotedOptionId = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-  const topOption = message.options.find((opt) => opt._id.toString() === topVotedOptionId)
-  const topVotes = voteCounts[topVotedOptionId] || 0
-  const totalVotes = message.votes?.length || 0
-  const percentage = totalVotes > 0 ? Math.round((topVotes / totalVotes) * 100) : 0
-
-  // Fix professor name logic
-  const professor =
-    prof?.name ||
-    (Array.isArray(prof?.profName) ? prof.profName.join(", ") : prof?.profName) ||
-    (Array.isArray(course?.profName) ? course.profName.join(", ") : course?.profName) ||
-    "Professor"
-
-  return {
-    id: notification._id,
-    title: messageTitle || message.reason || (course?.title ? `${course.title} Poll` : "Poll"),
-    course: course?.courseCode || "Course",
-    professor,
-    status: message.isApproved ? "approved" : "pending",
-    totalVotes: totalVotes,
-    content: `Poll about ${course?.title || "course"} requires approval`,
-    createdAt: new Date(notification.createdAt || Date.now()),
-    winningOption: topOption
-      ? {
-          date: new Date(topOption.date).toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
-          time: `${new Date(topOption.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${new Date(topOption.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
-          location: topOption.room || "TBD",
-          votes: topVotes,
-          percentage: percentage,
-        }
-      : {
-          date: "No votes",
-          time: "No votes",
-          location: "No votes",
-          votes: 0,
-          percentage: 0,
-        },
-  }
-}
-
-export default function AdminDashboardHome() {
+export default function DashboardHome() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [currentTipIndex, setCurrentTipIndex] = useState(0)
-  const [adminData, setAdminData] = useState({
-    name: "Administrator",
-    totalCourses: 0,
-    pendingPolls: 0,
+  const [studentData, setStudentData] = useState({
+    name: "Student",
+    coursesEnrolled: 0,
+    unreadMessages: 0,
   })
   const [loading, setLoading] = useState(true)
   const [latestNotifications, setLatestNotifications] = useState([])
+  const { data: session, status } = useSession()
   const router = useRouter()
   const containerRef = useRef(null)
-  const { data: session, status } = useSession()
+  let studentEmail
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -185,6 +105,123 @@ export default function AdminDashboardHome() {
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
   const y = useSpring(0, springConfig)
+
+  useEffect(() => {
+    if (!session) return
+    studentEmail = session.user.email
+  }, [session])
+
+  // Fetch latest notifications for the carousel
+  const fetchLatestNotifications = async () => {
+    if (!studentEmail) return []
+    try {
+      const response = await fetch("/api/student/getNotifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentEmail }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        // Transform and get latest 5 notifications
+        const transformedNotifications = data.student
+          .filter((item) => !item.buffer && item.notification)
+          .map((item) => {
+            const notification = item.notification
+            const isPoll = notification.type === "poll"
+            const isRead = item.isRead === true
+            if (isPoll) {
+              const courseTitle = notification.course ? notification.course.title : "Course Poll"
+              const courseCode = notification.course ? notification.course.courseCode : ""
+              const reason = notification.message.reason || "New poll available for your course"
+              return {
+                id: item._id,
+                type: "update",
+                title: `Poll: ${courseTitle}`,
+                content: reason,
+                icon: HiExclamationCircle,
+                color: "text-purple-600",
+                bgColor: "bg-purple-50",
+                borderColor: "border-purple-200",
+                createdAt: notification.createdAt,
+                isRead: isRead,
+                searchTerm: courseTitle,
+                courseCode: courseCode,
+              }
+            } else {
+              const messageTitle = notification.messageTitle || "New Message"
+              const messageContent =
+                typeof notification.message === "string"
+                  ? notification.message.substring(0, 120) + (notification.message.length > 120 ? "..." : "")
+                  : "New message received"
+              return {
+                id: item._id,
+                type: "update",
+                title: messageTitle,
+                content: messageContent,
+                icon: HiMail,
+                color: "text-blue-600",
+                bgColor: "bg-blue-50",
+                borderColor: "border-blue-200",
+                createdAt: notification.createdAt,
+                isRead: isRead,
+                searchTerm: messageTitle,
+                courseCode: notification.course ? notification.course.courseCode : "",
+              }
+            }
+          })
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 5)
+        return transformedNotifications
+      }
+      return []
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+      return []
+    }
+  }
+
+  // Fetch courses count
+  const fetchCoursesCount = async () => {
+    if (!studentEmail) return 0
+    try {
+      const response = await fetch("/api/student/myCourses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentEmail }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        return data.courses.length
+      }
+      return 0
+    } catch (error) {
+      console.error("Error fetching courses:", error)
+      return 0
+    }
+  }
+
+  // Fetch unread messages count
+  const fetchUnreadCount = async () => {
+    if (!studentEmail) return 0
+    try {
+      const response = await fetch("/api/student/getNotifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentEmail }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        const unreadCount = data.student.filter(
+          (item) => !item.buffer && item.notification && item.isRead !== true,
+        ).length
+        return unreadCount
+      }
+      return 0
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+      return 0
+    }
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -217,80 +254,41 @@ export default function AdminDashboardHome() {
     return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [x, y])
 
-  // Fetch courses count
-  const fetchCoursesCount = async () => {
-    try {
-      const response = await fetch("/api/admin/courses")
-      const data = await response.json()
-      if (data.success) {
-        return data.courses.length
-      }
-      return 0
-    } catch (error) {
-      console.error("Error fetching courses:", error)
-      return 0
-    }
-  }
-
-  // Fetch polls data
-  const fetchPollsData = async () => {
-    try {
-      const response = await fetch("/api/admin/approvePolls")
-      const data = await response.json()
-      if (data.success && data.notifications) {
-        const transformedPolls = data.notifications.map(transformNotificationToPoll)
-        const pendingCount = transformedPolls.filter((poll) => poll.status === "pending").length
-        return {
-          polls: transformedPolls,
-          pendingCount: pendingCount,
-        }
-      }
-      return { polls: [], pendingCount: 0 }
-    } catch (error) {
-      console.error("Error fetching polls:", error)
-      return { polls: [], pendingCount: 0 }
-    }
-  }
-
-  // Load admin data
+  // Load student data
   useEffect(() => {
-    const loadAdminData = async () => {
+    const loadStudentData = async () => {
+      if (!studentEmail) return
       if (!session) return
       setLoading(true)
-
       try {
-        // Fetch both courses and polls data
-        const [coursesCount, pollsData] = await Promise.all([fetchCoursesCount(), fetchPollsData()])
-
+        const [coursesCount, unreadCount, notifications] = await Promise.all([
+          fetchCoursesCount(),
+          fetchUnreadCount(),
+          fetchLatestNotifications(),
+        ])
         // Get name from session
-        const displayName = session.user?.username || "Administrator"
-
-        setAdminData({
+        const displayName = session.user.username || "Student"
+        setStudentData({
           name: displayName,
-          totalCourses: coursesCount,
-          pendingPolls: pollsData.pendingCount,
+          coursesEnrolled: coursesCount,
+          unreadMessages: unreadCount,
         })
-
-        // Set latest notifications (limit to 5 most recent)
-        const sortedPolls = pollsData.polls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
-
-        setLatestNotifications(sortedPolls)
+        setLatestNotifications(notifications)
       } catch (error) {
-        console.error("Error loading admin data:", error)
+        console.error("Error loading student data:", error)
       } finally {
         setLoading(false)
       }
     }
-
-    loadAdminData()
-  }, [session])
+    loadStudentData()
+  }, [studentEmail, session])
 
   const updatedQuickActions = quickActions.map((action) => {
-    if (action.id === 5) {
-      // Approve Polls action
+    if (action.id === 2) {
+      // Inbox action
       return {
         ...action,
-        badge: adminData.pendingPolls > 0 ? adminData.pendingPolls : undefined,
+        badge: studentData.unreadMessages > 0 ? studentData.unreadMessages : undefined,
       }
     }
     return action
@@ -307,8 +305,14 @@ export default function AdminDashboardHome() {
     router.push(path)
   }
 
-  const handleNotificationClick = () => {
-    router.push("/admin/polls")
+  // Handle notification click - redirect to inbox with search term
+  const handleNotificationClick = (notification) => {
+    const searchTerm = notification.searchTerm || notification.title || ""
+    if (searchTerm) {
+      router.push(`/student/inbox?search=${encodeURIComponent(searchTerm)}`)
+    } else {
+      router.push("/student/inbox")
+    }
   }
 
   const nextTip = () => {
@@ -343,7 +347,7 @@ export default function AdminDashboardHome() {
       <div className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading admin dashboard...</p>
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -428,7 +432,7 @@ export default function AdminDashboardHome() {
               className="inline-flex items-center px-3 py-2 sm:px-4 bg-blue-50/80 backdrop-blur-sm rounded-full text-blue-600 text-xs sm:text-sm mb-3 sm:mb-4 border border-blue-200/50"
             >
               <HiSparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-pulse" />
-              Administrator Dashboard
+              Campus Sync Student Dashboard
             </motion.div>
             <motion.h1
               className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 px-2"
@@ -439,7 +443,7 @@ export default function AdminDashboardHome() {
               transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
             >
               <span className="bg-gradient-to-r from-gray-800 via-blue-600 to-gray-800 bg-clip-text text-transparent bg-300% animate-gradient">
-                {getGreeting()}, {adminData.name}! 👨‍💼
+                {getGreeting()}, {studentData.name}! 👋
               </span>
             </motion.h1>
             <motion.p
@@ -448,7 +452,7 @@ export default function AdminDashboardHome() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
             >
-              Welcome to the Admin Control Panel
+              Welcome to Campus Sync
             </motion.p>
             <motion.p
               className="text-gray-500 text-xs sm:text-sm mt-1"
@@ -456,7 +460,6 @@ export default function AdminDashboardHome() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
             >
-              System Administration •{" "}
               {currentTime.toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",
@@ -475,18 +478,18 @@ export default function AdminDashboardHome() {
           >
             {[
               {
-                label: "Total Courses",
-                value: adminData.totalCourses,
+                label: "Enrolled Courses",
+                value: studentData.coursesEnrolled,
                 icon: HiAcademicCap,
                 color: "blue",
-                trend: "Active in system",
+                trend: "Active this semester",
               },
               {
-                label: "Pending Poll Approvals",
-                value: adminData.pendingPolls,
-                icon: HiClipboardCheck,
+                label: "Unread Messages",
+                value: studentData.unreadMessages,
+                icon: HiOutlineMail,
                 color: "orange",
-                trend: adminData.pendingPolls > 0 ? "Requires attention" : "All approved",
+                trend: studentData.unreadMessages > 0 ? "Needs attention" : "All caught up",
               },
             ].map((stat, index) => (
               <motion.div
@@ -579,9 +582,9 @@ export default function AdminDashboardHome() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.8 }}
                 >
-                  Admin Actions
+                  Quick Actions
                 </motion.h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {updatedQuickActions.map((action, index) => (
                     <motion.div
                       key={action.id}
@@ -644,7 +647,7 @@ export default function AdminDashboardHome() {
             </Card>
           </motion.div>
 
-          {/* Latest Poll Approval Notifications Carousel */}
+          {/* Latest Notifications Carousel */}
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
@@ -652,7 +655,7 @@ export default function AdminDashboardHome() {
             className="px-2 sm:px-0"
           >
             <Card className="shadow-lg sm:shadow-xl rounded-xl sm:rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-md overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 animate-gradient-x" />
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 animate-gradient-x" />
               <CardContent className="p-4 sm:p-6 relative z-10">
                 <motion.div
                   className="flex items-center justify-between mb-4 sm:mb-6"
@@ -662,7 +665,7 @@ export default function AdminDashboardHome() {
                 >
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-800 flex items-center">
                     <HiClock className="h-5 w-5 mr-2 text-indigo-600" />
-                    Latest Poll Approvals
+                    Latest Notifications
                   </h3>
                   {latestNotifications.length > 1 && (
                     <div className="flex items-center space-x-2">
@@ -692,10 +695,8 @@ export default function AdminDashboardHome() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className={`p-4 sm:p-6 rounded-xl border-2 ${
-                      currentTip.status === "approved" ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
-                    } relative overflow-hidden group cursor-pointer hover:shadow-md transition-all duration-300`}
-                    onClick={handleNotificationClick}
+                    className={`p-4 sm:p-6 rounded-xl border-2 ${currentTip.borderColor} ${currentTip.bgColor} relative overflow-hidden group cursor-pointer hover:shadow-md transition-all duration-300`}
+                    onClick={() => handleNotificationClick(currentTip)}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     <div className="flex items-start space-x-4 relative z-10">
@@ -704,40 +705,33 @@ export default function AdminDashboardHome() {
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <HiClipboardCheck
-                          className={`h-6 w-6 sm:h-8 sm:w-8 ${
-                            currentTip.status === "approved" ? "text-green-600" : "text-red-600"
-                          }`}
-                        />
+                        <currentTip.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${currentTip.color}`} />
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-2">
                           <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{currentTip.title}</h4>
                           <span
                             className={`px-2 py-1 text-xs rounded-full font-medium ${
-                              currentTip.status === "approved"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
+                              currentTip.isRead ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
                             }`}
                           >
-                            🔍 {currentTip.status.charAt(0).toUpperCase() + currentTip.status.slice(1)}
+                            {currentTip.isRead ? "📖 Read" : "📢 New"}
                           </span>
                           <span className="text-xs text-gray-500">{getRelativeTime(currentTip.createdAt)}</span>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-1">{currentTip.content}</p>
-                        <p className="text-xs text-gray-500">
-                          <strong>Professor:</strong> {currentTip.professor} • <strong>Course:</strong>{" "}
-                          {currentTip.course}
-                        </p>
-                        <div className="mt-2 text-xs text-blue-600 font-medium">Click to view all poll approvals →</div>
+                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{currentTip.content}</p>
+                        <div className="mt-2 text-xs text-blue-600 font-medium flex items-center">
+                          <span>Click to view in inbox</span>
+                          <HiChevronRight className="h-3 w-3 ml-1" />
+                        </div>
                       </div>
                     </div>
                   </motion.div>
                 ) : (
                   <div className="p-4 sm:p-6 rounded-xl border-2 border-gray-200 bg-gray-50 text-center">
                     <HiInformationCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">No recent poll approvals</p>
-                    <p className="text-xs text-gray-500 mt-1">Check back later for new requests</p>
+                    <p className="text-sm text-gray-600">No recent notifications</p>
+                    <p className="text-xs text-gray-500 mt-1">Check back later for updates</p>
                   </div>
                 )}
                 {/* Progress Indicators */}
@@ -746,11 +740,12 @@ export default function AdminDashboardHome() {
                     {latestNotifications.map((_, index) => (
                       <motion.div
                         key={index}
-                        className={`h-2 w-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        className={`h-2 w-2 rounded-full transition-all duration-300 ${
                           index === currentTipIndex ? "bg-indigo-600 w-6" : "bg-gray-300"
                         }`}
                         whileHover={{ scale: 1.2 }}
                         onClick={() => setCurrentTipIndex(index)}
+                        style={{ cursor: "pointer" }}
                       />
                     ))}
                   </div>
@@ -759,7 +754,7 @@ export default function AdminDashboardHome() {
             </Card>
           </motion.div>
 
-          {/* Enhanced Admin Dashboard Info */}
+          {/* Enhanced Campus Sync Info */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -775,7 +770,7 @@ export default function AdminDashboardHome() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.2 }}
                 >
-                  About Admin Dashboard
+                  About Campus Sync
                 </motion.h3>
                 <motion.p
                   className="text-sm sm:text-base text-gray-600 leading-relaxed px-2"
@@ -783,8 +778,8 @@ export default function AdminDashboardHome() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.4 }}
                 >
-                  Your comprehensive administrative control center for managing the entire university system. Oversee
-                  courses, users, and communications with powerful tools designed for efficient administration.
+                  Your all-in-one platform for managing your academic journey. Stay organized, connected, and focused on
+                  what matters most - your education.
                 </motion.p>
                 <motion.div
                   className="flex justify-center mt-3 sm:mt-4"
@@ -799,7 +794,7 @@ export default function AdminDashboardHome() {
                     >
                       <HiStar className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
                     </motion.div>
-                    <span className="text-center">Empowering administrators, enhancing education</span>
+                    <span className="text-center">Making student life easier, one click at a time</span>
                   </div>
                 </motion.div>
               </CardContent>
@@ -813,3 +808,4 @@ export default function AdminDashboardHome() {
     </div>
   )
 }
+
