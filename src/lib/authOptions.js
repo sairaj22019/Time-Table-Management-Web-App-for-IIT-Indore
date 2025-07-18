@@ -128,6 +128,8 @@
 
 
 
+
+
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -152,6 +154,10 @@ export const authOptions = {
           await connectDB();
           const user = await User.findOne({ email: credentials.email });
           if (!user) throw new Error("No user found");
+
+          if (user.googleProvider) {
+            throw new Error("This account is linked with Google. Please login with Google.");
+          }
 
           const isValid = await bcrypt.compare(credentials.password, user.password);
           if (!isValid) throw new Error("Invalid password");
