@@ -1,3 +1,4 @@
+
 // import { connectDB } from '@/dbConnection/ConnectDB'
 // import User from '@/models/User.model'
 // import Student from '@/models/Student.model'
@@ -64,3 +65,4 @@ export async function GET(req) {
     return NextResponse.json({ message: 'Server error' }, { status: 500 })
   }
 }
+

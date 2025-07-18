@@ -1,4 +1,5 @@
 "use client"
+
 import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useSpring } from "framer-motion"
 import { useRouter } from "next/navigation"
@@ -75,7 +76,7 @@ const quickActions = [
     color: "bg-red-600 hover:bg-red-700",
     iconBg: "bg-red-100",
     iconColor: "text-red-600",
-    path: "/admin/polls",
+    path: "/admin/approvePolls",
     gradient: "from-red-500 to-red-600",
   },
   {
@@ -97,6 +98,65 @@ const floatingElements = [
   { id: 3, icon: HiStar, delay: 2, duration: 3.5 },
 ]
 
+// Transform function for poll notifications
+function transformNotificationToPoll(notification) {
+  const { message, prof, course, type, messageTitle } = notification
+
+  // Find vote counts for each option
+  const voteCounts = {}
+  if (message.votes && Array.isArray(message.votes)) {
+    message.votes.forEach((vote) => {
+      const optionId = vote.option?.toString()
+      if (optionId) voteCounts[optionId] = (voteCounts[optionId] || 0) + 1
+    })
+  }
+
+  // Find winning option
+  const topVotedOptionId = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
+  const topOption = message.options.find((opt) => opt._id.toString() === topVotedOptionId)
+  const topVotes = voteCounts[topVotedOptionId] || 0
+  const totalVotes = message.votes?.length || 0
+  const percentage = totalVotes > 0 ? Math.round((topVotes / totalVotes) * 100) : 0
+
+  // Fix professor name logic
+  const professor =
+    prof?.name ||
+    (Array.isArray(prof?.profName) ? prof.profName.join(", ") : prof?.profName) ||
+    (Array.isArray(course?.profName) ? course.profName.join(", ") : course?.profName) ||
+    "Professor"
+
+  return {
+    id: notification._id,
+    title: messageTitle || message.reason || (course?.title ? `${course.title} Poll` : "Poll"),
+    course: course?.courseCode || "Course",
+    professor,
+    status: message.isApproved ? "approved" : "pending",
+    totalVotes: totalVotes,
+    content: `Poll about ${course?.title || "course"} requires approval`,
+    createdAt: new Date(notification.createdAt || Date.now()),
+    winningOption: topOption
+      ? {
+          date: new Date(topOption.date).toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          time: `${new Date(topOption.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${new Date(topOption.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+          location: topOption.room || "TBD",
+          votes: topVotes,
+          percentage: percentage,
+        }
+      : {
+          date: "No votes",
+          time: "No votes",
+          location: "No votes",
+          votes: 0,
+          percentage: 0,
+        },
+  }
+}
+
 export default function AdminDashboardHome() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -111,7 +171,6 @@ export default function AdminDashboardHome() {
   const router = useRouter()
   const containerRef = useRef(null)
   const { data: session, status } = useSession()
-  let adminEmail
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -126,11 +185,6 @@ export default function AdminDashboardHome() {
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
   const y = useSpring(0, springConfig)
-
-  useEffect(() => {
-    if (!session) return
-    adminEmail = session.user.email
-  }, [session])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -163,86 +217,50 @@ export default function AdminDashboardHome() {
     return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [x, y])
 
+  // Fetch courses count
+  const fetchCoursesCount = async () => {
+    try {
+      const response = await fetch("/api/admin/courses")
+      const data = await response.json()
+      if (data.success) {
+        return data.courses.length
+      }
+      return 0
+    } catch (error) {
+      console.error("Error fetching courses:", error)
+      return 0
+    }
+  }
+
+  // Fetch polls data
+  const fetchPollsData = async () => {
+    try {
+      const response = await fetch("/api/admin/approvePolls")
+      const data = await response.json()
+      if (data.success && data.notifications) {
+        const transformedPolls = data.notifications.map(transformNotificationToPoll)
+        const pendingCount = transformedPolls.filter((poll) => poll.status === "pending").length
+        return {
+          polls: transformedPolls,
+          pendingCount: pendingCount,
+        }
+      }
+      return { polls: [], pendingCount: 0 }
+    } catch (error) {
+      console.error("Error fetching polls:", error)
+      return { polls: [], pendingCount: 0 }
+    }
+  }
+
   // Load admin data
   useEffect(() => {
     const loadAdminData = async () => {
       if (!session) return
       setLoading(true)
 
-      // Simulate loading delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
       try {
-        // Hardcoded data
-        const coursesCount = 25
-        const pendingPollsCount = 3
-        const notifications = [
-          {
-            id: "1",
-            type: "poll_approval",
-            title: "Poll Approval: Computer Science Fundamentals",
-            content: "New poll about programming languages preference requires approval",
-            icon: HiClipboardCheck,
-            color: "text-red-600",
-            bgColor: "bg-red-50",
-            borderColor: "border-red-200",
-            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-            professor: "Dr. Smith",
-            status: "Pending",
-          },
-          {
-            id: "2",
-            type: "poll_approval",
-            title: "Poll Approval: Mathematics Advanced",
-            content: "Survey about calculus difficulty level needs admin review",
-            icon: HiClipboardCheck,
-            color: "text-red-600",
-            bgColor: "bg-red-50",
-            borderColor: "border-red-200",
-            createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-            professor: "Prof. Johnson",
-            status: "Pending",
-          },
-          {
-            id: "3",
-            type: "poll_approval",
-            title: "Poll Approval: Physics Laboratory",
-            content: "Lab equipment satisfaction poll awaiting approval",
-            icon: HiClipboardCheck,
-            color: "text-red-600",
-            bgColor: "bg-red-50",
-            borderColor: "border-red-200",
-            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-            professor: "Dr. Williams",
-            status: "Approved",
-          },
-          {
-            id: "4",
-            type: "poll_approval",
-            title: "Poll Approval: English Literature",
-            content: "Reading preferences survey for next semester",
-            icon: HiClipboardCheck,
-            color: "text-red-600",
-            bgColor: "bg-red-50",
-            borderColor: "border-red-200",
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-            professor: "Prof. Davis",
-            status: "Pending",
-          },
-          {
-            id: "5",
-            type: "poll_approval",
-            title: "Poll Approval: Chemistry Lab Safety",
-            content: "Safety protocol awareness poll requires review",
-            icon: HiClipboardCheck,
-            color: "text-red-600",
-            bgColor: "bg-red-50",
-            borderColor: "border-red-200",
-            createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-            professor: "Dr. Brown",
-            status: "Approved",
-          },
-        ]
+        // Fetch both courses and polls data
+        const [coursesCount, pollsData] = await Promise.all([fetchCoursesCount(), fetchPollsData()])
 
         // Get name from session
         const displayName = session.user?.username || "Administrator"
@@ -250,10 +268,13 @@ export default function AdminDashboardHome() {
         setAdminData({
           name: displayName,
           totalCourses: coursesCount,
-          pendingPolls: pendingPollsCount,
+          pendingPolls: pollsData.pendingCount,
         })
 
-        setLatestNotifications(notifications)
+        // Set latest notifications (limit to 5 most recent)
+        const sortedPolls = pollsData.polls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
+
+        setLatestNotifications(sortedPolls)
       } catch (error) {
         console.error("Error loading admin data:", error)
       } finally {
@@ -284,6 +305,10 @@ export default function AdminDashboardHome() {
 
   const handleNavigation = (path) => {
     router.push(path)
+  }
+
+  const handleNotificationClick = () => {
+    router.push("/admin/approvePolls")
   }
 
   const nextTip = () => {
@@ -667,7 +692,10 @@ export default function AdminDashboardHome() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.5 }}
-                    className={`p-4 sm:p-6 rounded-xl border-2 ${currentTip.borderColor} ${currentTip.bgColor} relative overflow-hidden group`}
+                    className={`p-4 sm:p-6 rounded-xl border-2 ${
+                      currentTip.status === "approved" ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
+                    } relative overflow-hidden group cursor-pointer hover:shadow-md transition-all duration-300`}
+                    onClick={handleNotificationClick}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     <div className="flex items-start space-x-4 relative z-10">
@@ -676,26 +704,32 @@ export default function AdminDashboardHome() {
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <currentTip.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${currentTip.color}`} />
+                        <HiClipboardCheck
+                          className={`h-6 w-6 sm:h-8 sm:w-8 ${
+                            currentTip.status === "approved" ? "text-green-600" : "text-red-600"
+                          }`}
+                        />
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-2">
                           <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{currentTip.title}</h4>
                           <span
                             className={`px-2 py-1 text-xs rounded-full font-medium ${
-                              currentTip.status === "Approved"
+                              currentTip.status === "approved"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
                             }`}
                           >
-                            🔍 {currentTip.status}
+                            🔍 {currentTip.status.charAt(0).toUpperCase() + currentTip.status.slice(1)}
                           </span>
                           <span className="text-xs text-gray-500">{getRelativeTime(currentTip.createdAt)}</span>
                         </div>
                         <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-1">{currentTip.content}</p>
                         <p className="text-xs text-gray-500">
-                          <strong>Professor:</strong> {currentTip.professor}
+                          <strong>Professor:</strong> {currentTip.professor} • <strong>Course:</strong>{" "}
+                          {currentTip.course}
                         </p>
+                        <div className="mt-2 text-xs text-blue-600 font-medium">Click to view all poll approvals →</div>
                       </div>
                     </div>
                   </motion.div>
@@ -712,12 +746,11 @@ export default function AdminDashboardHome() {
                     {latestNotifications.map((_, index) => (
                       <motion.div
                         key={index}
-                        className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                        className={`h-2 w-2 rounded-full transition-all duration-300 cursor-pointer ${
                           index === currentTipIndex ? "bg-indigo-600 w-6" : "bg-gray-300"
                         }`}
                         whileHover={{ scale: 1.2 }}
                         onClick={() => setCurrentTipIndex(index)}
-                        style={{ cursor: "pointer" }}
                       />
                     ))}
                   </div>

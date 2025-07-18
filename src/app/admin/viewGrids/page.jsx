@@ -351,9 +351,8 @@ export default function ViewGridsPage() {
   };
 
   const getYearSuffix = (year) => {
-    const suffixes = ["st", "nd", "rd", "th"];
-    const v = year % 100;
-    return year + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+    const suffixes = ["st", "nd", "rd", "th","th","th"];
+    return year + (suffixes[year-1]);
   };
 
   if (loading) {
@@ -419,7 +418,7 @@ export default function ViewGridsPage() {
                   ← Back to courses
                 </Link>
                 <span className="hidden sm:inline">|</span>
-                <Link href="/admin/courses/create-grid" className="hover:text-blue-800 hover:underline">
+                <Link href="/admin/grid" className="hover:text-blue-800 hover:underline">
                   Create new grid →
                 </Link>
               </div>
@@ -505,9 +504,7 @@ export default function ViewGridsPage() {
                             <Calendar className="w-5 h-5 text-blue-600" />
                             <span className="text-sm font-medium text-blue-600">Timetable Grid</span>
                           </div>
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            ID: {grid._id}
-                          </span>
+                          
                         </div>
 
                         <div className="space-y-3 mb-6">
@@ -528,7 +525,6 @@ export default function ViewGridsPage() {
 
                           <div className="text-xs text-gray-500 space-y-1">
                             <p>Created: {formatDate(grid.createdAt)}</p>
-                            <p>Updated: {formatDate(grid.updatedAt)}</p>
                           </div>
                         </div>
 

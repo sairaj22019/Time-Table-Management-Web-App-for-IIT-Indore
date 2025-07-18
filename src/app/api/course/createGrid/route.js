@@ -15,22 +15,24 @@ export async function POST(req){
     }
     try {
         const {grid,semester,year}=await req.json();
-        if(!grid || !semester || !year){
+        if(!grid || !semester){
             return NextResponse.json({
                 success:false,
                 message:"Invalid request, please provide all the necessary fields",
             },{status:400});
         }
-        const newGrid=new Grid({
-            year:year,
-            semester:semester,
-            grid:grid,
-        })
-        await newGrid.save();
+        console.log(typeof year,year);
+        for(const y of year){
+            const newGrid=new Grid({
+                year:y,
+                semester:semester,
+                grid:grid,
+            })
+            await newGrid.save();
+        }
         return NextResponse.json({
             success:true,
             message:"Grid created successfully",
-            grid:newGrid,
         },{status:200});
     } catch (error) {
         console.log(error);

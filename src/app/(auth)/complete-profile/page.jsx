@@ -1,4 +1,5 @@
 
+
 "use client"
 import React, { useState, useEffect } from "react"
 import { useSession, update } from "next-auth/react"
@@ -280,3 +281,4 @@ export default function CompleteProfilePage() {
     </main>
   )
 }
+

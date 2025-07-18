@@ -28,6 +28,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 const MotionLink = motion(Link)
 
@@ -119,6 +120,7 @@ export function AppSidebar() {
   const timeoutRef = useRef(null)
   const [ismenuitemHovered, setIsMenuItemHovered] = useState(false)
   const { data: session, status } = useSession()
+  const router = useRouter();
 
   // Fetch unread notifications count
   const fetchUnreadCount = async () => {
@@ -182,7 +184,7 @@ export function AppSidebar() {
         break
       case "settings":
         // Navigate to settings page
-        console.log("Navigate to settings")
+        router.push('/professor/settings')
         break
       case "signout":
         // Handle sign out
