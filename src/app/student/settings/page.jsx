@@ -504,7 +504,7 @@ export default function UserSettingsPage() {
       title: "Reset Password",
       description: "Change your account password for security",
       icon: Lock,
-      color: "bg-orange-500 hover:bg-orange-600",
+      color: "bg-teal-500 hover:bg-teal-600",
       action: handleResetPassword,
       actionKey: "reset",
     },
@@ -520,7 +520,7 @@ export default function UserSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 ">
-      <SidebarTrigger />
+      {/* <SidebarTrigger /> */}
       <main className="px-2 sm:px-4 py-4 sm:py-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 50 }}
