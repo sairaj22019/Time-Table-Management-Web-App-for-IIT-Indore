@@ -1,3 +1,4 @@
+
 import mongoose, { Schema, model, models } from "mongoose";
 import bcrypt from "bcryptjs";
 
@@ -40,6 +41,11 @@ const userSchema = new Schema(
       type: String,
       enum: ["student", "professor", "admin"],
     },
+    theme: {
+      type: String,
+      enum: ["light","dark"],
+      default: "light"
+    }
   },
   {
     timestamps: true,
@@ -56,3 +62,4 @@ userSchema.pre("save", async function (next) {
 const User = models?.User || model("User", userSchema);
 
 export default User;
+

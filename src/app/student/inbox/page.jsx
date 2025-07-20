@@ -531,7 +531,7 @@ export default function InboxPage() {
         {/* Notifications List */}
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3 sm:space-y-4">
           <AnimatePresence>
-            {filteredNotifications.map((notification) => {
+            {filteredNotifications.slice().reverse().map((notification) => {
               const isExpanded = expandedItems.has(notification._id)
               const isPoll = notification.type === "poll"
               const data = isPoll ? notification.pollData : notification.messageData
