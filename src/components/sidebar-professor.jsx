@@ -1,5 +1,5 @@
 "use client"
-import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, Send } from "lucide-react"
+import { Calendar,ListPlus, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, Send } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -61,8 +61,13 @@ const items = [
   {
     title: "Create poll",
     url: "/professor/createPoll",
-    icon: Settings,
+    icon: ListPlus,
   },
+    {
+      title: "Settings",
+      url: "/professor/settings",
+      icon: Settings,
+    },
 ]
 
 const dropdownVariants = {
