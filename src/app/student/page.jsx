@@ -443,7 +443,7 @@ export default function DashboardHome() {
               transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
             >
               <span className="bg-gradient-to-r from-gray-800 via-blue-600 to-gray-800 bg-clip-text text-transparent bg-300% animate-gradient">
-                {getGreeting()}, {studentData.name}! 👋
+                {getGreeting()}, {studentData.name}!
               </span>
             </motion.h1>
             <motion.p
@@ -701,25 +701,25 @@ export default function DashboardHome() {
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     <div className="flex items-start space-x-4 relative z-10">
                       <motion.div
-                        className="flex-shrink-0 p-3 bg-white/70 rounded-xl"
+                        className="flex-shrink-0 p-2 bg-white/70 rounded-xl"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <currentTip.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${currentTip.color}`} />
+                        <currentTip.icon className={`h-4 w-4 sm:h-8 sm:w-8 ${currentTip.color}`} />
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-2">
-                          <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{currentTip.title}</h4>
+                          <h4 className="font-semibold text-gray-800 text-xs sm:text-base">{currentTip.title}</h4>
                           <span
                             className={`px-2 py-1 text-xs rounded-full font-medium ${
                               currentTip.isRead ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
                             }`}
                           >
-                            {currentTip.isRead ? "📖 Read" : "📢 New"}
+                            {currentTip.isRead ? "Read" : "New"}
                           </span>
-                          <span className="text-xs text-gray-500">{getRelativeTime(currentTip.createdAt)}</span>
+                          <span className="text-[10px] text-gray-500">{getRelativeTime(currentTip.createdAt)}</span>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{currentTip.content}</p>
+                        <p className="text-[10px] sm:text-sm text-gray-700 leading-relaxed">{currentTip.content}</p>
                         <div className="mt-2 text-xs text-blue-600 font-medium flex items-center">
                           <span>Click to view in inbox</span>
                           <HiChevronRight className="h-3 w-3 ml-1" />

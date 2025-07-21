@@ -99,10 +99,9 @@ export default function GridDetailPage() {
   }
 
   const getYearSuffix = (year) => {
-    const suffixes = ["st", "nd", "rd", "th"]
-    const v = year % 100
-    return year + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0])
-  }
+    const suffixes = ["st", "nd", "rd", "th","th","th"];
+    return year + (suffixes[year-1]);
+  };
 
   if (loading) {
     return (
@@ -165,7 +164,7 @@ export default function GridDetailPage() {
                 </h1>
               </div>
               <Link
-                href="/grids"
+                href="/admin/viewGrids"
                 className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
               >
                 ← Back to all grids

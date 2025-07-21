@@ -279,10 +279,10 @@ export default function TimetablePage() {
                 </h1>
               </div>
               <Link
-                href="/admin/courses"
+                href="/admin/viewGrids"
                 className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
               >
-                ← Back to courses
+                ← View All Grids
               </Link>
             </div>
 
@@ -307,7 +307,7 @@ export default function TimetablePage() {
                     placeholder="e.g., 1, 2, 3 or 1 2 3"
                     value={years}
                     onChange={(e) => handleYearsInputChange(e.target.value)}
-                    className="h-12 sm:h-14 text-sm sm:text-base border-2 focus:border-blue-400"
+                    className="h-10 sm:h-10 text-sm sm:text-base border-2 focus:border-blue-400"
                   />
                   <p className="text-xs text-gray-500">Enter years 1-6, separated by commas or spaces</p>
                   {/* Parsed Years Display */}
@@ -350,9 +350,14 @@ export default function TimetablePage() {
                       <SelectValue placeholder="Select Semester Year" />
                     </SelectTrigger>
                     <SelectContent className="z-50">
-                      <SelectItem value="2024">2024</SelectItem>
-                      <SelectItem value="2025">2025</SelectItem>
-                      <SelectItem value="2026">2026</SelectItem>
+                      {[-2,-1, 0, 1,2].map((offset) => {
+                        const year = new Date().getFullYear() + offset;
+                        return (
+                          <SelectItem key={year} value={String(year)}>
+                            {year}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -476,13 +481,7 @@ export default function TimetablePage() {
                 Reset
               </Button>
 
-              <Button
-                onClick={() => router.push("/courses")}
-                variant="outline"
-                className="px-6 sm:px-8 h-12 sm:h-14 border-2 border-gray-300 hover:bg-gray-50 font-semibold text-sm sm:text-base md:text-lg transition-colors"
-              >
-                Cancel
-              </Button>
+              
             </div>
           </CardContent>
         </Card>
@@ -490,7 +489,7 @@ export default function TimetablePage() {
 
       {/* Reset Confirmation Dialog */}
       {showResetConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[300] p-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-[300] p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Reset</h3>
             <p className="text-gray-600 mb-6">

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Edit3, Send } from "lucide-react"
+import { Edit3, MessageCircle, Send } from "lucide-react"
 
 export default function AdminSendMessage() {
   const [messageTitle, setMessageTitle] = useState("")
@@ -65,7 +65,7 @@ export default function AdminSendMessage() {
           className="flex items-center gap-4 mb-8"
         >
           <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg">A</span>
+            <span className="text-white font-bold text-lg"><MessageCircle /></span>
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Send Message</h1>
@@ -75,7 +75,7 @@ export default function AdminSendMessage() {
 
         {/* Message Form */}
         <Card className="shadow-xl rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-md">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-0 ">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -86,7 +86,7 @@ export default function AdminSendMessage() {
               <h2 className="text-lg font-semibold text-gray-800">Message Details</h2>
             </motion.div>
           </CardHeader>
-          <CardContent className="space-y-6 py-6 px-8">
+          <CardContent className="space-y-6 py-6 px-8  pt-0">
             {/* Message Title */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}

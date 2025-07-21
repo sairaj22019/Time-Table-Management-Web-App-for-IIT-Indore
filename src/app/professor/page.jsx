@@ -2002,7 +2002,7 @@ export default function ProfessorDashboardHome() {
               transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
             >
               <span className="bg-gradient-to-r from-gray-800 via-blue-600 to-gray-800 bg-clip-text text-transparent bg-300% animate-gradient">
-                {getGreeting()}, {professorData.name}! 👨‍🏫
+                {getGreeting()}, {professorData.name}! 
               </span>
             </motion.h1>
             <motion.p
