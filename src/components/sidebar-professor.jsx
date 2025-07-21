@@ -1,5 +1,5 @@
 "use client"
-import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, Send } from "lucide-react"
+import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, Send, ListPlus, MapPinHouse } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -61,12 +61,17 @@ const items = [
   {
     title: "Create poll",
     url: "/professor/createPoll",
-    icon: Settings,
+    icon: ListPlus,
   },
   {
     title: "View Room Vacancy",
     url: "/professor/viewFreeSlots",
-    icon: Send,
+    icon: MapPinHouse,
+  },
+  {
+    title: "Settings",
+    url: "/professor/settings",
+    icon: Settings,
   },
 ]
 

@@ -13,12 +13,12 @@ const timeSlots = [
   { id: "slot2", label: "9:30-10:30", start: "09:30", end: "10:30" },
   { id: "slot3", label: "10:30-11:30", start: "10:30", end: "11:30" },
   { id: "slot4", label: "11:30-12:30", start: "11:30", end: "12:30" },
-  { id: "lunch", label: "12:30-13:30", start: "12:30", end: "13:30" },
-  { id: "slot5", label: "13:30-14:30", start: "13:30", end: "14:30" },
-  { id: "slot6", label: "14:30-15:30", start: "14:30", end: "15:30" },
-  { id: "slot7", label: "15:30-16:30", start: "15:30", end: "16:30" },
-  { id: "slot8", label: "16:30-17:30", start: "16:30", end: "17:30" },
-  { id: "slot9", label: "17:30-18:30", start: "17:30", end: "18:30" },
+  { id: "slot5", label: "12:30-13:30", start: "12:30", end: "13:30" },
+  { id: "slot6", label: "13:30-14:30", start: "13:30", end: "14:30" },
+  { id: "slot7", label: "14:30-15:30", start: "14:30", end: "15:30" },
+  { id: "slot8", label: "15:30-16:30", start: "15:30", end: "16:30" },
+  { id: "slot9", label: "16:30-17:30", start: "16:30", end: "17:30" },
+  { id: "slot10", label: "17:30-18:30", start: "17:30", end: "18:30" },
 ]
 
 const daysOfWeek = [
