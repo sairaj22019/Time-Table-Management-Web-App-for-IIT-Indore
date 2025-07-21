@@ -1,5 +1,5 @@
 "use client"
-import { Calendar,ListPlus, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, Send } from "lucide-react"
+import { Calendar, CalendarDays, ChevronUp, Home, Inbox, Settings, LogOut, UserCog, Send } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -61,13 +61,13 @@ const items = [
   {
     title: "Create poll",
     url: "/professor/createPoll",
-    icon: ListPlus,
+    icon: Settings,
   },
-    {
-      title: "Settings",
-      url: "/professor/settings",
-      icon: Settings,
-    },
+  {
+    title: "View Room Vacancy",
+    url: "/professor/viewFreeSlots",
+    icon: Send,
+  },
 ]
 
 const dropdownVariants = {
@@ -112,8 +112,7 @@ const chevronVariants = {
 
 // User menu items
 const userMenuItems = [
-  { label: "Account", icon: UserCog, action: "account" },
-  { label: "Settings", icon: Settings, action: "settings" },
+  { label: "Account Settings", icon: UserCog, action: "settings" },
   { label: "Logout", icon: LogOut, action: "signout", variant: "destructive" },
 ]
 
@@ -236,7 +235,7 @@ export function AppSidebar() {
               ease: "easeOut",
             }}
           >
-            Manager
+            Campus Sync
           </motion.span>
         </SidebarGroup>
       </SidebarHeader>
@@ -348,7 +347,6 @@ export function AppSidebar() {
                       </div>
                       {userMenuItems.map((item, index) => (
                         <div key={item.label}>
-                          {item.action === "signout" && <DropdownMenuSeparator className="my-1" />}
                           <DropdownMenuItem asChild>
                             <motion.button
                               className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors duration-200 cursor-pointer focus:outline-none ${

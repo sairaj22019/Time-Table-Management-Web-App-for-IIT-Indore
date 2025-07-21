@@ -486,8 +486,8 @@ const chevronVariants = {
 
 // User menu items
 const userMenuItems = [
-  { label: "Account", icon: UserCog, action: "account" },
-  { label: "Settings", icon: Settings, action: "settings" },
+  { label: "Account Settings", icon: UserCog, action: "settings" },
+  // { label: "Settings", icon: Settings, action: "settings" },
   {
     label: "Logout",
     icon: LogOut,
@@ -565,10 +565,7 @@ export function AppSidebar() {
   // Handle user menu actions
   const handleUserMenuAction = (action) => {
     switch (action) {
-      case "account":
-        // Navigate to account page
-        console.log("Navigate to account")
-        break
+      
       case "settings":
         // Navigate to settings page
         router.push("/student/settings")
@@ -624,7 +621,7 @@ export function AppSidebar() {
               ease: "easeOut",
             }}
           >
-            Manager
+            Campus Sync
           </motion.span>
         </SidebarGroup>
       </SidebarHeader>
@@ -674,25 +671,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={toggleTheme}
-              className="group relative hover:bg-sidebar-accent/80 transition-all duration-200"
-              tooltip="Toggle theme"
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-center justify-center"
-              >
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </motion.div>
-              <span className="group-data-[collapsible=icon]:hidden">
-                {theme === "dark" ? "Light Mode" : "Dark Mode"}
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          
           <SidebarMenuItem>
             <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
               <DropdownMenuTrigger asChild >
@@ -752,7 +731,6 @@ export function AppSidebar() {
                       </div>
                       {userMenuItems.map((item, index) => (
                         <div key={item.label}>
-                          {item.action === "signout" && <DropdownMenuSeparator className="my-1" />}
                           <DropdownMenuItem asChild>
                             <motion.button
                               className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors duration-200 cursor-pointer focus:outline-none ${
