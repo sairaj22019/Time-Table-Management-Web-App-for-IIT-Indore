@@ -1885,7 +1885,7 @@ export default function CreatePollPage() {
         {/* Main Form */}
         <motion.div variants={containerVariants} initial="hidden" animate="visible">
           <Card className="shadow-lg rounded-xl sm:rounded-2xl border bg-white/80 backdrop-blur-md border-gray-100">
-            <CardHeader className="pb-4 sm:pb-6">
+            <CardHeader className="">
               <div className="flex items-center gap-2">
                 <HiPencilAlt className="w-5 h-5 text-purple-600" />
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Poll Details</h2>

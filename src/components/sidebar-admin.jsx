@@ -367,7 +367,7 @@
 
 "use client"
 
-import { ChevronUp, Home, ClipboardCheck , CalendarSearch, Send, LogOut, GraduationCap, CalendarPlus, BookPlus, Users, UserPlus } from "lucide-react"
+import { ChevronUp, Home, ClipboardCheck , CalendarSearch, Send, LogOut, GraduationCap, CalendarPlus, BookPlus, Users, UserPlus, MapPinHouse } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -446,7 +446,7 @@ const items = [
   {
     title: "View Room Vacancy",
     url: "/admin/viewFreeSlots",
-    icon: Send,
+    icon: MapPinHouse,
   },
 ]
 
