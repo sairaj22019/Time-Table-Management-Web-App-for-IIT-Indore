@@ -7,7 +7,9 @@ export default function RootLayout({ children }) {
       <div className="flex h-screen w-screen">
         <AppSidebar />
         <main className="w-full">
-          <SidebarTrigger />
+          <div className="block md:hidden">
+            <SidebarTrigger />
+          </div>
           {children}
         </main>
       </div>

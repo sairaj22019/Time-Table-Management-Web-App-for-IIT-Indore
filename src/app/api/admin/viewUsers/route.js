@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Student from "@/models/Student.model";
@@ -62,4 +61,3 @@ export async function GET() {
     );
   }
 }
-

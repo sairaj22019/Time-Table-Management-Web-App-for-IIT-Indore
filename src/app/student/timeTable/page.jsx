@@ -649,6 +649,10 @@
 
 
 
+
+
+
+
 "use client"
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
@@ -952,7 +956,7 @@ export default function StudentTimetable() {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="bg-blue-50 border border-gray-300 rounded-lg p-2 text-center"
+                        className="bg-blue-50 border border-gray-300 rounded-lg p-2 text-center flex items-center justify-center"
                       >
                         <div className="text-xs font-semibold text-gray-700 leading-tight">{slot.label}</div>
                       </motion.div>
@@ -1040,7 +1044,7 @@ export default function StudentTimetable() {
           ref={courseOverviewRef}
         >
           <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-lg rounded-2xl overflow-hidden mb-8 py-0">
-            <CardHeader className="bg-gradient-to-r from-sky-50 to-blue-50 border-b border-sky-100">
+            <CardHeader className="bg-gradient-to-r from-sky-50 to-blue-50 border-b border-sky-100 pt-2 pb-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-r from-sky-500 to-blue-600 rounded-lg">
@@ -1267,5 +1271,3 @@ export default function StudentTimetable() {
     </div>
   )
 }
-
-

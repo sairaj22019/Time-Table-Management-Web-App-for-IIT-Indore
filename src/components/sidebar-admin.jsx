@@ -367,7 +367,7 @@
 
 "use client"
 
-import { ChevronUp, Home, Inbox, LogOut, GraduationCap, CalendarPlus, BookPlus, Users, UserPlus } from "lucide-react"
+import { ChevronUp, Home, ClipboardCheck , CalendarSearch, Send, LogOut, GraduationCap, CalendarPlus, BookPlus, Users, UserPlus } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -409,11 +409,6 @@ const items = [
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "/admin/inbox",
-    icon: Inbox,
-  },
-  {
     title: "all Courses",
     url: "/admin/courses",
     icon: GraduationCap,
@@ -436,17 +431,22 @@ const items = [
   {
     title: "View Grids",
     url: "/admin/viewGrids",
-    icon: Users,
+    icon: CalendarSearch,
   },
   {
     title: "Approve Polls",
     url: "/admin/approvePolls",
-    icon: Users,
+    icon: ClipboardCheck ,
   },
   {
     title: "Send Message",
     url: "/admin/sendMessage",
-    icon: Users,
+    icon: Send,
+  },
+  {
+    title: "View Room Vacancy",
+    url: "/admin/viewFreeSlots",
+    icon: Send,
   },
 ]
 
@@ -689,7 +689,7 @@ export function AppSidebar() {
                 ease: "easeOut",
               }}
             >
-              Manager
+              Campus Sync
             </motion.span>
           </SidebarGroup>
         </SidebarHeader>
@@ -757,12 +757,12 @@ export function AppSidebar() {
                       <Avatar className="w-6 h-6">
                         <AvatarImage src="/placeholder.svg?height=24&width=24" alt="User" />
                         <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                          <Image alt="logo" src={session.user.image || "/placeholder.svg"} width={100} height={100} />
+                          <span>A</span>
                         </AvatarFallback>
                       </Avatar>
                     </motion.div>
                     <div className="flex-1 text-left">
-                      <p className="text-sm font-medium">{session.user.name}</p>
+                      <p className="text-sm font-medium">Administrator</p>
                     </div>
                     <motion.div
                       animate={isDropdownOpen ? "up" : "down"}
@@ -792,12 +792,11 @@ export function AppSidebar() {
                         className="bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg overflow-hidden"
                       >
                         <div className="px-3 py-2 border-b border-border/50">
-                          <p className="text-sm font-medium">{session.user.email}</p>
-                          <p className="text-xs text-muted-foreground">{session.user.name}</p>
+                          <p className="text-sm font-medium">Administrator</p>
+                          <p className="text-xs text-muted-foreground">{session.user.email}</p>
                         </div>
                         {userMenuItems.map((item, index) => (
                           <div key={item.label}>
-                            {item.action === "signout" && <DropdownMenuSeparator className="my-1" />}
                             <DropdownMenuItem asChild>
                               <motion.button
                                 className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors duration-200 cursor-pointer focus:outline-none ${
