@@ -3,7 +3,7 @@ import Course from "@/models/Course.model";
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Student from "@/models/Student.model";
 import Professor from "@/models/Professor.model";
-
+import Notification from "@/models/Notification.model";
 export async function POST(req) {
   try {
     try {
@@ -34,6 +34,7 @@ export async function POST(req) {
           }
         );
       }
+      await Notification.deleteMany({ course: id });
       const deletedCourse = await Course.findByIdAndDelete(id);
       if (!deletedCourse) {
         return NextResponse.json(

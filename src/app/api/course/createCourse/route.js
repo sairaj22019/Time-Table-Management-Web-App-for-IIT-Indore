@@ -749,7 +749,7 @@ const sendNotificationToProfessors = async (newCourse, session) => {
   await newCourse.populate("prof");
   if (newCourse.prof.length === 0) return;
   const newNotification = new Notification({
-    message: `You have been assigned to teach the course: ${newCourse.title} (${newCourse.courseCode})`,
+    message: `You have been assigned to teach the course: ${newCourse.title} (${newCourse.courseCode}) and we strongly reccommend you to check the schedule and notiffy the students about the tutorial sessions if any are present for the course.`,
     messageTitle: "New Course Assignment",
     type: "general message",
     course: newCourse._id,
@@ -894,14 +894,32 @@ export async function POST(req) {
       end: slot.end,
       room: slot.room,
     }));
-
-    const newPoll = new Poll({
-      options: allOptions,
-      reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures} and tutorials ${newCourse.tutorials}`,
-      context: "Sending this poll to ask for the verification of slots which will be used for the given course",
-      expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
-    await newPoll.save({ session });
+    let newPoll;
+    if(newCourse.lectures!=0){
+      newPoll = new Poll({
+        options: allOptions,
+        reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures}`,
+        context: "Sending this poll to ask for the verification of slots which will be used for the given course",
+        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+      await newPoll.save({ session });
+    }else if(newCourse.lectures==0 && newCourse.practicals!=0){
+      newPoll = new Poll({
+        options: allOptions,
+        reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with practical sessions ${newCourse.practicals}`,
+        context: "Sending this poll to ask for the verification of slots which will be used for the given course",
+        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+      await newPoll.save({ session });
+    }else{
+      newPoll = new Poll({
+        options: allOptions,
+        reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures}, practical sessions ${newCourse.practicals}`,
+        context: "Sending this poll to ask for the verification of slots which will be used for the given course",
+        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+      await newPoll.save({ session });
+    }
 
     const newNotification = new Notification({
       message: newPoll._id,
