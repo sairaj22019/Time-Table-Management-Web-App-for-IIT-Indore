@@ -7,7 +7,7 @@ import { connectDB } from "@/dbConnection/ConnectDB";
 import Student from "@/models/Student.model";
 import SessionWrapper from "./SessionWrapper";
 import { YearProvider } from "@/components/YearProvider";
-
+import { Suspense } from "react";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -37,9 +37,11 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <SessionWrapper>
+      <Suspense fallback={<div>Loading...</div>}>
           <YearProvider year={year}>
             {children}
           </YearProvider>
+      </Suspense>
         </SessionWrapper>
       </body>
     </html>

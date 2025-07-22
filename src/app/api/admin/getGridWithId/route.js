@@ -45,7 +45,7 @@
 import { connectDB } from "@/dbConnection/ConnectDB";
 import { NextResponse, NextRequest } from "next/server";
 import Grid from "@/models/Grid.model";
-import next from "next";
+
 export async function POST(req) {
   try {
     await connectDB();
