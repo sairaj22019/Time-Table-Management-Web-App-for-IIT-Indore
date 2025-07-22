@@ -52,13 +52,16 @@ export async function POST(req) {
     console.log(student);
     await student.populate("enrolledClasses");
     console.log("classes", student.enrolledClasses);
-    const currentSem = student.enrolledClasses[0].forSemester;
+    const currentSem = student?.enrolledClasses[0]?.forSemester || "";
     const gridOfTheSemester = await Grid.findOne({ semester: currentSem });
     let lunchBreakSlot;
-    if (gridOfTheSemester.grid[0][4].slot == "LB") {
-      lunchBreakSlot = 4;
-    } else {
-      lunchBreakSlot = 5;
+    if(!gridOfTheSemester) lunchBreakSlot = 4;
+    else {
+      if (gridOfTheSemester.grid[0][4].slot == "LB") {
+        lunchBreakSlot = 4;
+      } else {
+        lunchBreakSlot = 5;
+      }
     }
     return NextResponse.json(
       {

@@ -1,3 +1,4 @@
+
 // "use client"
 
 // import { useState, useEffect, useCallback } from "react"
@@ -19,13 +20,20 @@
 //   Users,
 //   Filter,
 // } from "lucide-react"
-
 // import { Card, CardContent, CardHeader } from "@/components/ui/card"
 // import { Button } from "@/components/ui/button"
 // import { Badge } from "@/components/ui/badge"
 // import { Input } from "@/components/ui/input"
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 // import { useSession } from "next-auth/react"
+// import {
+//   Pagination,
+//   PaginationContent,
+//   PaginationItem,
+//   PaginationLink,
+//   PaginationNext,
+//   PaginationPrevious,
+// } from "@/components/ui/pagination"
 
 // export default function InboxPage() {
 //   const [notifications, setNotifications] = useState([])
@@ -39,6 +47,8 @@
 //   const [loading, setLoading] = useState(true)
 //   const [error, setError] = useState(null)
 //   const [readMessages, setReadMessages] = useState([]) // Track read messages
+//   const [currentPage, setCurrentPage] = useState(1) // Track current page for pagination
+//   const notificationsPerPage = 30 // Number of notifications per page
 //   const router = useRouter()
 //   const searchParams = useSearchParams()
 //   const { data: session, status } = useSession()
@@ -59,7 +69,6 @@
 //       }
 //       return
 //     }
-
 //     try {
 //       console.log("Getting notifications!!")
 //       setLoading(true)
@@ -78,7 +87,6 @@
 //             const notification = item.notification
 //             const isPoll = notification.type === "poll"
 //             const senderUser = notification.prof // This is the User object from backend
-
 //             if (isPoll) {
 //               // For polls that are already read, process the votes from the API response
 //               const processedVotes = {}
@@ -221,6 +229,8 @@
 //       filtered = filtered.filter((notification) => notification.isRead === isReadFilter)
 //     }
 //     setFilteredNotifications(filtered)
+//     // Reset to first page when filters change
+//     setCurrentPage(1)
 //   }, [searchTerm, filterType, filterRead, notifications])
 
 //   useEffect(() => {
@@ -422,6 +432,21 @@
 //     }))
 //   }
 
+//   // Pagination logic
+//   const indexOfLastNotification = currentPage * notificationsPerPage
+//   const indexOfFirstNotification = indexOfLastNotification - notificationsPerPage
+//   const currentNotifications = filteredNotifications
+//     .slice()
+//     .reverse()
+//     .slice(indexOfFirstNotification, indexOfLastNotification)
+//   const totalPages = Math.ceil(filteredNotifications.length / notificationsPerPage)
+
+//   // Generate page numbers for pagination
+//   const pageNumbers = []
+//   for (let i = 1; i <= totalPages; i++) {
+//     pageNumbers.push(i)
+//   }
+
 //   if (loading) {
 //     return (
 //       <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-3 sm:p-6">
@@ -531,7 +556,7 @@
 //         {/* Notifications List */}
 //         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3 sm:space-y-4">
 //           <AnimatePresence>
-//             {filteredNotifications.slice().reverse().map((notification) => {
+//             {currentNotifications.map((notification) => {
 //               const isExpanded = expandedItems.has(notification._id)
 //               const isPoll = notification.type === "poll"
 //               const data = isPoll ? notification.pollData : notification.messageData
@@ -916,6 +941,46 @@
 //             })}
 //           </AnimatePresence>
 //         </motion.div>
+
+//         {/* Pagination Controls */}
+//         {filteredNotifications.length > 0 && totalPages > 1 && (
+//           <div className="mt-6">
+//             <Pagination>
+//               <PaginationContent>
+//                 <PaginationItem>
+//                   <PaginationPrevious
+//                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+//                     className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+//                   />
+//                 </PaginationItem>
+
+//                 {pageNumbers.map((number) => (
+//                   <PaginationItem key={number}>
+//                     <PaginationLink
+//                       onClick={() => setCurrentPage(number)}
+//                       isActive={currentPage === number}
+//                       className="cursor-pointer"
+//                     >
+//                       {number}
+//                     </PaginationLink>
+//                   </PaginationItem>
+//                 ))}
+
+//                 <PaginationItem>
+//                   <PaginationNext
+//                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+//                     className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+//                   />
+//                 </PaginationItem>
+//               </PaginationContent>
+//             </Pagination>
+//             <div className="text-center text-sm text-gray-500 mt-2">
+//               Showing {indexOfFirstNotification + 1}-{Math.min(indexOfLastNotification, filteredNotifications.length)}{" "}
+//               of {filteredNotifications.length} notifications
+//             </div>
+//           </div>
+//         )}
+
 //         {/* Empty State */}
 //         {filteredNotifications.length === 0 && !loading && (
 //           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8 sm:py-12">
@@ -932,7 +997,6 @@
 
 
 "use client"
-
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -951,6 +1015,7 @@ import {
   Pencil,
   Users,
   Filter,
+  Timer,
 } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -981,6 +1046,7 @@ export default function InboxPage() {
   const [readMessages, setReadMessages] = useState([]) // Track read messages
   const [currentPage, setCurrentPage] = useState(1) // Track current page for pagination
   const notificationsPerPage = 30 // Number of notifications per page
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const { data: session, status } = useSession()
@@ -1001,6 +1067,7 @@ export default function InboxPage() {
       }
       return
     }
+
     try {
       console.log("Getting notifications!!")
       setLoading(true)
@@ -1009,8 +1076,10 @@ export default function InboxPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ studentEmail: session.user.email }),
       })
+
       const data = await response.json()
       console.log(response)
+
       if (data.success) {
         // Filter out notifications with buffer and transform the data
         const transformedNotifications = data.student
@@ -1019,13 +1088,16 @@ export default function InboxPage() {
             const notification = item.notification
             const isPoll = notification.type === "poll"
             const senderUser = notification.prof // This is the User object from backend
+
             if (isPoll) {
               // For polls that are already read, process the votes from the API response
               const processedVotes = {}
               let totalVotes = 0
+
               if (item.isRead === true && notification.message && notification.message.votes) {
                 const pollVotes = notification.message.votes || []
                 totalVotes = pollVotes.length
+
                 // Calculate vote counts for each option
                 pollVotes.forEach((vote) => {
                   if (processedVotes[vote.option]) {
@@ -1035,6 +1107,7 @@ export default function InboxPage() {
                   }
                 })
               }
+
               // Transform poll data to match expected structure
               return {
                 _id: item._id,
@@ -1057,6 +1130,7 @@ export default function InboxPage() {
                   prof: senderUser ? { username: senderUser.username, role: senderUser.role } : null, // Pass username and role
                   reason: notification.message?.reason, // Optional chaining
                   context: notification.message?.context, // Optional chaining
+                  expiryDate: notification.message?.expiryDate, // Add expiry date
                   isApproved: notification.message?.isApproved, // Optional chaining
                   totalVotes: item.isRead === true ? totalVotes : 0,
                 },
@@ -1080,6 +1154,7 @@ export default function InboxPage() {
               }
             }
           })
+
         setNotifications(transformedNotifications)
         setFilteredNotifications(transformedNotifications)
       } else {
@@ -1114,6 +1189,7 @@ export default function InboxPage() {
           notificationList: notificationId,
         }),
       })
+
       const data = await response.json()
       if (data.success) {
         console.log("Message marked as read successfully")
@@ -1129,6 +1205,7 @@ export default function InboxPage() {
 
   const filterNotifications = useCallback(() => {
     let filtered = notifications
+
     if (searchTerm) {
       filtered = filtered.filter((notification) => {
         const searchLower = searchTerm.toLowerCase()
@@ -1153,13 +1230,16 @@ export default function InboxPage() {
         }
       })
     }
+
     if (filterType !== "all") {
       filtered = filtered.filter((notification) => notification.type === filterType)
     }
+
     if (filterRead !== "all") {
       const isReadFilter = filterRead === "read"
       filtered = filtered.filter((notification) => notification.isRead === isReadFilter)
     }
+
     setFilteredNotifications(filtered)
     // Reset to first page when filters change
     setCurrentPage(1)
@@ -1179,8 +1259,8 @@ export default function InboxPage() {
       newExpanded.add(id)
       // Find the notification
       const notification = notifications.find((n) => n._id === id)
-      // If message was unread, mark as read and make API call
-      if (notification && !notification.isRead) {
+      // Only mark regular messages as read when opened, not polls
+      if (notification && !notification.isRead && notification.type === "message") {
         // Update local state immediately
         setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)))
         // Make API call to mark as read
@@ -1200,11 +1280,13 @@ export default function InboxPage() {
           notificationId: notificationId,
           userEmail: session.user.email,
         }
+
         const response = await fetch("/api/student/voteForPolls", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         })
+
         const data = await response.json()
         if (data.success) {
           console.log("Vote added successfully")
@@ -1219,8 +1301,10 @@ export default function InboxPage() {
               voteCountsByOption[vote.option] = 1
             }
           })
+
           const totalVotes = pollVotes.length
-          // Update the notification with real vote data
+
+          // Update the notification with real vote data and mark as read
           setNotifications((prev) =>
             prev.map((notification) =>
               notification._id === notificationId
@@ -1243,12 +1327,16 @@ export default function InboxPage() {
                 : notification,
             ),
           )
+
+          // Mark poll as read after successful vote
+          await markMessageAsRead(notificationId)
         } else {
           console.error("Failed to add vote :", data.message)
         }
       } catch (error) {
         console.error("Error adding vote :", error)
       }
+
       // Clear the selected option from state
       setSelectedPollOptions((prev) => {
         const newState = { ...prev }
@@ -1318,6 +1406,17 @@ export default function InboxPage() {
     })
   }
 
+  const formatDateTime = (date) => {
+    return new Date(date).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+  }
+
   const getRelativeTime = (date) => {
     const now = new Date()
     const diffInHours = Math.floor((now - new Date(date)) / (1000 * 60 * 60))
@@ -1331,6 +1430,11 @@ export default function InboxPage() {
   const getVotePercentage = (voteCount, totalVotes) => {
     if (totalVotes === 0) return 0
     return Math.round((voteCount / totalVotes) * 100)
+  }
+
+  const isPollExpired = (expiryDate) => {
+    if (!expiryDate) return false
+    return new Date() > new Date(expiryDate)
   }
 
   const containerVariants = {
@@ -1371,6 +1475,7 @@ export default function InboxPage() {
     .slice()
     .reverse()
     .slice(indexOfFirstNotification, indexOfLastNotification)
+
   const totalPages = Math.ceil(filteredNotifications.length / notificationsPerPage)
 
   // Generate page numbers for pagination
@@ -1449,6 +1554,7 @@ export default function InboxPage() {
               </div>
             </div>
           </div>
+
           {/* Search and Filter Section */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="relative sm:flex-grow">
@@ -1485,6 +1591,7 @@ export default function InboxPage() {
             </div>
           </div>
         </motion.div>
+
         {/* Notifications List */}
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3 sm:space-y-4">
           <AnimatePresence>
@@ -1493,6 +1600,8 @@ export default function InboxPage() {
               const isPoll = notification.type === "poll"
               const data = isPoll ? notification.pollData : notification.messageData
               const isEditing = editingPoll === notification._id
+              const pollExpired = isPoll && isPollExpired(data.expiryDate)
+
               return (
                 <motion.div
                   key={notification._id}
@@ -1536,6 +1645,12 @@ export default function InboxPage() {
                                 <Badge className="bg-green-100 text-green-700 text-xs py-1 flex-shrink-0">
                                   <Check className="w-3 h-3 mr-1" />
                                   <span className="hidden sm:inline">Responded</span>
+                                </Badge>
+                              )}
+                              {isPoll && pollExpired && (
+                                <Badge className="bg-red-100 text-red-700 text-xs py-1 flex-shrink-0">
+                                  <Timer className="w-3 h-3 mr-1" />
+                                  <span className="hidden sm:inline">Expired</span>
                                 </Badge>
                               )}
                             </div>
@@ -1595,6 +1710,7 @@ export default function InboxPage() {
                         </div>
                       </div>
                     </CardHeader>
+
                     {/* Expandable Content */}
                     <AnimatePresence>
                       {isExpanded && (
@@ -1637,6 +1753,7 @@ export default function InboxPage() {
                                     </span>
                                   </div>
                                 </div>
+
                                 {/* Poll Context */}
                                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-purple-100 ">
                                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
@@ -1647,6 +1764,37 @@ export default function InboxPage() {
                                     {data.context ?? "No context provided"}
                                   </p>
                                 </div>
+
+                                {/* Poll Expiry Information */}
+                                {data.expiryDate && (
+                                  <div
+                                    className={`p-3 sm:p-4 rounded-xl border ${
+                                      pollExpired
+                                        ? "bg-gradient-to-r from-red-50 to-red-100 border-red-200"
+                                        : "bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200"
+                                    }`}
+                                  >
+                                    <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                                      <Timer
+                                        className={`w-4 h-4 ${pollExpired ? "text-red-600" : "text-orange-600"}`}
+                                      />
+                                      {pollExpired ? "Poll Expired" : "Poll Expires"}
+                                    </h4>
+                                    <p
+                                      className={`text-xs sm:text-sm leading-relaxed font-medium ${
+                                        pollExpired ? "text-red-700" : "text-orange-700"
+                                      }`}
+                                    >
+                                      {formatDateTime(data.expiryDate)}
+                                    </p>
+                                    {pollExpired && (
+                                      <p className="text-xs text-red-600 mt-1">
+                                        This poll is no longer accepting responses.
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+
                                 {/* Poll Options */}
                                 <div className="space-y-3">
                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
@@ -1656,7 +1804,7 @@ export default function InboxPage() {
                                         ? "Poll Results:"
                                         : "Select your preferred option:"}
                                     </h4>
-                                    {notification.hasResponded && !isEditing && (
+                                    {notification.hasResponded && !isEditing && !pollExpired && (
                                       <Button
                                         variant="outline"
                                         size="sm"
@@ -1669,6 +1817,7 @@ export default function InboxPage() {
                                       </Button>
                                     )}
                                   </div>
+
                                   <div className="space-y-2 sm:space-y-3">
                                     {(data.options || []).map((option, index) => {
                                       // Ensure data.options is an array
@@ -1681,6 +1830,7 @@ export default function InboxPage() {
                                         : notification.hasResponded
                                           ? isSelected
                                           : isCurrentlySelected
+
                                       return (
                                         <motion.div
                                           key={option._id}
@@ -1691,14 +1841,22 @@ export default function InboxPage() {
                                             showAsSelected
                                               ? "border-blue-500 bg-blue-50"
                                               : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30"
-                                          } ${!notification.hasResponded || isEditing ? "cursor-pointer" : ""}`}
+                                          } ${(!notification.hasResponded || isEditing) && !pollExpired ? "cursor-pointer" : ""}`}
                                           onClick={() => {
-                                            if (!notification.hasResponded || isEditing) {
+                                            if ((!notification.hasResponded || isEditing) && !pollExpired) {
                                               handlePollOptionSelect(notification._id, option._id)
                                             }
                                           }}
-                                          whileHover={!notification.hasResponded || isEditing ? { scale: 1.02 } : {}}
-                                          whileTap={!notification.hasResponded || isEditing ? { scale: 0.98 } : {}}
+                                          whileHover={
+                                            (!notification.hasResponded || isEditing) && !pollExpired
+                                              ? { scale: 1.02 }
+                                              : {}
+                                          }
+                                          whileTap={
+                                            (!notification.hasResponded || isEditing) && !pollExpired
+                                              ? { scale: 0.98 }
+                                              : {}
+                                          }
                                         >
                                           {/* Vote percentage bar */}
                                           {notification.hasResponded && !isEditing && (
@@ -1711,6 +1869,7 @@ export default function InboxPage() {
                                               />
                                             </div>
                                           )}
+
                                           <div className="relative flex items-center justify-between">
                                             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                               <div
@@ -1765,9 +1924,10 @@ export default function InboxPage() {
                                     })}
                                   </div>
                                 </div>
+
                                 {/* Poll Actions */}
                                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-                                  {!notification.hasResponded ? (
+                                  {!notification.hasResponded && !pollExpired ? (
                                     <Button
                                       onClick={() => submitPollResponse(notification._id)}
                                       disabled={!selectedPollOptions[notification._id]}
@@ -1776,7 +1936,7 @@ export default function InboxPage() {
                                       <Check className="w-4 h-4 mr-2" />
                                       Submit Response
                                     </Button>
-                                  ) : isEditing ? (
+                                  ) : isEditing && !pollExpired ? (
                                     <>
                                       <Button
                                         onClick={() => updatePollResponse(notification._id)}
@@ -1798,8 +1958,9 @@ export default function InboxPage() {
                                     <div className="text-xs sm:text-sm text-gray-600 flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
                                       <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                       <span>
-                                        You have already responded to this poll. Click "Edit Response" to change your
-                                        selection.
+                                        {pollExpired
+                                          ? "This poll has expired and is no longer accepting responses."
+                                          : 'You have already responded to this poll. Click "Edit Response" to change your selection.'}
                                       </span>
                                     </div>
                                   )}
@@ -1832,12 +1993,14 @@ export default function InboxPage() {
                                     )}
                                   </div>
                                 </div>
+
                                 {/* Full Message Content */}
                                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 sm:p-4 rounded-xl border border-green-100">
                                   <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
                                     {data.content ?? "No content provided"}
                                   </p>
                                 </div>
+
                                 {/* Message Actions */}
                                 <div className="flex gap-3">
                                   {readMessages.includes(notification._id) ? (
@@ -1885,7 +2048,6 @@ export default function InboxPage() {
                     className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                   />
                 </PaginationItem>
-
                 {pageNumbers.map((number) => (
                   <PaginationItem key={number}>
                     <PaginationLink
@@ -1897,7 +2059,6 @@ export default function InboxPage() {
                     </PaginationLink>
                   </PaginationItem>
                 ))}
-
                 <PaginationItem>
                   <PaginationNext
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
