@@ -371,13 +371,11 @@ export async function POST(req) {
       !title ||
       !schedule ||
       !courseCode ||
-      !lectures ||
       !forSemester ||
       !studentYear ||
       !profName ||
       !courseCoordinator ||
       !profEmail ||
-      !credits ||
       !students
     ) {
       await session.abortTransaction();

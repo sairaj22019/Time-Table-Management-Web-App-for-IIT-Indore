@@ -453,14 +453,12 @@ export async function POST(req) {
       !courseCode ||
       !slots ||
       !forSemester ||
-      !lectures ||
       !room ||
       !studentYear ||
       !profName ||
       !courseCoordinator ||
       !profEmail ||
-      !students ||
-      !credits
+      !students 
     ) {
       await session.abortTransaction();
       session.endSession();
