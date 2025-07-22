@@ -417,6 +417,8 @@ export default function ViewGridsPage() {
                 <Link href="/professor/courses" className="hover:text-blue-800 hover:underline">
                   ← Back to courses
                 </Link>
+                
+                
               </div>
             </div>
 
