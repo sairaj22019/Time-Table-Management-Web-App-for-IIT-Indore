@@ -433,6 +433,7 @@ export async function POST(req) {
       credits,
       prof: Array(profEmail.length),
       enrolledStudents: [],
+      isGiven:true
     });
 
     for (let i = 0; i < profEmail.length; i++) {

@@ -813,6 +813,7 @@ export async function POST(req) {
       profEmail,
       prof: Array(profName.length),
       credits,
+      isGiven:false
     });
 
     for (let i = 0; i < profEmail.length; i++) {
