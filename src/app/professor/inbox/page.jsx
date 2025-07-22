@@ -3727,9 +3727,11 @@ export default function ProfessorInboxPage() {
     // Look for pattern like "lectures X and tutorials Y" or "lectures X"
     const lectureMatch = reason.match(/lectures?\s+(\d+)/i)
     const tutorialMatch = reason.match(/tutorials?\s+(\d+)/i)
+    const practicalsMatch = reason.match(/practicals?\s+(\d+)/i)
     const lectures = lectureMatch ? Number.parseInt(lectureMatch[1]) : 0
     const tutorials = tutorialMatch ? Number.parseInt(tutorialMatch[1]) : 0
-    return lectures + tutorials
+    const practicals = practicalsMatch ? Number.parseInt(practicalsMatch[1]) : 0
+    return lectures + tutorials + practicals
   }
 
   // Handle option selection for voting

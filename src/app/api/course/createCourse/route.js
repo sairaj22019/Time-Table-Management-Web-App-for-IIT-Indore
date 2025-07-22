@@ -453,14 +453,12 @@ export async function POST(req) {
       !courseCode ||
       !slots ||
       !forSemester ||
-      !lectures ||
       !room ||
       !studentYear ||
       !profName ||
       !courseCoordinator ||
       !profEmail ||
-      !students ||
-      !credits
+      !students 
     ) {
       await session.abortTransaction();
       session.endSession();
@@ -571,7 +569,7 @@ export async function POST(req) {
     }
     const newPoll=new Poll({
       options:allOptions,
-      reason:`For fixture of course schdule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures} and tutorials ${newCourse.tutorials}`,
+      reason:`For fixture of course schdule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures} and tutorials ${newCourse.tutorials} and practicals ${newCourse.practicals}`,
       context:"Sending this poll to ask for the verification of slots which will be used for the given course",
       expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     })
