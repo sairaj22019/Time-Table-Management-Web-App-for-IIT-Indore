@@ -164,7 +164,7 @@ export default function GridDetailPage() {
                 </h1>
               </div>
               <Link
-                href="/admin/viewGrids"
+                href="/professor/viewGrids"
                 className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
               >
                 ← Back to all grids
