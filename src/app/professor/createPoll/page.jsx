@@ -777,8 +777,6 @@
 //   )
 // }
 
-
-
 // "use client"
 
 // import { useState, useEffect } from "react"
@@ -1567,7 +1565,6 @@
 
 
 
-
 "use client"
 import { useState, useEffect } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
@@ -1713,7 +1710,6 @@ export default function CreatePollPage() {
     setCourseSearch(`${course.courseCode} - ${course.title}`)
     setShowSuggestions(false)
     setPrefilledCourse(null) // Clear prefilled when manually selecting
-
     // Update URL with course details
     const queryParams = new URLSearchParams({
       courseId: course._id,
@@ -1722,31 +1718,26 @@ export default function CreatePollPage() {
       professor: session?.user?.email || "",
       studentsCount: course.enrolledStudents?.length || 0,
     })
-
     router.push(`/professor/createPoll?${queryParams.toString()}`)
   }
 
   const handleSubmit = async (data) => {
     setIsSubmitting(true)
     setSubmitStatus(null)
-
     try {
       // Get courseId from selected course or URL params
       const courseId = data.selectedCourse || searchParams.get("courseId")
-
       // Get professor email from session
       const profEmail = session?.user?.email || ""
-
       // Set default expiry date to 7 days from now
-      const expiryDate = new Date();
-      expiryDate.setMinutes(expiryDate.getMinutes() + 5);
+      const expiryDate = new Date()
+      expiryDate.setMinutes(expiryDate.getMinutes() + 5)
 
       // Transform options to match backend format
       const transformedOptions = data.options.map((option) => {
         // Get day name from date
         const date = new Date(option.date)
         const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
-
         return {
           startTime: option.startTime,
           endTime: option.endTime,
@@ -1774,7 +1765,6 @@ export default function CreatePollPage() {
       })
 
       const result = await response.json()
-
       if (result.success) {
         setSubmitStatus("success")
         // Reset form after success
@@ -1822,7 +1812,6 @@ export default function CreatePollPage() {
     const month = (date.getMonth() + 1).toString().padStart(2, "0")
     const year = date.getFullYear()
     const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
-
     // Capitalize first letter and add space instead of comma
     const capitalizedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase()
     return `${day}-${month}-${year} ${capitalizedDayName}`
@@ -1837,6 +1826,26 @@ export default function CreatePollPage() {
       return `${year}-${month}-${day}`
     }
     return ""
+  }
+
+  // Helper function to parse time components
+  const parseTimeComponents = (timeString) => {
+    if (!timeString) return { hour: "", minute: "", period: "" }
+    const match = timeString.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+    if (match) {
+      return {
+        hour: match[1],
+        minute: match[2],
+        period: match[3].toUpperCase(),
+      }
+    }
+    return { hour: "", minute: "", period: "" }
+  }
+
+  // Helper function to build time string
+  const buildTimeString = (hour, minute, period) => {
+    if (!hour || !minute || !period) return ""
+    return `${hour}:${minute} ${period}`
   }
 
   const containerVariants = {
@@ -1929,7 +1938,9 @@ export default function CreatePollPage() {
                                   {filteredCourses.map((course) => (
                                     <motion.div
                                       key={course._id}
-                                      whileHover={{ backgroundColor: "#f3f4f6" }}
+                                      whileHover={{
+                                        backgroundColor: "#f3f4f6",
+                                      }}
                                       className="p-3 cursor-pointer border-b border-gray-100 last:border-b-0"
                                       onClick={() => handleCourseSelection(course)}
                                     >
@@ -2049,7 +2060,14 @@ export default function CreatePollPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => appendOption({ date: "", startTime: "", endTime: "", room: "" })}
+                        onClick={() =>
+                          appendOption({
+                            date: "",
+                            startTime: "",
+                            endTime: "",
+                            room: "",
+                          })
+                        }
                         className="flex items-center gap-2 border-purple-200 text-purple-600 hover:bg-purple-50"
                       >
                         <HiPlus className="w-4 h-4" />
@@ -2159,177 +2177,173 @@ export default function CreatePollPage() {
                               <FormField
                                 control={form.control}
                                 name={`options.${index}.startTime`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                                      <HiClock className="w-3 h-3" />
-                                      Start Time
-                                    </FormLabel>
-                                    <FormControl>
-                                      <div className="grid grid-cols-3 gap-1">
-                                        <Select
-                                          onValueChange={(hour) => {
-                                            const currentTime = field.value || ""
-                                            const [, minute = "00", period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
-                                          }}
-                                          value={field.value?.match(/(\d{1,2}):/)?.[1] || ""}
-                                        >
-                                          <SelectTrigger className="h-10 text-sm border-gray-200">
-                                            <SelectValue placeholder="Hr" />
-                                          </SelectTrigger>
-                                          <SelectContent className="max-h-48 overflow-y-auto">
-                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                                              <SelectItem key={hour} value={hour.toString()}>
-                                                {hour}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                        <Select
-                                          onValueChange={(minute) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", , period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
-                                          }}
-                                          value={field.value?.match(/:(\d{2})/)?.[1] || ""}
-                                        >
-                                          <SelectTrigger className="h-10 text-sm border-gray-200">
-                                            <SelectValue placeholder="Min" />
-                                          </SelectTrigger>
-                                          <SelectContent className="max-h-48 overflow-y-auto">
-                                            {[
-                                              "00",
-                                              "05",
-                                              "10",
-                                              "15",
-                                              "20",
-                                              "25",
-                                              "30",
-                                              "35",
-                                              "40",
-                                              "45",
-                                              "50",
-                                              "55",
-                                            ].map((minute) => (
-                                              <SelectItem key={minute} value={minute}>
-                                                {minute}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                        <Select
-                                          onValueChange={(period) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", minute = "00"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
-                                          }}
-                                          value={field.value?.match(/\s*(AM|PM)/i)?.[1] || ""}
-                                        >
-                                          <SelectTrigger className="h-10 text-sm border-gray-200">
-                                            <SelectValue placeholder="AM/PM" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="AM">AM</SelectItem>
-                                            <SelectItem value="PM">PM</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
+                                render={({ field }) => {
+                                  const { hour, minute, period } = parseTimeComponents(field.value)
+
+                                  return (
+                                    <FormItem>
+                                      <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                        <HiClock className="w-3 h-3" />
+                                        Start Time
+                                      </FormLabel>
+                                      <FormControl>
+                                        <div className="grid grid-cols-3 gap-1">
+                                          <Select
+                                            onValueChange={(newHour) => {
+                                              const newTime = buildTimeString(newHour, minute || "00", period || "AM")
+                                              field.onChange(newTime)
+                                            }}
+                                            value={hour}
+                                          >
+                                            <SelectTrigger className="h-10 text-sm border-gray-200">
+                                              <SelectValue placeholder="Hr" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-48 overflow-y-auto">
+                                              {Array.from({ length: 12 }, (_, i) => i + 1).map((hourNum) => (
+                                                <SelectItem key={hourNum} value={hourNum.toString()}>
+                                                  {hourNum}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                          <Select
+                                            onValueChange={(newMinute) => {
+                                              const newTime = buildTimeString(hour || "1", newMinute, period || "AM")
+                                              field.onChange(newTime)
+                                            }}
+                                            value={minute}
+                                          >
+                                            <SelectTrigger className="h-10 text-sm border-gray-200">
+                                              <SelectValue placeholder="Min" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-48 overflow-y-auto">
+                                              {[
+                                                "00",
+                                                "05",
+                                                "10",
+                                                "15",
+                                                "20",
+                                                "25",
+                                                "30",
+                                                "35",
+                                                "40",
+                                                "45",
+                                                "50",
+                                                "55",
+                                              ].map((minuteNum) => (
+                                                <SelectItem key={minuteNum} value={minuteNum}>
+                                                  {minuteNum}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                          <Select
+                                            onValueChange={(newPeriod) => {
+                                              const newTime = buildTimeString(hour || "1", minute || "00", newPeriod)
+                                              field.onChange(newTime)
+                                            }}
+                                            value={period}
+                                          >
+                                            <SelectTrigger className="h-10 text-sm border-gray-200">
+                                              <SelectValue placeholder="AM/PM" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="AM">AM</SelectItem>
+                                              <SelectItem value="PM">PM</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )
+                                }}
                               />
                               {/* End Time */}
                               <FormField
                                 control={form.control}
                                 name={`options.${index}.endTime`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                                      <HiClock className="w-3 h-3" />
-                                      End Time
-                                    </FormLabel>
-                                    <FormControl>
-                                      <div className="grid grid-cols-3 gap-1">
-                                        <Select
-                                          onValueChange={(hour) => {
-                                            const currentTime = field.value || ""
-                                            const [, minute = "00", period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
-                                          }}
-                                          value={field.value?.match(/(\d{1,2}):/)?.[1] || ""}
-                                        >
-                                          <SelectTrigger className="h-10 text-sm border-gray-200">
-                                            <SelectValue placeholder="Hr" />
-                                          </SelectTrigger>
-                                          <SelectContent className="max-h-48 overflow-y-auto">
-                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
-                                              <SelectItem key={hour} value={hour.toString()}>
-                                                {hour}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                        <Select
-                                          onValueChange={(minute) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", , period = "AM"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
-                                          }}
-                                          value={field.value?.match(/:(\d{2})/)?.[1] || ""}
-                                        >
-                                          <SelectTrigger className="h-10 text-sm border-gray-200">
-                                            <SelectValue placeholder="Min" />
-                                          </SelectTrigger>
-                                          <SelectContent className="max-h-48 overflow-y-auto">
-                                            {[
-                                              "00",
-                                              "05",
-                                              "10",
-                                              "15",
-                                              "20",
-                                              "25",
-                                              "30",
-                                              "35",
-                                              "40",
-                                              "45",
-                                              "50",
-                                              "55",
-                                            ].map((minute) => (
-                                              <SelectItem key={minute} value={minute}>
-                                                {minute}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                        <Select
-                                          onValueChange={(period) => {
-                                            const currentTime = field.value || ""
-                                            const [, hour = "1", minute = "00"] =
-                                              currentTime.match(/(\d{1,2}):(\d{2})/i) || []
-                                            field.onChange(`${hour}:${minute} ${period}`)
-                                          }}
-                                          value={field.value?.match(/\s*(AM|PM)/i)?.[1] || ""}
-                                        >
-                                          <SelectTrigger className="h-10 text-sm border-gray-200">
-                                            <SelectValue placeholder="AM/PM" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="AM">AM</SelectItem>
-                                            <SelectItem value="PM">PM</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
+                                render={({ field }) => {
+                                  const { hour, minute, period } = parseTimeComponents(field.value)
+
+                                  return (
+                                    <FormItem>
+                                      <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                        <HiClock className="w-3 h-3" />
+                                        End Time
+                                      </FormLabel>
+                                      <FormControl>
+                                        <div className="grid grid-cols-3 gap-1">
+                                          <Select
+                                            onValueChange={(newHour) => {
+                                              const newTime = buildTimeString(newHour, minute || "00", period || "AM")
+                                              field.onChange(newTime)
+                                            }}
+                                            value={hour}
+                                          >
+                                            <SelectTrigger className="h-10 text-sm border-gray-200">
+                                              <SelectValue placeholder="Hr" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-48 overflow-y-auto">
+                                              {Array.from({ length: 12 }, (_, i) => i + 1).map((hourNum) => (
+                                                <SelectItem key={hourNum} value={hourNum.toString()}>
+                                                  {hourNum}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                          <Select
+                                            onValueChange={(newMinute) => {
+                                              const newTime = buildTimeString(hour || "1", newMinute, period || "AM")
+                                              field.onChange(newTime)
+                                            }}
+                                            value={minute}
+                                          >
+                                            <SelectTrigger className="h-10 text-sm border-gray-200">
+                                              <SelectValue placeholder="Min" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-48 overflow-y-auto">
+                                              {[
+                                                "00",
+                                                "05",
+                                                "10",
+                                                "15",
+                                                "20",
+                                                "25",
+                                                "30",
+                                                "35",
+                                                "40",
+                                                "45",
+                                                "50",
+                                                "55",
+                                              ].map((minuteNum) => (
+                                                <SelectItem key={minuteNum} value={minuteNum}>
+                                                  {minuteNum}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                          <Select
+                                            onValueChange={(newPeriod) => {
+                                              const newTime = buildTimeString(hour || "1", minute || "00", newPeriod)
+                                              field.onChange(newTime)
+                                            }}
+                                            value={period}
+                                          >
+                                            <SelectTrigger className="h-10 text-sm border-gray-200">
+                                              <SelectValue placeholder="AM/PM" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="AM">AM</SelectItem>
+                                              <SelectItem value="PM">PM</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )
+                                }}
                               />
                             </div>
                           </motion.div>
@@ -2348,7 +2362,11 @@ export default function CreatePollPage() {
                       {isSubmitting ? (
                         <motion.div
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                          transition={{
+                            duration: 1,
+                            repeat: Number.POSITIVE_INFINITY,
+                            ease: "linear",
+                          }}
                           className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                         />
                       ) : (

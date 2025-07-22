@@ -249,6 +249,34 @@ import User from "@/models/User.model";
 import Student from "@/models/Student.model";
 import Notification from "@/models/Notification.model";
 
+function splitIntoOneHourIntervals(schedule) {
+  const result = [];
+
+  for (const entry of schedule) {
+    let start = saveTime(entry.start);
+    const end = saveTime(entry.end);
+
+    while (start < end) {
+      const nextEnd = new Date(start.getTime());
+      nextEnd.setHours(start.getHours() + 1);
+
+      // Limit end to the overall block end
+      const slotEnd = nextEnd > end ? end : nextEnd;
+
+      result.push({
+        day: entry.day,
+        room: entry.room,
+        start: new Date(start),
+        end: new Date(slotEnd),
+      });
+
+      start = slotEnd;
+    }
+  }
+
+  return result;
+}
+
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
   let hours = parseInt(hourStr, 10);
@@ -386,16 +414,14 @@ export async function POST(req) {
       );
     }
 
-    for (let i = 0; i < schedule.length; i++) {
-      schedule[i].start = saveTime(schedule[i].start);
-      schedule[i].end = saveTime(schedule[i].end);
-    }
+  const parsedSchedule = splitIntoOneHourIntervals(schedule);
+
 
     const newCourse = new Course({
       title,
       courseCode,
       studentYear,
-      schedule,
+      schedule:parsedSchedule,
       lectures,
       tutorials,
       practicals,
@@ -407,6 +433,7 @@ export async function POST(req) {
       credits,
       prof: Array(profEmail.length),
       enrolledStudents: [],
+      isGiven:true
     });
 
     for (let i = 0; i < profEmail.length; i++) {
