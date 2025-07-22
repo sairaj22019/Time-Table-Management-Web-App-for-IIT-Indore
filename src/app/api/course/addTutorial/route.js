@@ -18,7 +18,7 @@ function saveTime(timeString) {
 }
 
 const getStart = (slot) => {
-    const startTime=["8:30:AM","9:30:AM","10:30:AM","11:30:AM","12:30:PM","1:30:PM","2:30:PM","3:30:PM","4:30:PM","5:30 PM"];
+    const startTime=["8:30:AM","9:30:AM","10:30:AM","11:30:AM","12:30:PM","1:30:PM","2:30:PM","3:30:PM","4:30:PM","5:30:PM"];
     return saveTime(startTime[slot])
 }
 
@@ -70,6 +70,7 @@ export async function POST(req){
                 }
             }
         }
+        console.log(getStart(slotIndex), getEnd(slotIndex), toDay(day), room);
         const newSlot={
             start:getStart(slotIndex),
             end:getEnd(slotIndex),
@@ -91,10 +92,4 @@ export async function POST(req){
             error:error,
         },{status:500})
     }
-}
-export async function GET(req) {
-    return NextResponse.json({
-        success : true,
-        message:"hello world from snehalatha"
-    })
 }

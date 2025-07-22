@@ -896,10 +896,10 @@ export async function POST(req) {
       room: slot.room,
     }));
     let newPoll;
-    if(newCourse.lectures!=0){
+    if(newCourse.lectures!=0 && newCourse.practicals!=0){
       newPoll = new Poll({
         options: allOptions,
-        reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures}`,
+        reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures} and practical sessions ${newCourse.practicals}`,
         context: "Sending this poll to ask for the verification of slots which will be used for the given course",
         expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
@@ -915,7 +915,7 @@ export async function POST(req) {
     }else{
       newPoll = new Poll({
         options: allOptions,
-        reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures}, practical sessions ${newCourse.practicals}`,
+        reason: `For fixture of course schedule for the course ${newCourse.title} (${newCourse.courseCode}) with lectures ${newCourse.lectures}`,
         context: "Sending this poll to ask for the verification of slots which will be used for the given course",
         expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
