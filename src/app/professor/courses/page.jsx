@@ -1714,7 +1714,7 @@ export default function ProfessorCoursesPage() {
                               variant="secondary"
                               className="bg-green-100 text-green-700 border-green-200"
                             >
-                              ✅ Tutorial Slot Added
+                               Tutorial Slot Added
                             </Badge>
                           </div>
                         )}

@@ -525,17 +525,14 @@ export default function EnhancedLandingPage() {
             <Link href="/terms" className="hover:text-blue-600 transition-colors">
               Terms
             </Link>
-            <Link href="/support" className="hover:text-blue-600 transition-colors">
-              Support
-            </Link>
             <Link href="/contact" className="hover:text-blue-600 transition-colors">
-              Contact
+              Contact Support
             </Link>
+            
           </div>
         </div>
       </footer>
     </div>
   )
 }
-
 

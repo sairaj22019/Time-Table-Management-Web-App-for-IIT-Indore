@@ -181,8 +181,8 @@ export default function SlotRoomPopup({
 
     try {
       await onSubmit({
-        slotName: slotName.trim(),
-        roomName: roomName.trim(),
+        slotName: slotName.trim().toUpperCase(),
+        roomName: roomName.trim().toUpperCase(),
       })
 
       setSlotName("")
@@ -240,7 +240,7 @@ export default function SlotRoomPopup({
             </Label>
             <Input
               id="slotName"
-              placeholder="e.g., 9:30 - 10:25 AM"
+              placeholder="e.g., M1,M2"
               value={slotName}
               onChange={(e) => setSlotName(e.target.value)}
               required

@@ -1,3 +1,4 @@
+
 // "use client"
 
 // import { useState, useEffect, useCallback } from "react"
@@ -19,13 +20,20 @@
 //   Users,
 //   Filter,
 // } from "lucide-react"
-
 // import { Card, CardContent, CardHeader } from "@/components/ui/card"
 // import { Button } from "@/components/ui/button"
 // import { Badge } from "@/components/ui/badge"
 // import { Input } from "@/components/ui/input"
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 // import { useSession } from "next-auth/react"
+// import {
+//   Pagination,
+//   PaginationContent,
+//   PaginationItem,
+//   PaginationLink,
+//   PaginationNext,
+//   PaginationPrevious,
+// } from "@/components/ui/pagination"
 
 // export default function InboxPage() {
 //   const [notifications, setNotifications] = useState([])
@@ -39,6 +47,8 @@
 //   const [loading, setLoading] = useState(true)
 //   const [error, setError] = useState(null)
 //   const [readMessages, setReadMessages] = useState([]) // Track read messages
+//   const [currentPage, setCurrentPage] = useState(1) // Track current page for pagination
+//   const notificationsPerPage = 30 // Number of notifications per page
 //   const router = useRouter()
 //   const searchParams = useSearchParams()
 //   const { data: session, status } = useSession()
@@ -59,7 +69,6 @@
 //       }
 //       return
 //     }
-
 //     try {
 //       console.log("Getting notifications!!")
 //       setLoading(true)
@@ -78,7 +87,6 @@
 //             const notification = item.notification
 //             const isPoll = notification.type === "poll"
 //             const senderUser = notification.prof // This is the User object from backend
-
 //             if (isPoll) {
 //               // For polls that are already read, process the votes from the API response
 //               const processedVotes = {}
@@ -221,6 +229,8 @@
 //       filtered = filtered.filter((notification) => notification.isRead === isReadFilter)
 //     }
 //     setFilteredNotifications(filtered)
+//     // Reset to first page when filters change
+//     setCurrentPage(1)
 //   }, [searchTerm, filterType, filterRead, notifications])
 
 //   useEffect(() => {
@@ -422,6 +432,21 @@
 //     }))
 //   }
 
+//   // Pagination logic
+//   const indexOfLastNotification = currentPage * notificationsPerPage
+//   const indexOfFirstNotification = indexOfLastNotification - notificationsPerPage
+//   const currentNotifications = filteredNotifications
+//     .slice()
+//     .reverse()
+//     .slice(indexOfFirstNotification, indexOfLastNotification)
+//   const totalPages = Math.ceil(filteredNotifications.length / notificationsPerPage)
+
+//   // Generate page numbers for pagination
+//   const pageNumbers = []
+//   for (let i = 1; i <= totalPages; i++) {
+//     pageNumbers.push(i)
+//   }
+
 //   if (loading) {
 //     return (
 //       <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-3 sm:p-6">
@@ -531,7 +556,7 @@
 //         {/* Notifications List */}
 //         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3 sm:space-y-4">
 //           <AnimatePresence>
-//             {filteredNotifications.slice().reverse().map((notification) => {
+//             {currentNotifications.map((notification) => {
 //               const isExpanded = expandedItems.has(notification._id)
 //               const isPoll = notification.type === "poll"
 //               const data = isPoll ? notification.pollData : notification.messageData
@@ -916,6 +941,46 @@
 //             })}
 //           </AnimatePresence>
 //         </motion.div>
+
+//         {/* Pagination Controls */}
+//         {filteredNotifications.length > 0 && totalPages > 1 && (
+//           <div className="mt-6">
+//             <Pagination>
+//               <PaginationContent>
+//                 <PaginationItem>
+//                   <PaginationPrevious
+//                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+//                     className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+//                   />
+//                 </PaginationItem>
+
+//                 {pageNumbers.map((number) => (
+//                   <PaginationItem key={number}>
+//                     <PaginationLink
+//                       onClick={() => setCurrentPage(number)}
+//                       isActive={currentPage === number}
+//                       className="cursor-pointer"
+//                     >
+//                       {number}
+//                     </PaginationLink>
+//                   </PaginationItem>
+//                 ))}
+
+//                 <PaginationItem>
+//                   <PaginationNext
+//                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+//                     className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+//                   />
+//                 </PaginationItem>
+//               </PaginationContent>
+//             </Pagination>
+//             <div className="text-center text-sm text-gray-500 mt-2">
+//               Showing {indexOfFirstNotification + 1}-{Math.min(indexOfLastNotification, filteredNotifications.length)}{" "}
+//               of {filteredNotifications.length} notifications
+//             </div>
+//           </div>
+//         )}
+
 //         {/* Empty State */}
 //         {filteredNotifications.length === 0 && !loading && (
 //           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8 sm:py-12">
@@ -931,6 +996,7 @@
 
 
 
+<<<<<<< HEAD
 // "use client"
 
 // import { useState, useEffect, useCallback } from "react"
@@ -3016,6 +3082,8 @@
 // }
 
 
+=======
+>>>>>>> origin/main
 "use client"
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
