@@ -1,3 +1,4 @@
+
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Professor from "@/models/Professor.model";
 import { NextRequest,NextResponse } from "next/server";
@@ -33,14 +34,18 @@ export async function POST(req){
             })
         }
         await prof.populate('teachingClasses');
-        const currentSem=prof.teachingClasses[0].forSemester;
+        const currentSem=prof?.teachingClasses[0]?.forSemester || "";
         const gridOfTheSemester=await Grid.findOne({semester:currentSem});
         let lunchBreakSlot
-        if(gridOfTheSemester.grid[0][4].slot=="LB"){
-            lunchBreakSlot=4
-        }else{
-            lunchBreakSlot=5
+        if(!gridOfTheSemester) lunchBreakSlot = 4;
+        else{
+            if(gridOfTheSemester.grid[0][4].slot=="LB"){
+                lunchBreakSlot=4
+            }else{
+                lunchBreakSlot=5
+            }
         }
+        
         return NextResponse.json({
             success:true,
             message:"Courses fetched successfully",
@@ -57,4 +62,3 @@ export async function POST(req){
         })
     }
 } 
-
