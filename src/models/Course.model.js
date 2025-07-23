@@ -93,6 +93,9 @@ const courseSchema = new Schema({
   isGiven:{
     type:Boolean,
     default:false,
+  },
+  studentDetails:{
+    type:Object,
   }
 },{timestamps:true,minimize:false});
 

@@ -1,11 +1,9 @@
-
-
 "use client"
 import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Plus, Trash2, GraduationCap, User, Mail, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -15,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useToast } from "@/hooks/use-toast"
 
 const scheduleSchema = z.object({
   day: z.enum(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], {
@@ -24,8 +23,6 @@ const scheduleSchema = z.object({
   endTime: z.string().min(1, "End time is required"),
   room: z.string().min(1, "Room is required"),
 })
-
-const slotSchema = z.string().min(1, "Slot is required")
 
 const professorSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -37,7 +34,6 @@ const roomSlotsSchema = z.object({
   slots: z.array(z.string()).min(1, "At least one slot is required"),
 })
 
-// Update the main form schema to use roomSlots array for year > 1
 const formSchema = z
   .object({
     title: z.string().min(1, "Course title is required"),
@@ -66,7 +62,6 @@ const formSchema = z
   )
   .refine(
     (data) => {
-      // If year > 1, roomSlots are required
       if (Number.parseInt(data.year) > 1) {
         return data.roomSlots && data.roomSlots.length > 0
       }
@@ -90,7 +85,6 @@ const departments = [
   "Metallurgical Engineering & Materials Science",
 ]
 
-// Department mapping: full name to abbreviation
 const departmentMapping = {
   "Chemical Engineering": "che",
   "Civil Engineering": "ce",
@@ -103,21 +97,29 @@ const departmentMapping = {
   "Metallurgical Engineering & Materials Science": "mems",
 }
 
-// Generate years from 2008 to current year + 4
+// Reverse mapping for displaying selected departments
+const reverseDepartmentMapping = Object.fromEntries(
+  Object.entries(departmentMapping).map(([key, value]) => [value, key]),
+)
+
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: currentYear + 10 - 2020 + 1 }, (_, i) => 2020 + i)
 
-export default function CreateCoursePage() {
+export default function EditCoursePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { toast } = useToast()
+  const courseId = searchParams.get("id")
+
   const [errorMsg, setErrorMsg] = useState("")
   const [loading, setLoading] = useState(false)
+  const [fetchingCourse, setFetchingCourse] = useState(true)
   const [rollNumberInput, setRollNumberInput] = useState("")
   const [rollNumberError, setRollNumberError] = useState("")
   const [generalError, setGeneralError] = useState("")
   const [slotInput, setSlotInput] = useState("")
   const [roomInput, setRoomInput] = useState("")
   const [slotError, setSlotError] = useState("")
-  // New states for professor suggestions
   const [professors, setProfessors] = useState([])
   const [emailSuggestions, setEmailSuggestions] = useState({})
   const [showSuggestions, setShowSuggestions] = useState({})
@@ -145,11 +147,7 @@ export default function CreateCoursePage() {
   const watchYear = form.watch("year")
   const watchSemesterYear = form.watch("semesterYear")
   const watchDuration = form.watch("duration")
-
-  // Check if year is greater than 1
   const isYearGreaterThanOne = watchYear && Number.parseInt(watchYear) > 1
-
-  // Compute semester value dynamically
   const semesterValue = watchSemesterYear && watchDuration ? `${watchSemesterYear} ${watchDuration}` : ""
 
   const {
@@ -170,7 +168,132 @@ export default function CreateCoursePage() {
     name: "schedule",
   })
 
-  // Fetch professors on component mount
+  // Fetch course data
+  useEffect(() => {
+    if (!courseId) {
+      router.push("/admin/courses")
+      return
+    }
+
+    const fetchCourseData = async () => {
+      try {
+        setFetchingCourse(true)
+        console.log("Fetching course with ID:", courseId)
+
+        const response = await fetch(`/api/course/getCourseDetails`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ courseId }),
+        })
+
+        const data = await response.json()
+        console.log("Course data received:", data)
+
+        if (data.success && data.course) {
+          const course = data.course
+          console.log("Processing course:", course)
+
+          // Parse semester
+          const semesterParts = course.forSemester?.split(" ") || []
+          const semesterYear = semesterParts[0] || ""
+          const duration = semesterParts[1] || ""
+
+          // Convert schedule times back to display format
+          const formattedSchedule =
+            course.schedule?.map((item) => ({
+              day: item.day,
+              startTime: formatTimeForForm(item.start),
+              endTime: formatTimeForForm(item.end),
+              room: item.room,
+            })) || []
+
+          // Get student departments and roll numbers from studentDetails
+          const studentDepartments = course.studentDetails?.departments || []
+          const rollNumbers = course.studentDetails?.rollnos || []
+
+          // Convert roomSlots if they exist
+          const roomSlots = []
+          if (course.slots && course.slots.length > 0 && course.room && course.room !== "empty") {
+            roomSlots.push({
+              room: course.room,
+              slots: course.slots,
+            })
+          }
+
+          console.log("Form data to be set:", {
+            title: course.title,
+            year: course.studentYear?.toString(),
+            courseCode: course.courseCode,
+            semesterYear,
+            duration,
+            L: course.lectures,
+            T: course.tutorials,
+            P: course.practicals,
+            C: course.credits,
+            professors:
+              course.profName && course.profEmail
+                ? course.profName.map((name, index) => ({
+                    name: name || "",
+                    email: course.profEmail[index] || "",
+                  }))
+                : [{ name: "", email: "" }],
+            selectedDepartments: studentDepartments,
+            rollNumbers: rollNumbers,
+            schedule: formattedSchedule,
+            roomSlots: roomSlots,
+          })
+
+          // Set form values
+          form.reset({
+            title: course.title || "",
+            year: course.studentYear?.toString() || "",
+            courseCode: course.courseCode || "",
+            semesterYear: semesterYear,
+            duration: duration,
+            L: course.lectures || 0,
+            T: course.tutorials || 0,
+            P: course.practicals || 0,
+            C: course.credits || 0,
+            professors:
+              course.profName && course.profEmail
+                ? course.profName.map((name, index) => ({
+                    name: name || "",
+                    email: course.profEmail[index] || "",
+                  }))
+                : [{ name: "", email: "" }],
+            selectedDepartments: studentDepartments,
+            rollNumbers: rollNumbers,
+            schedule: formattedSchedule,
+            roomSlots: roomSlots,
+          })
+        } else {
+          console.error("Failed to fetch course:", data)
+          toast({
+            title: "Error",
+            description: data.message || "Course not found",
+            variant: "destructive",
+          })
+          router.push("/admin/courses")
+        }
+      } catch (error) {
+        console.error("Error fetching course:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch course data",
+          variant: "destructive",
+        })
+        router.push("/admin/courses")
+      } finally {
+        setFetchingCourse(false)
+      }
+    }
+
+    fetchCourseData()
+  }, [courseId, router, form, toast])
+
+  // Fetch professors
   useEffect(() => {
     const fetchProfessors = async () => {
       try {
@@ -186,46 +309,17 @@ export default function CreateCoursePage() {
     fetchProfessors()
   }, [])
 
-  // Filter email suggestions based on input
-  const filterEmailSuggestions = (input, index) => {
-    if (!input || input.length < 1) {
-      setEmailSuggestions((prev) => ({ ...prev, [index]: [] }))
-      setShowSuggestions((prev) => ({ ...prev, [index]: false }))
-      return
-    }
-
-    const filtered = professors.filter((prof) => prof.email.toLowerCase().includes(input.toLowerCase())).slice(0, 5) // Limit to 5 suggestions
-
-    setEmailSuggestions((prev) => ({ ...prev, [index]: filtered }))
-    setShowSuggestions((prev) => ({ ...prev, [index]: filtered.length > 0 }))
-  }
-
-  // Handle email suggestion selection
-  const selectEmailSuggestion = (professor, index) => {
-    form.setValue(`professors.${index}.email`, professor.email)
-    form.setValue(`professors.${index}.name`, professor.username)
-    setShowSuggestions((prev) => ({ ...prev, [index]: false }))
-  }
-
-  // Validate roll number (exactly 9 characters)
-  const validateRollNumber = (rollNumber) => {
-    return rollNumber.trim().length === 9
-  }
-
-  // Capitalize room name with smart formatting
-  const capitalizeRoom = (room) => {
-    return room
-      .split(" ")
-      .map((word) => {
-        if (word.length === 0) return word
-        // Handle special cases like "l01" -> "L01"
-        if (/^[a-z]\d+$/i.test(word)) {
-          return word.toUpperCase()
-        }
-        // Regular capitalization
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-      })
-      .join(" ")
+  // Helper function to format time from Date object to form format
+  const formatTimeForForm = (dateString) => {
+    if (!dateString) return ""
+    const date = new Date(dateString)
+    let hours = date.getHours()
+    const minutes = date.getMinutes()
+    const ampm = hours >= 12 ? "PM" : "AM"
+    hours = hours % 12
+    hours = hours ? hours : 12
+    const minutesStr = minutes < 10 ? `0${minutes}` : minutes
+    return `${hours}:${minutesStr} ${ampm}`
   }
 
   // Convert time format from "h:mm a" to "h:mm:a"
@@ -234,11 +328,47 @@ export default function CreateCoursePage() {
     return timeString.replace(" ", ":")
   }
 
+  // Capitalize room name
+  const capitalizeRoom = (room) => {
+    return room
+      .split(" ")
+      .map((word) => {
+        if (word.length === 0) return word
+        if (/^[a-z]\d+$/i.test(word)) {
+          return word.toUpperCase()
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      })
+      .join(" ")
+  }
+
+  // Email suggestions
+  const filterEmailSuggestions = (input, index) => {
+    if (!input || input.length < 1) {
+      setEmailSuggestions((prev) => ({ ...prev, [index]: [] }))
+      setShowSuggestions((prev) => ({ ...prev, [index]: false }))
+      return
+    }
+    const filtered = professors.filter((prof) => prof.email.toLowerCase().includes(input.toLowerCase())).slice(0, 5)
+    setEmailSuggestions((prev) => ({ ...prev, [index]: filtered }))
+    setShowSuggestions((prev) => ({ ...prev, [index]: filtered.length > 0 }))
+  }
+
+  const selectEmailSuggestion = (professor, index) => {
+    form.setValue(`professors.${index}.email`, professor.email)
+    form.setValue(`professors.${index}.name`, professor.username)
+    setShowSuggestions((prev) => ({ ...prev, [index]: false }))
+  }
+
+  // Roll number functions
+  const validateRollNumber = (rollNumber) => {
+    return rollNumber.trim().length === 9
+  }
+
   const addRollNumbers = () => {
     if (rollNumberInput.trim()) {
       setRollNumberError("")
       const currentRollNumbers = form.getValues("rollNumbers") || []
-      // Enhanced parsing: split by comma and/or spaces, filter empty strings
       const newRollNumbers = rollNumberInput
         .split(/[,\s]+/)
         .map((num) => num.trim())
@@ -275,29 +405,22 @@ export default function CreateCoursePage() {
     form.setValue("rollNumbers", updatedRollNumbers)
   }
 
+  // Room slots functions
   const validateSlot = (slot) => {
     return slot.trim().length > 0
   }
 
-  const validateRoom = (room) => {
-    return room.trim().length > 0
-  }
-
-  // Modified function to add room-slots combination
   const addRoomSlots = () => {
     if (!roomInput.trim()) {
       setSlotError("Room is required")
       return
     }
-
     if (!slotInput.trim()) {
       setSlotError("Slots are required")
       return
     }
-
     setSlotError("")
 
-    // Parse slots
     const newSlots = slotInput
       .split(/[,\s]+/)
       .map((slot) => slot.trim().toUpperCase())
@@ -315,17 +438,13 @@ export default function CreateCoursePage() {
       return
     }
 
-    // Create room-slots object
     const roomSlotsObject = {
       room: capitalizeRoom(roomInput.trim()),
       slots: validSlots,
     }
 
-    // Add to form data
     const currentRoomSlots = form.getValues("roomSlots") || []
     form.setValue("roomSlots", [...currentRoomSlots, roomSlotsObject])
-
-    // Clear both inputs
     setRoomInput("")
     setSlotInput("")
   }
@@ -346,7 +465,6 @@ export default function CreateCoursePage() {
     }
   }
 
-  // Handle Enter key for room-slots addition
   const handleRoomSlotsKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault()
@@ -357,54 +475,19 @@ export default function CreateCoursePage() {
   const onSubmit = async (data) => {
     setErrorMsg("")
     setGeneralError("")
-    // Check for required fields
-    const requiredFields = [
-      { field: data.title, name: "Course Title" },
-      { field: data.year, name: "Year" },
-      { field: data.courseCode, name: "Course Code" },
-      { field: data.semesterYear, name: "Semester Year" },
-      { field: data.duration, name: "Duration" },
-      { field: data.L !== undefined && data.L !== "", name: "L" },
-      { field: data.T !== undefined && data.T !== "", name: "T" },
-      { field: data.P !== undefined && data.P !== "", name: "P" },
-      { field: data.C !== undefined && data.C !== "", name: "C" },
-    ]
-
-    // Check professors
-    const hasValidProfessors = data.professors.some((prof) => prof.name && prof.email)
-    if (!hasValidProfessors) {
-      requiredFields.push({ field: false, name: "At least one professor" })
-    }
-
-    // Check departments or roll numbers
-    if (data.selectedDepartments.length === 0 && data.rollNumbers.length === 0) {
-      requiredFields.push({ field: false, name: "Departments or roll numbers" })
-    }
-
-    // Check roomSlots for year > 1
-    if (Number.parseInt(data.year) > 1 && (!data.roomSlots || data.roomSlots.length === 0)) {
-      requiredFields.push({ field: false, name: "Room and slots (required for year 2 and above)" })
-    }
-
-    const missingFields = requiredFields.filter((item) => !item.field)
-    if (missingFields.length > 0) {
-      setGeneralError("All starred fields are required")
-      return
-    }
-
     setLoading(true)
+
     try {
-      // Format data according to backend expectations
       const courseData = {
+        id: courseId,
         title: data.title,
         courseCode: data.courseCode,
         lectures: data.L,
         tutorials: data.T,
         practicals: data.P,
         credits: data.C,
-        studentYear: data.year,
         forSemester: semesterValue,
-        courseCoordinator: data.professors[0]?.name || "", // First professor is the coordinator
+        courseCoordinator: data.professors[0]?.name || "",
         profName: data.professors.filter((prof) => prof.name && prof.email).map((prof) => prof.name),
         profEmail: data.professors.filter((prof) => prof.name && prof.email).map((prof) => prof.email),
         schedule:
@@ -415,9 +498,10 @@ export default function CreateCoursePage() {
                 end: changeTime(slot.endTime),
                 room: slot.room,
               })) || []
-            : [], // Send empty array for year > 1
-        // Send roomSlots array directly for year > 1
-        roomSlots: Number.parseInt(data.year) > 1 ? data.roomSlots || [] : [],
+            : [],
+        // For year > 1, send slots and room separately to match backend structure
+        slots: Number.parseInt(data.year) > 1 ? data.roomSlots?.flatMap((rs) => rs.slots) || [] : [],
+        room: Number.parseInt(data.year) > 1 && data.roomSlots?.length > 0 ? data.roomSlots[0].room : "empty",
         students: {
           departments: data.selectedDepartments,
           year: data.year,
@@ -427,40 +511,46 @@ export default function CreateCoursePage() {
 
       console.log("Sending course data:", courseData)
 
-      let response
-      if (data.year == 1) {
-        response = await fetch("/api/course/createCourseForYear1", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(courseData),
-        })
-      } else {
-        response = await fetch("/api/course/createCourse", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(courseData),
-        })
-      }
+      const response = await fetch("/api/course/editCourse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(courseData),
+      })
 
       const result = await response.json()
+
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create course")
+        throw new Error(result.message || "Failed to update course")
       }
 
-      setLoading(false)
-      alert("Course created successfully!")
-      console.log("Course created:", result.course)
-      // Redirect to courses page or reset form
-      router.push("courses")
+      toast({
+        title: "Success",
+        description: "Course updated successfully!",
+        variant: "default",
+      })
+
+      router.push("/admin/courses")
     } catch (error) {
-      console.error("Course creation error:", error)
+      console.error("Course update error:", error)
       setErrorMsg(error.message || "Something went wrong. Please try again.")
+    } finally {
       setLoading(false)
     }
+  }
+
+  if (fetchingCourse) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 px-4 py-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading course data...</p>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -479,7 +569,7 @@ export default function CreateCoursePage() {
                   <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />
                 </div>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 whitespace-nowrap">
-                  Create New Course
+                  Edit Course
                 </h2>
               </div>
               <Link
@@ -490,8 +580,7 @@ export default function CreateCoursePage() {
               </Link>
             </div>
             <p className="text-sm text-gray-600 text-center mb-10 max-w-2xl mx-auto">
-              Fill in the details below to create a new course for the semester. All required fields must be completed
-              before submission.
+              Update the course details below. All required fields must be completed before submission.
             </p>
 
             {errorMsg && (
@@ -553,7 +642,7 @@ export default function CreateCoursePage() {
                           >
                             Year *
                           </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-12 w-full text-base border-2 focus:border-blue-400">
                                 <SelectValue placeholder="Select academic year" />
@@ -608,7 +697,7 @@ export default function CreateCoursePage() {
                           >
                             Semester Year *
                           </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-12 text-base border-2 w-full focus:border-blue-400">
                                 <SelectValue placeholder="Select year" />
@@ -636,7 +725,7 @@ export default function CreateCoursePage() {
                           >
                             Duration*
                           </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-12 text-base border-2 w-full focus:border-blue-400">
                                 <SelectValue placeholder="Select duration" />
@@ -837,7 +926,6 @@ export default function CreateCoursePage() {
                                         }
                                       }}
                                       onBlur={() => {
-                                        // Delay hiding suggestions to allow for clicks
                                         setTimeout(() => {
                                           setShowSuggestions((prev) => ({ ...prev, [index]: false }))
                                         }, 200)
@@ -1106,7 +1194,6 @@ export default function CreateCoursePage() {
                               className="h-12 text-base border-2 focus:border-blue-400 transition-colors"
                             />
                           </div>
-
                           <div className="space-y-2">
                             <label className="text-sm font-semibold text-gray-700">Slot Letters *</label>
                             <div className="flex gap-3">
@@ -1243,7 +1330,7 @@ export default function CreateCoursePage() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="grid grid-cols-1 sm:grid-cols-2  gap-6 p-4 border-2 border-gray-200 rounded-xl bg-gray-50/50 overflow-visible"
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 border-2 border-gray-200 rounded-xl bg-gray-50/50 overflow-visible"
                           >
                             <FormField
                               control={form.control}
@@ -1251,7 +1338,7 @@ export default function CreateCoursePage() {
                               render={({ field }) => (
                                 <FormItem className="overflow-visible">
                                   <FormLabel className="text-base font-semibold text-gray-700">Day *</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                       <SelectTrigger className="h-12 text-base border-2 w-full focus:border-blue-400">
                                         <SelectValue placeholder="Select day" />
@@ -1496,10 +1583,10 @@ export default function CreateCoursePage() {
                     {loading ? (
                       <div className="flex items-center gap-3">
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Creating Course...
+                        Updating Course...
                       </div>
                     ) : (
-                      "Create Course"
+                      "Update Course"
                     )}
                   </Button>
                   <Button
