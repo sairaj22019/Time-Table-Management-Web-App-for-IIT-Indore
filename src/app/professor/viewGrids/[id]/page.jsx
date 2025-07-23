@@ -164,7 +164,7 @@ export default function GridDetailPage() {
                 </h1>
               </div>
               <Link
-                href="/admin/viewGrids"
+                href="/professor/viewGrids"
                 className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
               >
                 ← Back to all grids
@@ -209,7 +209,7 @@ export default function GridDetailPage() {
                     <div className="text-xs sm:text-sm font-bold text-gray-700">Time</div>
                   </div>
                   {timeSlots.map((slot) => (
-                    <div key={slot.id} className="border border-gray-300 rounded-lg p-1 sm:p-2 text-center bg-blue-50">
+                    <div key={slot.id} className="border border-gray-300 rounded-lg p-1 sm:p-2 text-center bg-blue-50 flex justify-center items-center">
                       <div className="text-xs font-semibold text-gray-700 leading-tight">{slot.label}</div>
                     </div>
                   ))}

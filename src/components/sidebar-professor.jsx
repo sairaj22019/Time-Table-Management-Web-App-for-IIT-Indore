@@ -70,7 +70,7 @@ const items = [
   },
   {
       title: "View Grids",
-      url: "/admin/viewGrids",
+      url: "/professor/viewGrids",
       icon: CalendarSearch,
   },
   {

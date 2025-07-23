@@ -395,7 +395,6 @@
 // // //   )
 // // // }
 
-
 // // "use client"
 
 // // import { useEffect, useState } from "react"
@@ -962,7 +961,7 @@
 //        })
 
 //       // For now, just log the data
-      
+
 //     } catch (error) {
 //       console.error("Error adding tutorial slot:", error)
 //       alert("Failed to add tutorial slot. Please try again.")
@@ -1302,11 +1301,11 @@
 //     </main>
 //   )
 // }
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   HiAcademicCap,
   HiCalendar,
@@ -1318,29 +1317,36 @@ import {
   HiMail,
   HiUserGroup,
   HiPlus,
-} from "react-icons/hi"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useSession } from "next-auth/react"
-import SlotRoomPopup from "@/components/slotRoomPopup"
-import { useToast } from "@/hooks/use-toast"
+} from "react-icons/hi";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useSession } from "next-auth/react";
+import SlotRoomPopup from "@/components/slotRoomPopup";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfessorCoursesPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [filteredCourses, setFilteredCourses] = useState([])
-  const [allCourses, setAllCourses] = useState([])
-  const [expandedCards, setExpandedCards] = useState([])
-  const [addingTutorialSlot, setAddingTutorialSlot] = useState(null) // Track which course is having tutorial slot added
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const { toast } = useToast()
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
+  const [expandedCards, setExpandedCards] = useState([]);
+  const [addingTutorialSlot, setAddingTutorialSlot] = useState(null); // Track which course is having tutorial slot added
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [currSem, setcurrSem] = useState("");
 
   useEffect(() => {
-    if (!session) return
+    if (!session) return;
 
     const fetchCourses = async () => {
       try {
@@ -1348,52 +1354,59 @@ export default function ProfessorCoursesPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ profEmail: session.user.email }),
-        })
-        const data = await res.json()
+        });
+        const data = await res.json();
         if (data.success) {
-          setAllCourses(data.data)
-          setFilteredCourses(data.data)
-          console.log(data)
+          setAllCourses(data.data);
+          setFilteredCourses(data.data);
+          setcurrSem(data.currentSem);
         } else {
-          console.error("Error:", data.message)
+          console.error("Error:", data.message);
         }
       } catch (error) {
-        console.error("Fetch error:", error)
+        console.error("Fetch error:", error);
       }
-    }
+    };
 
-    fetchCourses()
-  }, [session])
+    fetchCourses();
+  }, [session]);
 
   const handleSearch = (term) => {
-    setSearchTerm(term)
-    filterCourses(term, selectedCategory)
-  }
+    setSearchTerm(term);
+    filterCourses(term, selectedCategory);
+  };
 
   const handleCategoryFilter = (category) => {
-    setSelectedCategory(category)
-    filterCourses(searchTerm, category)
-  }
+    setSelectedCategory(category);
+    filterCourses(searchTerm, category);
+  };
 
   const filterCourses = (term, category) => {
-    let filtered = allCourses
+    let filtered = allCourses;
 
     if (term) {
       filtered = filtered.filter(
         (course) =>
           course.title.toLowerCase().includes(term.toLowerCase()) ||
-          course.courseCode.toLowerCase().includes(term.toLowerCase()),
-      )
+          course.courseCode.toLowerCase().includes(term.toLowerCase())
+      );
     }
 
     if (category !== "all") {
-      filtered = filtered.filter((course) => course.category?.toLowerCase() === category.toLowerCase())
+      filtered = filtered.filter(
+        (course) => course.category?.toLowerCase() === category.toLowerCase()
+      );
     }
 
-    setFilteredCourses(filtered)
-  }
+    setFilteredCourses(filtered);
+  };
 
-  const categories = ["all", ...Array.from(new Set(allCourses.map((course) => course.category || "uncategorized")))]
+  const categories = [
+    "all",
+    ...Array.from(
+      new Set(allCourses.map((course) => course.category || "uncategorized"))
+    ),
+  ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -1403,7 +1416,7 @@ export default function ProfessorCoursesPage() {
         staggerChildren: 0.1,
       },
     },
-  }
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -1415,14 +1428,16 @@ export default function ProfessorCoursesPage() {
         ease: "easeOut",
       },
     },
-  }
+  };
 
   const toggleCardExpansion = (id) => {
-    setExpandedCards((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
-  }
+    setExpandedCards((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   const handlePoll = (course) => {
-    console.log(`Creating poll for course: ${course.title}`)
+    console.log(`Creating poll for course: ${course.title}`);
     // Navigate to create poll page with comprehensive course data pre-filled
     const queryParams = new URLSearchParams({
       courseId: course._id,
@@ -1430,9 +1445,9 @@ export default function ProfessorCoursesPage() {
       courseTitle: course.title,
       professor: session?.user?.email || "",
       studentsCount: course.enrolledStudents?.length || 0,
-    })
-    router.push(`/professor/createPoll?${queryParams.toString()}`)
-  }
+    });
+    router.push(`/professor/createPoll?${queryParams.toString()}`);
+  };
 
   const handleMessage = (course) => {
     // Navigate to send message page with comprehensive course data pre-filled
@@ -1442,17 +1457,17 @@ export default function ProfessorCoursesPage() {
       courseTitle: course.title,
       professor: session?.user?.email || "",
       studentsCount: course.enrolledStudents?.length || 0,
-    })
+    });
     // Use the correct path based on your app structure
-    router.push(`/professor/sendMessage?${queryParams.toString()}`)
-  }
+    router.push(`/professor/sendMessage?${queryParams.toString()}`);
+  };
 
   const handleAddTutorialSlot = async (course, data) => {
-    setAddingTutorialSlot(course._id) // Set loading state for this specific course
+    setAddingTutorialSlot(course._id); // Set loading state for this specific course
 
     try {
-      console.log(`Adding tutorial slot for course: ${course.title}`)
-      console.log("Slot data:", data)
+      console.log(`Adding tutorial slot for course: ${course.title}`);
+      console.log("Slot data:", data);
 
       const response = await fetch("/api/course/addTutorial", {
         method: "POST",
@@ -1462,17 +1477,17 @@ export default function ProfessorCoursesPage() {
           slot: data.slotName,
           room: data.roomName,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (response.ok && result.success) {
         // Success - show success toast
         toast({
-          title: "Tutorial Slot Added Successfully! 🎉",
+          title: "Tutorial Slot Added Successfully! ",
           description: `Tutorial slot "${data.slotName}" has been added to ${course.courseCode} in ${data.roomName}.`,
           variant: "default",
-        })
+        });
 
         // Update the course data in state to reflect the change
         const updatedCourses = allCourses.map((c) => {
@@ -1480,41 +1495,45 @@ export default function ProfessorCoursesPage() {
             return {
               ...c,
               isGiven: true, // Mark as given so the button disappears
-              tutorialSlots: [...(c.tutorialSlots || []), { slotName: data.slotName, roomName: data.roomName }],
-            }
+              tutorialSlots: [
+                ...(c.tutorialSlots || []),
+                { slotName: data.slotName, roomName: data.roomName },
+              ],
+            };
           }
-          return c
-        })
+          return c;
+        });
 
-        setAllCourses(updatedCourses)
-        setFilteredCourses(updatedCourses)
+        setAllCourses(updatedCourses);
+        setFilteredCourses(updatedCourses);
 
-        console.log("Tutorial slot added successfully:", result)
+        console.log("Tutorial slot added successfully:", result);
       } else {
         // API returned an error
-        const errorMessage = result.message || "Failed to add tutorial slot"
+        const errorMessage = result.message || "Failed to add tutorial slot";
 
         toast({
-          title: "Failed to Add Tutorial Slot ❌",
+          title: "Failed to Add Tutorial Slot ",
           description: errorMessage,
           variant: "destructive",
-        })
+        });
 
-        console.error("API Error:", result)
+        console.error("API Error:", result);
       }
     } catch (error) {
       // Network or other errors
-      console.error("Error adding tutorial slot:", error)
+      console.error("Error adding tutorial slot:", error);
 
       toast({
-        title: "Network Error ⚠️",
-        description: "Unable to connect to the server. Please check your connection and try again.",
+        title: "Network Error ",
+        description:
+          "Unable to connect to the server. Please check your connection and try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setAddingTutorialSlot(null) // Clear loading state
+      setAddingTutorialSlot(null); // Clear loading state
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 p-4 sm:p-6">
@@ -1522,7 +1541,9 @@ export default function ProfessorCoursesPage() {
         {/* Loading and auth checks */}
         {status === "loading" || !session ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">{status === "loading" ? "Loading..." : "You are not signed in"}</p>
+            <p className="text-gray-600 text-lg">
+              {status === "loading" ? "Loading..." : "You are not signed in"}
+            </p>
           </div>
         ) : (
           <>
@@ -1535,15 +1556,25 @@ export default function ProfessorCoursesPage() {
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">My Teaching Courses</h1>
-                  <p className="text-gray-600">Manage and monitor your teaching courses</p>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                    My Teaching Courses
+                  </h1>
+                  <p className="text-gray-600">
+                    Manage and monitor your teaching courses
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-700"
+                  >
                     {filteredCourses.length} Courses
                   </Badge>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700">
-                    Fall 2024
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-100 text-green-700"
+                  >
+                    {currSem}
                   </Badge>
                 </div>
               </div>
@@ -1559,7 +1590,10 @@ export default function ProfessorCoursesPage() {
                     onChange={(e) => handleSearch(e.target.value)}
                   />
                 </div>
-                <Select value={selectedCategory} onValueChange={handleCategoryFilter}>
+                <Select
+                  value={selectedCategory}
+                  onValueChange={handleCategoryFilter}
+                >
                   <SelectTrigger className="w-full md:w-48 bg-white/80 backdrop-blur-md border-gray-200">
                     <HiFilter className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="Filter by category" />
@@ -1583,9 +1617,10 @@ export default function ProfessorCoursesPage() {
               className="grid grid-cols-1 gap-5 sm:gap-6 max-w-7xl mx-auto"
             >
               {filteredCourses.map((course) => {
-                const isExpanded = expandedCards.includes(course._id)
-                const shouldShowTutorialSlot = course.tutorials > 0 && !course.isGiven
-                const isAddingSlot = addingTutorialSlot === course._id
+                const isExpanded = expandedCards.includes(course._id);
+                const shouldShowTutorialSlot =
+                  course.tutorials > 0 && !course.isGiven;
+                const isAddingSlot = addingTutorialSlot === course._id;
 
                 return (
                   <motion.div
@@ -1611,7 +1646,9 @@ export default function ProfessorCoursesPage() {
                               <h3 className="font-bold text-gray-800 text-base sm:text-lg lg:text-xl leading-tight mb-1">
                                 {course.title}
                               </h3>
-                              <p className="text-xs sm:text-sm text-gray-500 font-medium">{course.courseCode}</p>
+                              <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                                {course.courseCode}
+                              </p>
                             </div>
                           </div>
                           <Badge
@@ -1647,10 +1684,16 @@ export default function ProfessorCoursesPage() {
                           <div className="mb-4">
                             <div className="relative">
                               <SlotRoomPopup
-                                buttonText={isAddingSlot ? "Adding..." : "Add Tutorial Slot"}
+                                buttonText={
+                                  isAddingSlot
+                                    ? "Adding..."
+                                    : "Add Tutorial Slot"
+                                }
                                 dialogTitle="Add Tutorial Slot"
                                 dialogDescription={`Add a tutorial slot for ${course.courseCode} - ${course.title}`}
-                                onSubmit={(data) => handleAddTutorialSlot(course, data)}
+                                onSubmit={(data) =>
+                                  handleAddTutorialSlot(course, data)
+                                }
                                 buttonVariant="outline"
                                 buttonSize="sm"
                                 buttonIcon={<HiPlus className="w-4 h-4" />}
@@ -1667,8 +1710,11 @@ export default function ProfessorCoursesPage() {
                         {/* Tutorial Slot Added Indicator */}
                         {course.tutorials > 0 && course.isGiven && (
                           <div className="mb-4">
-                            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                              ✅ Tutorial Slot Added
+                            <Badge
+                              variant="secondary"
+                              className="bg-green-100 text-green-700 border-green-200"
+                            >
+                               Tutorial Slot Added
                             </Badge>
                           </div>
                         )}
@@ -1729,8 +1775,12 @@ export default function ProfessorCoursesPage() {
                                 <div className="p-2 bg-white rounded-lg shadow-sm mb-2">
                                   <HiAcademicCap className="w-4 h-4 text-blue-600" />
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">{course.lectures}</p>
-                                <p className="text-xs text-gray-500 font-medium">Lectures</p>
+                                <p className="text-lg font-bold text-gray-800">
+                                  {course.lectures}
+                                </p>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Lectures
+                                </p>
                               </motion.div>
 
                               <motion.div
@@ -1741,8 +1791,12 @@ export default function ProfessorCoursesPage() {
                                 <div className="p-2 bg-white rounded-lg shadow-sm mb-2">
                                   <HiUserGroup className="w-4 h-4 text-green-600" />
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">{course.tutorials}</p>
-                                <p className="text-xs text-gray-500 font-medium">Tutorials</p>
+                                <p className="text-lg font-bold text-gray-800">
+                                  {course.tutorials}
+                                </p>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Tutorials
+                                </p>
                               </motion.div>
 
                               <motion.div
@@ -1753,8 +1807,12 @@ export default function ProfessorCoursesPage() {
                                 <div className="p-2 bg-white rounded-lg shadow-sm mb-2">
                                   <HiLocationMarker className="w-4 h-4 text-purple-600" />
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">{course.practicals}</p>
-                                <p className="text-xs text-gray-500 font-medium">Practicals</p>
+                                <p className="text-lg font-bold text-gray-800">
+                                  {course.practicals}
+                                </p>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Practicals
+                                </p>
                               </motion.div>
 
                               <motion.div
@@ -1765,8 +1823,12 @@ export default function ProfessorCoursesPage() {
                                 <div className="p-2 bg-white rounded-lg shadow-sm mb-2">
                                   <HiAcademicCap className="w-4 h-4 text-orange-600" />
                                 </div>
-                                <p className="text-lg font-bold text-gray-800">{course.credits}</p>
-                                <p className="text-xs text-gray-500 font-medium">Credits</p>
+                                <p className="text-lg font-bold text-gray-800">
+                                  {course.credits}
+                                </p>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Credits
+                                </p>
                               </motion.div>
                             </div>
 
@@ -1782,9 +1844,12 @@ export default function ProfessorCoursesPage() {
                                 </div>
                                 <div>
                                   <p className="text-sm sm:text-base font-semibold text-gray-800">
-                                    {course.enrolledStudents?.length || 0} Students
+                                    {course.enrolledStudents?.length || 0}{" "}
+                                    Students
                                   </p>
-                                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Enrolled</p>
+                                  <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                                    Enrolled
+                                  </p>
                                 </div>
                               </motion.div>
                             </div>
@@ -1800,8 +1865,12 @@ export default function ProfessorCoursesPage() {
                                   <HiAcademicCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
                                 </div>
                                 <div>
-                                  <p className="text-sm sm:text-base font-semibold text-gray-800">Course Description</p>
-                                  <p className="text-xs sm:text-sm text-gray-500">{course.description}</p>
+                                  <p className="text-sm sm:text-base font-semibold text-gray-800">
+                                    Course Description
+                                  </p>
+                                  <p className="text-xs sm:text-sm text-gray-500">
+                                    {course.description}
+                                  </p>
                                 </div>
                               </motion.div>
                             )}
@@ -1829,8 +1898,21 @@ export default function ProfessorCoursesPage() {
                                             {sch.day}
                                           </span>
                                           <p className="text-xs sm:text-sm text-gray-500">
-                                            {new Date(sch.start).toLocaleTimeString()} -{" "}
-                                            {new Date(sch.end).toLocaleTimeString()}
+                                            {new Date(
+                                              sch.start
+                                            ).toLocaleTimeString("en-US", {
+                                              hour: "numeric",
+                                              minute: "2-digit",
+                                              hour12: true,
+                                            })}{" "}
+                                            -{" "}
+                                            {new Date(
+                                              sch.end
+                                            ).toLocaleTimeString("en-US", {
+                                              hour: "numeric",
+                                              minute: "2-digit",
+                                              hour12: true,
+                                            })}
                                           </p>
                                         </div>
                                       </div>
@@ -1848,21 +1930,29 @@ export default function ProfessorCoursesPage() {
                       </motion.div>
                     </Card>
                   </motion.div>
-                )
+                );
               })}
             </motion.div>
 
             {/* Empty State */}
             {filteredCourses.length === 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12"
+              >
                 <HiAcademicCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-500 mb-2">No courses found</h3>
-                <p className="text-gray-400">Try adjusting your search or filter criteria</p>
+                <h3 className="text-lg font-medium text-gray-500 mb-2">
+                  No courses found
+                </h3>
+                <p className="text-gray-400">
+                  Try adjusting your search or filter criteria
+                </p>
               </motion.div>
             )}
           </>
         )}
       </div>
     </main>
-  )
+  );
 }

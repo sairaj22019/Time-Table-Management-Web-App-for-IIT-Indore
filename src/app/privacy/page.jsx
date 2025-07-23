@@ -386,14 +386,14 @@ export default function PrivacyPolicyPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-white/60 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-800 mb-2">Contact Our Privacy Team</h4>
-                  <p className="text-gray-600 text-sm mb-3">privacy@yourinstitution.edu</p>
+                  <p className="text-gray-600 text-sm mb-3">privacy@campussync.com</p>
                   <Button variant="outline" size="sm" className="w-full bg-transparent">
                     Send Email
                   </Button>
                 </div>
                 <div className="bg-white/60 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-800 mb-2">Data Protection Officer</h4>
-                  <p className="text-gray-600 text-sm mb-3">dpo@yourinstitution.edu</p>
+                  <p className="text-gray-600 text-sm mb-3">dpo@campussync.com</p>
                   <Button variant="outline" size="sm" className="w-full bg-transparent">
                     Contact DPO
                   </Button>

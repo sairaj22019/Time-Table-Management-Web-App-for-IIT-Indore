@@ -1,3 +1,4 @@
+
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Student from "@/models/Student.model";
 import User from "@/models/User.model";
@@ -52,12 +53,11 @@ export async function POST(req) {
     console.log(student);
     await student.populate("enrolledClasses");
     console.log("classes", student.enrolledClasses);
-    const currentSem = student.enrolledClasses[0].forSemester;
+    const currentSem = student?.enrolledClasses[0]?.forSemester || "";
     const gridOfTheSemester = await Grid.findOne({ semester: currentSem });
     let lunchBreakSlot;
-    if(!gridOfTheSemester) {
-      lunchBreakSlot = 4; 
-    }else{
+    if(!gridOfTheSemester) lunchBreakSlot = 4;
+    else {
       if (gridOfTheSemester.grid[0][4].slot == "LB") {
         lunchBreakSlot = 4;
       } else {
@@ -86,3 +86,4 @@ export async function POST(req) {
     );
   }
 }
+

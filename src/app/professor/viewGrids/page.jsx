@@ -414,13 +414,11 @@ export default function ViewGridsPage() {
                 </h1>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 text-sm text-blue-600">
-                <Link href="/admin/courses" className="hover:text-blue-800 hover:underline">
+                <Link href="/professor/courses" className="hover:text-blue-800 hover:underline">
                   ← Back to courses
                 </Link>
-                <span className="hidden sm:inline">|</span>
-                <Link href="/admin/grid" className="hover:text-blue-800 hover:underline">
-                  Create new grid →
-                </Link>
+                
+                
               </div>
             </div>
 
@@ -528,7 +526,7 @@ export default function ViewGridsPage() {
                           </div>
                         </div>
 
-                        <Link href={`/admin/viewGrids/${grid._id}`}>
+                        <Link href={`/professor/viewGrids/${grid._id}`}>
                           <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10">
                             <Eye className="w-4 h-4 mr-2" />
                             View Grid Details
