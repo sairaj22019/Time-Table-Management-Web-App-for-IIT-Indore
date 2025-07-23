@@ -40,11 +40,6 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: ["student", "professor", "admin"],
-    },
-    theme: {
-      type: String,
-      enum: ["light","dark"],
-      default: "light"
     }
   },
   {

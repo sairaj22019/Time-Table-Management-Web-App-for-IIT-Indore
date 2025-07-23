@@ -90,6 +90,10 @@ const courseSchema = new Schema({
     type:Boolean,
     default:false,
   },
+  isGiven:{
+    type:Boolean,
+    default:false,
+  }
 },{timestamps:true,minimize:false});
 
 
