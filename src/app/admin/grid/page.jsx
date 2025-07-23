@@ -424,7 +424,7 @@ export default function TimetablePage() {
                       key={slot.id}
                       className={`border border-gray-300 rounded-lg p-1 sm:p-2 text-center ${
                         slot.id === lunchBreakSlot ? "bg-orange-100" : "bg-blue-50"
-                      }`}
+                      } flex justify-center items-center` }
                     >
                       <div className="text-xs font-semibold text-gray-700 leading-tight">{slot.label}</div>
                     </div>
