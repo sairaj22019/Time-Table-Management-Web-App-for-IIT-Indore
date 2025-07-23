@@ -93,6 +93,12 @@ const courseSchema = new Schema({
   isGiven:{
     type:Boolean,
     default:false,
+  },
+  studentDetails:{
+    type:Object,
+  },
+  slotRoomDetails:{
+    type:Array,
   }
 },{timestamps:true,minimize:false});
 
