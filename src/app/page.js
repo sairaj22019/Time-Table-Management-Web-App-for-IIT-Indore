@@ -455,7 +455,7 @@ export default function EnhancedLandingPage() {
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-6 italic">"{testimonial.quote}"</p>
+                  <p className="text-gray-700 mb-6 italic">{testimonial.quote}</p>
                   <div>
                     <div className="font-semibold text-gray-800">{testimonial.author}</div>
                     <div className="text-gray-600 text-sm">{testimonial.role}</div>
