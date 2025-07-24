@@ -610,7 +610,7 @@ export function AppSidebar() {
           description: error.message || "Failed to add admin. Please try again.",
           variant: "destructive",
         })
-
+        alert("No user exists with this email")
         console.error("Error adding admin:", error)
 
         // Keep the confirmation dialog open so user can try again

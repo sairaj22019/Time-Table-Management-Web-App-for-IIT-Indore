@@ -1,3 +1,4 @@
+
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Professor from "@/models/Professor.model";
 import { NextRequest,NextResponse } from "next/server";
@@ -61,4 +62,3 @@ export async function POST(req){
         })
     }
 } 
-

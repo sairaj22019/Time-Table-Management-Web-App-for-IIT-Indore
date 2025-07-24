@@ -1,3 +1,4 @@
+
 import { connectDB } from "@/dbConnection/ConnectDB";
 import Student from "@/models/Student.model";
 import User from "@/models/User.model";
@@ -85,3 +86,4 @@ export async function POST(req) {
     );
   }
 }
+
