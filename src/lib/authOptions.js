@@ -1,4 +1,4 @@
-import { NextAuthOptions } from "next-auth";
+// import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { connectDB } from "@/dbConnection/ConnectDB";
@@ -80,8 +80,9 @@ export const authOptions = {
     },
 
     async jwt({ token, user, trigger, session }) {
+      await connectDB();
       // On first login
-      if (user) {
+      if (user?.id) {
         token.id = user.id;
         const userdata = await User.findById(user.id);
         if (userdata) {
