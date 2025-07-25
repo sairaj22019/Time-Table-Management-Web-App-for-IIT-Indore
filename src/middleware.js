@@ -1,38 +1,57 @@
-// sairaj
 
-import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { NextResponse } from "next/server";
 
 export async function middleware(request) {
-  const { pathname } = request.nextUrl;
+  const { pathname, origin } = request.nextUrl;
 
-  // Ignore static and public paths
+  // Ignore static/public paths and login/signup
   if (
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon.ico') ||
-    pathname === '/login'
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/notAllowed"
   ) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  // Fetch role from backend
+  let role = null;
+  try {
+    const res = await fetch(`${origin}/api/user/role`, {
+      headers: {
+        cookie: request.headers.get("cookie") || "",
+      },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      role = data.role;
+    }
+  } catch (e) {
+    console.error("Error fetching role in middleware:", e);
+  }
 
-  console.log("Token:", token);
+  console.log("ROLE" , role)
 
-   if (pathname === '/complete-profile' && token?.role === 'admin') {
+  if(pathname === '/' && role){
+    return NextResponse.redirect(new URL(`/${role}`, request.url));
+
+  }
+
+  if(pathname === '/complete-profile' && role === 'admin') {
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 
   // Protect /admin routes
   if (pathname.startsWith('/admin')) {
-    if (!token) {
+    if (!role) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('returnTo', pathname);
       return NextResponse.redirect(loginUrl);
     }
 
-    if (token.role !== 'admin') {
+    if (role !== 'admin') {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
@@ -44,37 +63,37 @@ export async function middleware(request) {
 
   // Protect /student routes
   if (pathname.startsWith('/student')) {
-    if (!token) {
+    if (!role) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('returnTo', pathname);
       return NextResponse.redirect(loginUrl);
     }
 
     // If user's role is empty and not admin, force complete-profile
-    if (!token.role) {
+    if (!role) {
       const completeUrl = new URL('/complete-profile', request.url);
       return NextResponse.redirect(completeUrl);
     }
 
-    if (token.role !== 'student') {
+    if (role !== 'student') {
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
   // Protect /professor routes
   if (pathname.startsWith('/professor')) {
-    if (!token) {
+    if (!role) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('returnTo', pathname);
       return NextResponse.redirect(loginUrl);
     }
 
-    if (!token.role) {
+    if (!role) {
       const completeUrl = new URL('/complete-profile', request.url);
       return NextResponse.redirect(completeUrl);
     }
 
-    if (token.role !== 'professor') {
+    if (role !== 'professor') {
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
@@ -84,179 +103,6 @@ export async function middleware(request) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|login).*)',
+    "/((?!_next/|api/|favicon.ico|login|signup|notAllowed).*)",
   ],
 };
-
-
-
-
-
-
-
-// // manish
-// import { NextResponse } from 'next/server'
-// import { getToken } from 'next-auth/jwt'
-
-// export async function middleware(request) {
-//   const { pathname } = request.nextUrl
-
-//   // Ignore static and public paths
-//   if (
-//     pathname.startsWith('/api') ||
-//     pathname.startsWith('/_next') ||
-//     pathname.startsWith('/favicon.ico') ||
-//     pathname === '/login' ||
-//     pathname === '/complete-profile'
-//   ) {
-//     return NextResponse.next()
-//   }
-
-//   const token = await getToken({ req: request })
-
-
-//   if (pathname.startsWith('/dashboard')) {
-//     if (!token) {
-//       const loginUrl = new URL('/login', request.url)
-//       loginUrl.searchParams.set('returnTo', pathname)
-//       return NextResponse.redirect(loginUrl)
-//     }
-
-
-//     if (!token.username || !token.role) {
-//       const completeUrl = new URL('/complete-profile', request.url)
-//       return NextResponse.redirect(completeUrl)
-//     }
-//   }
-//   // else if(pathname.startsWith('/student')){
-//   //   if (!token) {
-//   //     const loginUrl = new URL('/login', request.url)
-//   //     loginUrl.searchParams.set('returnTo', pathname)
-//   //     return NextResponse.redirect(loginUrl)
-//   //   }
-
-//   //   if (!token.role) {
-//   //     const completeUrl = new URL('/complete-profile', request.url)
-//   //     return NextResponse.redirect(completeUrl)
-//   //   }
-
-//   // }else if(pathname.startsWith('/professor')){
-//   //   if (!token) {
-//   //     const loginUrl = new URL('/login', request.url)
-//   //     loginUrl.searchParams.set('returnTo', pathname)
-//   //     return NextResponse.redirect(loginUrl)
-//   //   }
-
-//   //   if (!token.role) {
-//   //     const completeUrl = new URL('/complete-profile', request.url)
-//   //     return NextResponse.redirect(completeUrl)
-//   //   }
-//   // }
-
-
-
-//   if (pathname.startsWith('/about')) {
-//     return NextResponse.redirect(new URL('/', request.url))
-//   }
-
-//   return NextResponse.next()
-// }
-
-// // export const config = {
-
-// //   matcher: [
-// //     '/((?!api|_next/static|_next/image|favicon.ico|login).*)',
-// //     // Or match specific paths, e.g.:
-// //     // '/dashboard/:path*',
-// //     // '/about/:path*'
-// //   ]
-// // }
-
-
-// export const config = {
-//   matcher: [
-//     '/((?!api|_next/static|_next/image|favicon.ico|login|complete-profile).*)',
-//   ]
-// }
-
-
-
-
-
-
-// import { NextResponse } from 'next/server'
-// import { getToken } from 'next-auth/jwt'
-
-// export async function middleware(request) {
-//   const { pathname } = request.nextUrl
-
-//   // Ignore static and public paths
-//   if (
-//     pathname.startsWith('/api') ||
-//     pathname.startsWith('/_next') ||
-//     pathname.startsWith('/favicon.ico') ||
-//     pathname === '/login' ||
-//     pathname === '/complete-profile'
-//   ) {
-//     return NextResponse.next()
-//   }
-
-//   const token = await getToken({ req: request })
-
-
-//   if (pathname.startsWith('/student')) {
-//     if (!token) {
-//       const loginUrl = new URL('/login', request.url)
-//       loginUrl.searchParams.set('returnTo', pathname)
-//       return NextResponse.redirect(loginUrl)
-//     }
-
-//     if (!token.role) {
-//       const completeUrl = new URL('/complete-profile', request.url)
-//       return NextResponse.redirect(completeUrl)
-//     }
-//   }else if(pathname.startsWith('/professor')){
-//     if (!token) {
-//       const loginUrl = new URL('/login', request.url)
-//       loginUrl.searchParams.set('returnTo', pathname)
-//       return NextResponse.redirect(loginUrl)
-//     }
-
-//     if (!token.role) {
-//       const completeUrl = new URL('/complete-profile', request.url)
-//       return NextResponse.redirect(completeUrl)
-//     }
-//   }
-//   console.log("Token" , token);
-
-//    if (pathname.startsWith('/student') && token.role !== 'student') {
-//     return NextResponse.redirect(new URL('/login', request.url))
-//   }
-
-//   if (pathname.startsWith('/professor') && token.role !== 'professor') {
-//     return NextResponse.redirect(new URL('/login', request.url))
-//   }
-
-//   if (pathname.startsWith('/about')) {
-//     return NextResponse.redirect(new URL('/', request.url))
-//   }
-
-//   return NextResponse.next()
-// }
-
-// // export const config = {
-
-// //   matcher: [
-// //     '/((?!api|_next/static|_next/image|favicon.ico|login).*)',
-// //     // Or match specific paths, e.g.:
-// //     // '/dashboard/:path*',
-// //     // '/about/:path*'
-// //   ]
-// // }
-
-
-// export const config = {
-//   matcher: [
-//     '/((?!api|_next/static|_next/image|favicon.ico|login|complete-profile).*)',
-//   ]
-// }

@@ -8,32 +8,7 @@ import Student from "@/models/Student.model";
 import { NextRequest, NextResponse } from "next/server";
 import Courses from "@/app/student/courses/page";
 
-// async function addPollToProfessor(newPoll, newNotificationId) {
-//   try {
-//     const prof = await Professor.findById(newPoll.prof);
-//     prof.activePolls.push(newPoll._id);
-//     prof.notifications.push(newNotificationId);
-//     await prof.save();
-//   } catch (error) {
-//     console.log(error);
-//     return null;
-//   }
-// }
 
-// async function addPollToStudents(newPoll, newNotificationId) {
-//   try {
-//     const course = await Course.findById(newPoll.course).populate(
-//       "enrolledStudents"
-//     );
-//     for (const student of course.enrolledStudents) {
-//       student.notifications.push(newNotificationId);
-//       student.save();
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return null;
-//   }
-// }
 
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
