@@ -583,7 +583,7 @@ export function AppSidebar() {
     setTheme(theme === "dark" ? "light" : "dark")
   }
 
-  if (status === "loading") return <p>Loading...</p>
+  if (status === "loading") return 
 
   console.log("session", session)
 
