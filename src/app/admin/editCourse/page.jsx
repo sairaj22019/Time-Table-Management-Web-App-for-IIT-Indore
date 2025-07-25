@@ -1,4 +1,6 @@
+
 // "use client"
+
 // import { useForm, useFieldArray } from "react-hook-form"
 // import { z } from "zod"
 // import { zodResolver } from "@hookform/resolvers/zod"
@@ -110,7 +112,6 @@
 //   const searchParams = useSearchParams()
 //   const { toast } = useToast()
 //   const courseId = searchParams.get("id")
-
 //   const [errorMsg, setErrorMsg] = useState("")
 //   const [loading, setLoading] = useState(false)
 //   const [fetchingCourse, setFetchingCourse] = useState(true)
@@ -174,12 +175,10 @@
 //       router.push("/admin/courses")
 //       return
 //     }
-
 //     const fetchCourseData = async () => {
 //       try {
 //         setFetchingCourse(true)
 //         console.log("Fetching course with ID:", courseId)
-
 //         const response = await fetch(`/api/course/getCourseDetails`, {
 //           method: "POST",
 //           headers: {
@@ -187,14 +186,11 @@
 //           },
 //           body: JSON.stringify({ courseId }),
 //         })
-
 //         const data = await response.json()
 //         console.log("Course data received:", data)
-
 //         if (data.success && data.course) {
 //           const course = data.course
 //           console.log("Processing course:", course)
-
 //           // Parse semester
 //           const semesterParts = course.forSemester?.split(" ") || []
 //           const semesterYear = semesterParts[0] || ""
@@ -213,9 +209,16 @@
 //           const studentDepartments = course.studentDetails?.departments || []
 //           const rollNumbers = course.studentDetails?.rollnos || []
 
-//           // Convert roomSlots if they exist
-//           const roomSlots = []
-//           if (course.slots && course.slots.length > 0 && course.room && course.room !== "empty") {
+//           // Convert roomSlots - Updated logic to use slotRoomDetails
+//           let roomSlots = []
+//           if (course.slotRoomDetails && course.slotRoomDetails.length > 0) {
+//             // For >1 year courses, use slotRoomDetails directly
+//             roomSlots = course.slotRoomDetails.map((detail) => ({
+//               room: detail.room,
+//               slots: detail.slots,
+//             }))
+//           } else if (course.slots && course.slots.length > 0 && course.room && course.room !== "empty") {
+//             // Fallback for old data structure
 //             roomSlots.push({
 //               room: course.room,
 //               slots: course.slots,
@@ -419,8 +422,8 @@
 //       setSlotError("Slots are required")
 //       return
 //     }
-//     setSlotError("")
 
+//     setSlotError("")
 //     const newSlots = slotInput
 //       .split(/[,\s]+/)
 //       .map((slot) => slot.trim().toUpperCase())
@@ -476,7 +479,6 @@
 //     setErrorMsg("")
 //     setGeneralError("")
 //     setLoading(true)
-
 //     try {
 //       const courseData = {
 //         id: courseId,
@@ -520,7 +522,6 @@
 //       })
 
 //       const result = await response.json()
-
 //       if (!response.ok) {
 //         throw new Error(result.message || "Failed to update course")
 //       }
@@ -530,7 +531,6 @@
 //         description: "Course updated successfully!",
 //         variant: "default",
 //       })
-
 //       router.push("/admin/courses")
 //     } catch (error) {
 //       console.error("Course update error:", error)
@@ -1608,6 +1608,9 @@
 // }
 
 
+
+
+
 "use client"
 
 import { useForm, useFieldArray } from "react-hook-form"
@@ -1784,6 +1787,7 @@ export default function EditCoursePage() {
       router.push("/admin/courses")
       return
     }
+
     const fetchCourseData = async () => {
       try {
         setFetchingCourse(true)
@@ -1795,11 +1799,14 @@ export default function EditCoursePage() {
           },
           body: JSON.stringify({ courseId }),
         })
+
         const data = await response.json()
         console.log("Course data received:", data)
+
         if (data.success && data.course) {
           const course = data.course
           console.log("Processing course:", course)
+
           // Parse semester
           const semesterParts = course.forSemester?.split(" ") || []
           const semesterYear = semesterParts[0] || ""
@@ -1918,6 +1925,7 @@ export default function EditCoursePage() {
         console.error("Error fetching professors:", error)
       }
     }
+
     fetchProfessors()
   }, [])
 
@@ -1961,6 +1969,7 @@ export default function EditCoursePage() {
       setShowSuggestions((prev) => ({ ...prev, [index]: false }))
       return
     }
+
     const filtered = professors.filter((prof) => prof.email.toLowerCase().includes(input.toLowerCase())).slice(0, 5)
     setEmailSuggestions((prev) => ({ ...prev, [index]: filtered }))
     setShowSuggestions((prev) => ({ ...prev, [index]: filtered.length > 0 }))
@@ -2027,12 +2036,14 @@ export default function EditCoursePage() {
       setSlotError("Room is required")
       return
     }
+
     if (!slotInput.trim()) {
       setSlotError("Slots are required")
       return
     }
 
     setSlotError("")
+
     const newSlots = slotInput
       .split(/[,\s]+/)
       .map((slot) => slot.trim().toUpperCase())
@@ -2088,6 +2099,7 @@ export default function EditCoursePage() {
     setErrorMsg("")
     setGeneralError("")
     setLoading(true)
+
     try {
       const courseData = {
         id: courseId,
@@ -2131,6 +2143,7 @@ export default function EditCoursePage() {
       })
 
       const result = await response.json()
+
       if (!response.ok) {
         throw new Error(result.message || "Failed to update course")
       }
@@ -2140,6 +2153,7 @@ export default function EditCoursePage() {
         description: "Course updated successfully!",
         variant: "default",
       })
+
       router.push("/admin/courses")
     } catch (error) {
       console.error("Course update error:", error)
@@ -2188,6 +2202,7 @@ export default function EditCoursePage() {
                 ← Back to courses
               </Link>
             </div>
+
             <p className="text-sm text-gray-600 text-center mb-10 max-w-2xl mx-auto">
               Update the course details below. All required fields must be completed before submission.
             </p>
@@ -2978,6 +2993,7 @@ export default function EditCoursePage() {
                                       <Select
                                         onValueChange={(hour) => {
                                           const currentTime = field.value || ""
+                                          const currentHour = currentTime.match(/(\d{1,2}):/)?.[1] || ""
                                           const [, minute = "00", period = "AM"] =
                                             currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
                                           field.onChange(`${hour}:${minute} ${period}`)
@@ -2995,13 +3011,13 @@ export default function EditCoursePage() {
                                           ))}
                                         </SelectContent>
                                       </Select>
-
                                       <Select
                                         onValueChange={(minute) => {
                                           const currentTime = field.value || ""
-                                          const [, hour = "1", , period = "AM"] =
+                                          const currentHour = currentTime.match(/(\d{1,2}):/)?.[1] || "1"
+                                          const [, , , period = "AM"] =
                                             currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                          field.onChange(`${hour}:${minute} ${period}`)
+                                          field.onChange(`${currentHour}:${minute} ${period}`)
                                         }}
                                         value={field.value?.match(/:(\d{2})/)?.[1] || ""}
                                       >
@@ -3023,13 +3039,12 @@ export default function EditCoursePage() {
                                           <SelectItem value="55">55</SelectItem>
                                         </SelectContent>
                                       </Select>
-
                                       <Select
                                         onValueChange={(period) => {
                                           const currentTime = field.value || ""
-                                          const [, hour = "1", minute = "00"] =
-                                            currentTime.match(/(\d{1,2}):(\d{2})/i) || []
-                                          field.onChange(`${hour}:${minute} ${period}`)
+                                          const currentHour = currentTime.match(/(\d{1,2}):/)?.[1] || "1"
+                                          const [, , minute = "00"] = currentTime.match(/(\d{1,2}):(\d{2})/i) || []
+                                          field.onChange(`${currentHour}:${minute} ${period}`)
                                         }}
                                         value={field.value?.match(/\s*(AM|PM)/i)?.[1] || ""}
                                       >
@@ -3058,6 +3073,7 @@ export default function EditCoursePage() {
                                       <Select
                                         onValueChange={(hour) => {
                                           const currentTime = field.value || ""
+                                          const currentHour = currentTime.match(/(\d{1,2}):/)?.[1] || ""
                                           const [, minute = "00", period = "AM"] =
                                             currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
                                           field.onChange(`${hour}:${minute} ${period}`)
@@ -3075,13 +3091,13 @@ export default function EditCoursePage() {
                                           ))}
                                         </SelectContent>
                                       </Select>
-
                                       <Select
                                         onValueChange={(minute) => {
                                           const currentTime = field.value || ""
-                                          const [, hour = "1", , period = "AM"] =
+                                          const currentHour = currentTime.match(/(\d{1,2}):/)?.[1] || "1"
+                                          const [, , , period = "AM"] =
                                             currentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || []
-                                          field.onChange(`${hour}:${minute} ${period}`)
+                                          field.onChange(`${currentHour}:${minute} ${period}`)
                                         }}
                                         value={field.value?.match(/:(\d{2})/)?.[1] || ""}
                                       >
@@ -3103,13 +3119,12 @@ export default function EditCoursePage() {
                                           <SelectItem value="55">55</SelectItem>
                                         </SelectContent>
                                       </Select>
-
                                       <Select
                                         onValueChange={(period) => {
                                           const currentTime = field.value || ""
-                                          const [, hour = "1", minute = "00"] =
-                                            currentTime.match(/(\d{1,2}):(\d{2})/i) || []
-                                          field.onChange(`${hour}:${minute} ${period}`)
+                                          const currentHour = currentTime.match(/(\d{1,2}):/)?.[1] || "1"
+                                          const [, , minute = "00"] = currentTime.match(/(\d{1,2}):(\d{2})/i) || []
+                                          field.onChange(`${currentHour}:${minute} ${period}`)
                                         }}
                                         value={field.value?.match(/\s*(AM|PM)/i)?.[1] || ""}
                                       >
