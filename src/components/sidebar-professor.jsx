@@ -209,7 +209,7 @@ export function AppSidebar() {
     }
   }
 
-  if (status === "loading") return <p>Loading...</p>
+  if (status === "loading") return 
   console.log("session", session)
   if (!session) {
     return <p>You are not signed in</p>
