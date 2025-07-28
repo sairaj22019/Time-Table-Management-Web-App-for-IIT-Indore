@@ -43,19 +43,19 @@ export default function EnhancedLandingPage() {
   const dashboards = [
     {
       title: "Admin Dashboard",
-      img: "/bg.jpeg",
+      img: "/admin.png",
       desc: "Manage courses, assign rooms, resolve conflicts, and approve change requests with powerful analytics.",
       features: ["Course Management", "Room Assignment", "Conflict Resolution", "Analytics Dashboard"],
     },
     {
       title: "Student Dashboard",
-      img: "/bg.jpeg",
+      img: "/student.png",
       desc: "View personalized schedules, receive live updates, and participate in interactive polls.",
       features: ["Personal Schedule", "Live Updates", "Interactive Polls", "Mobile Sync"],
     },
     {
       title: "Professor Dashboard",
-      img: "/bg.jpeg",
+      img: "/professor.png",
       desc: "Propose schedule changes, conduct class polls, and manage academic events seamlessly.",
       features: ["Schedule Proposals", "Class Polls", "Event Management", "Student Analytics"],
     },
@@ -68,61 +68,7 @@ export default function EnhancedLandingPage() {
     { number: "24/7", label: "Support", icon: Clock },
   ]
 
-  const features = [
-    {
-      icon: Zap,
-      title: "Real-time Updates",
-      description: "Instant notifications for schedule changes and conflicts",
-    },
-    {
-      icon: Users,
-      title: "Role-based Access",
-      description: "Customized dashboards for students, professors, and admins",
-    },
-    {
-      icon: Bell,
-      title: "Smart Notifications",
-      description: "Email alerts and push notifications for important updates",
-    },
-    {
-      icon: Calendar,
-      title: "Calendar Integration",
-      description: "Sync with Google Calendar and other popular calendar apps",
-    },
-    {
-      icon: Shield,
-      title: "Secure & Reliable",
-      description: "Enterprise-grade security with 99.9% uptime guarantee",
-    },
-    {
-      icon: CheckCircle,
-      title: "Conflict Detection",
-      description: "Automatic detection and resolution of scheduling conflicts",
-    },
-  ]
-
-  const testimonials = [
-    {
-      quote:
-        "CampusSync revolutionized how we manage our academic schedules. The real-time updates are a game-changer!",
-      author: "Dr. Sarah Johnson",
-      role: "Professor, Computer Science",
-      rating: 5,
-    },
-    {
-      quote: "As a student, I love how easy it is to stay updated with my classes. No more missed lectures!",
-      author: "Rahul Sharma",
-      role: "B.Tech Student",
-      rating: 5,
-    },
-    {
-      quote: "The admin dashboard gives us complete control over scheduling. Conflicts are resolved automatically!",
-      author: "Prof. Michael Chen",
-      role: "Academic Coordinator",
-      rating: 5,
-    },
-  ]
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 overflow-x-hidden">
       {/* Animated Background */}
@@ -161,11 +107,9 @@ export default function EnhancedLandingPage() {
               <Link href="#features" className="hover:text-blue-600 transition-colors">
                 Features
               </Link>
-              <Link href="#testimonials" className="hover:text-blue-600 transition-colors">
-                Reviews
-              </Link>
-              <Link href="#pricing" className="hover:text-blue-600 transition-colors">
-                Pricing
+              
+              <Link href="#dashboard" className="hover:text-blue-600 transition-colors">
+                Dashboards
               </Link>
             </div>
 
@@ -244,14 +188,7 @@ export default function EnhancedLandingPage() {
                 Start Now
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl px-8 py-4 text-lg group"
-              >
-                <Play className="mr-2 w-5 h-5" />
-                Watch Demo
-              </Button>
+              
             </motion.div>
           </motion.div>
 
@@ -289,28 +226,7 @@ export default function EnhancedLandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.6 }}
-                viewport={{ once: true }}
-                className="text-center group"
-              >
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-gray-200 hover:border-blue-300 transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-xl">
-                  <stat.icon className="w-8 h-8 text-blue-600 mx-auto mb-4" />
-                  <div className="text-3xl font-bold text-gray-800 mb-2">{stat.number}</div>
-                  <div className="text-gray-600">{stat.label}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       {/* Enhanced Dashboards Section */}
       <section className="py-20 px-4">
@@ -382,129 +298,9 @@ export default function EnhancedLandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Features Section */}
-      <section id="features" className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Everything You Need
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Comprehensive features designed to streamline your academic scheduling experience
-            </p>
-          </motion.div>
+      
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.6 }}
-                viewport={{ once: true }}
-                className="group"
-              >
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 hover:border-blue-300 transition-all duration-300 group-hover:scale-105 h-full shadow-lg hover:shadow-xl">
-                  <div className="bg-gradient-to-r from-blue-500 to-sky-500 w-12 h-12 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced Testimonials */}
-      <section id="testimonials" className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Loved by Thousands
-            </h2>
-            <p className="text-xl text-gray-600">See what our users have to say about CampusSync</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2, duration: 0.6 }}
-                viewport={{ once: true }}
-                className="group"
-              >
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 hover:border-blue-300 transition-all duration-300 group-hover:scale-105 h-full shadow-lg hover:shadow-xl">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-6 italic">{testimonial.quote}</p>
-                  <div>
-                    <div className="font-semibold text-gray-800">{testimonial.author}</div>
-                    <div className="text-gray-600 text-sm">{testimonial.role}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced CTA Section */}
-      <section className="py-20 px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center"
-        >
-          <div className="bg-gradient-to-r from-blue-50 to-sky-50 backdrop-blur-xl rounded-3xl p-12 border border-blue-200 relative overflow-hidden shadow-xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-sky-500/5 animate-pulse" />
-            <div className="relative z-10">
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                Ready to Transform Your Campus?
-              </h2>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                Join thousands of students and faculty who have already revolutionized their scheduling experience
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 group"
-                >
-                  Start Your Free Trial
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl px-8 py-4 text-lg"
-                >
-                  Schedule a Demo
-                </Button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </section>
+      
 
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-gray-200 bg-white/50">
