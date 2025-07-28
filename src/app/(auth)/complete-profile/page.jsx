@@ -50,45 +50,7 @@ export default function CompleteProfilePage() {
     { value: "sse", label: "Astronomy, Astrophysics and Space Engineering" },
   ]
 
-  // useEffect(() => {
-  //   if (!session?.user?.email) {
-  //     router.push("/login")
-  //     return
-  //   }
 
-  //   const email = session.user.email
-  //   const localPart = email.split("@")[0]
-  //   const numMatch = localPart.match(/\d{9,}/)
-
-  //   if (numMatch) {
-  //     setRole("student")
-  //     const deptCode = localPart.split(/\d/)[0].toLowerCase()
-  //     const matchedDept = studentDepartments.find((dept) => dept.value === deptCode)
-  //     if (matchedDept) setDepartment(matchedDept.value)
-  //     setRollno(numMatch[0])
-  //   } else {
-  //     setRole("professor")
-  //   }
-
-  //   const checkProfileCompletion = async () => {
-  //     try {
-  //       const res = await fetch(`/api/auth/profile?email=${email}`)
-  //       const data = await res.json()
-  //       await update({ role, username })
-  //       if (data.role) {
-  //         if (data.role === 'student' && data.rollno) {
-  //           router.push('/student')
-  //         } else if (data.role === 'professor' && data.department) {
-  //           router.push('/professor')
-  //         }
-  //       }
-  //     } catch (err) {
-  //       console.error('Profile check failed', err)
-  //     }
-  //   }
-
-  //   checkProfileCompletion()
-  // }, [session, router])
 
   useEffect(() => {
   if (status !== 'authenticated' || !session?.user?.email) return;

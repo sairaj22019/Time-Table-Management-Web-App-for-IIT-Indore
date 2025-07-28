@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Users, Clock, MapPin, CheckCircle, XCircle, Calendar, AlertCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-// --- TRANSFORM FUNCTION ---
+
 function transformNotificationToPoll(notification) {
   const { message, prof, course, type, messageTitle } = notification
   // Find vote counts for each option
