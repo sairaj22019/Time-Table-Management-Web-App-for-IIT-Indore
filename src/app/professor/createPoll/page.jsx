@@ -173,6 +173,21 @@ export default function CreatePollPage() {
       const profEmail = session?.user?.email || ""
 
       // Parse expiry date and time from form
+      function convertTo24Hour(timeString) {
+        const [time, modifier] = timeString.split(' ');
+        let [hours, minutes] = time.split(':');
+
+        hours = parseInt(hours, 10);
+
+        if (modifier === 'PM' && hours !== 12) {
+          hours += 12;
+        }
+        if (modifier === 'AM' && hours === 12) {
+          hours = 0;
+        }
+
+        return `${hours.toString().padStart(2, '0')}:${minutes}`;
+      }
       const expiryDateTime = new Date(`${data.expiryDate}T${convertTo24Hour(data.expiryTime)}`)
 
       // Transform options to match backend format

@@ -31,14 +31,19 @@ export async function GET(req) {
 
     for (const poll of expiredUnapprovedPolls) {
       const notification = await Notification.findOne({ message: poll._id })
+      if (!notification) continue;
 
-      notification.course=await Course.findOne({_id:notification.course})
+      if(notification.course){
+        notification.course=await Course.findOne({_id:notification.course})
+      }else continue;
+
       if(notification.prof){
         notification.prof=await Professor.findOne({_id:notification.prof})
-      }
+      }else continue;
+      
       notification.message=await Poll.findOne({_id:notification.message})
-
-      if (!notification) continue;
+      
+    
       if(notification.type=="poll"){
         notifications.push(notification);
       }
