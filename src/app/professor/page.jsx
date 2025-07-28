@@ -94,7 +94,7 @@ export default function ProfessorDashboardHome() {
   const router = useRouter()
   const containerRef = useRef(null)
   const { data: session, status } = useSession()
-  let profEmail
+  const [profEmail, setprofEmail] = useState("")
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
@@ -129,7 +129,7 @@ export default function ProfessorDashboardHome() {
 
   useEffect(() => {
     if (!session) return
-    profEmail = session.user.email
+    setprofEmail(session.user.email);
   }, [session])
 
   // Fetch latest notifications for teaching tips
@@ -280,8 +280,8 @@ export default function ProfessorDashboardHome() {
   // Load professor data
   useEffect(() => {
     const loadProfessorData = async () => {
-      if (!profEmail) return
       if (!session) return
+      if (!profEmail) return
       setLoading(true)
       try {
         const [coursesCount, unreadCount, notifications] = await Promise.all([

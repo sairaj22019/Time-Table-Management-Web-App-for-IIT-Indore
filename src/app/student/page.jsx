@@ -93,7 +93,7 @@ export default function DashboardHome() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const containerRef = useRef(null)
-  let studentEmail
+  const [studentEmail, setStudentEmail] = useState("")
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
@@ -128,7 +128,7 @@ export default function DashboardHome() {
 
   useEffect(() => {
     if (!session) return
-    studentEmail = session.user.email
+    setStudentEmail(session.user.email);
   }, [session])
 
   // Fetch latest notifications for the carousel

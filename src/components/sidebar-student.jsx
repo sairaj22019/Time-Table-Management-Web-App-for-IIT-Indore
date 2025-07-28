@@ -202,13 +202,10 @@ export function AppSidebar() {
     setTheme(theme === "dark" ? "light" : "dark")
   }
 
-  if (status === "loading") return 
-
+  // if (status === "loading") return 
   console.log("session", session)
-
-  if (!session) {
-    return <p>You are not signed in</p>
-  }
+  
+    if (!session || status==="loading"){return;}
 
   return (
     <Sidebar className={"shadow-sm"} collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>

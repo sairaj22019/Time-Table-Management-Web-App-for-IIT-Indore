@@ -362,11 +362,6 @@ export function AppSidebar() {
                             <item.icon className="w-4 h-4" />
                           </motion.div>
                           <span>{item.title}</span>
-                          {item.title === "Inbox" && (
-                            <SidebarMenuBadge className="transition-all duration-300 group-hover:scale-110">
-                              3
-                            </SidebarMenuBadge>
-                          )}
                         </MotionLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
