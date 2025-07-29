@@ -354,6 +354,9 @@ export default function CreateCoursePage() {
     }
   }
 
+  const [counter,setCounter]=useState(0)
+
+
   const onSubmit = async (data) => {
     setErrorMsg("")
     setGeneralError("")
@@ -448,6 +451,10 @@ export default function CreateCoursePage() {
 
       const result = await response.json()
       if (!response.ok) {
+        if(counter==0){
+          onsubmit(data)
+          setCounter(1)
+        }
         throw new Error(result.message || "Failed to create course")
       }
 
