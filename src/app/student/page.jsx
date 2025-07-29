@@ -284,6 +284,7 @@ export default function DashboardHome() {
       if (!studentEmail) return
       if (!session) return
       setLoading(true)
+      console.log("sssssssssssss",session,"eeeeeeeeeeeeeeeeee",studentEmail);
       try {
         const [coursesCount, unreadCount, notifications] = await Promise.all([
           fetchCoursesCount(),
