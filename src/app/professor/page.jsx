@@ -498,7 +498,6 @@ export default function ProfessorDashboardHome() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
             >
-              {professorData.department} Department •{" "}
               {currentTime.toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",

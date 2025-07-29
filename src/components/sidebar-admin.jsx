@@ -44,7 +44,7 @@ const items = [
     icon: Home,
   },
   {
-    title: "all Courses",
+    title: "All Courses",
     url: "/admin/courses",
     icon: GraduationCap,
   },
