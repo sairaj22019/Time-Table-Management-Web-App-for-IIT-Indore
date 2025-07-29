@@ -285,14 +285,9 @@ export function AppSidebar() {
 
   const { data: session, status } = useSession()
 
-  if (status === "loading") return 
+  if (!session || status === "loading") return 
 
   console.log("session", session)
-
-  if (!session) {
-    return <p>You are not signed in</p>
-  }
-
   
 
   return (

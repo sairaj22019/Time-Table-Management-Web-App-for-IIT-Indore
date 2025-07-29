@@ -209,12 +209,15 @@ export function AppSidebar() {
     }
   }
 
-  if (status === "loading") return 
-  console.log("session", session)
-  if (!session) {
-    return <p>You are not signed in</p>
-  }
+  // if (status === "loading") return 
+  // console.log("session", session)
+  // if (!session) {
+  //   return <p>You are not signed in</p>
+  // }
 
+  if (!session || status === "loading") return 
+  console.log("session", session)
+  
   return (
     <Sidebar className={"shadow-sm"} collapsible="icon" onMouseLeave={handleClose} onMouseEnter={handleOpen}>
       <SidebarHeader className={"mt-2"}>

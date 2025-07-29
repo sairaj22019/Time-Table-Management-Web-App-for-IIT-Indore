@@ -43,21 +43,54 @@ export default function EnhancedLandingPage() {
   const dashboards = [
     {
       title: "Admin Dashboard",
-      img: "/admin.png",
+      img: "/bg_admin.png",
       desc: "Manage courses, assign rooms, resolve conflicts, and approve change requests with powerful analytics.",
       features: ["Course Management", "Room Assignment", "Conflict Resolution", "Analytics Dashboard"],
     },
     {
+      title: "Professor Dashboard",
+      img: "/bg_prof.png",
+      desc: "Propose schedule changes, conduct class polls, and manage academic events seamlessly.",
+      features: ["Schedule Proposals", "Class Polls", "Event Management", "Student Analytics"],
+    },
+    {
       title: "Student Dashboard",
-      img: "/student.png",
+      img: "/bg_student.png",
       desc: "View personalized schedules, receive live updates, and participate in interactive polls.",
       features: ["Personal Schedule", "Live Updates", "Interactive Polls", "Mobile Sync"],
     },
+    
+  ]
+  const features = [
     {
-      title: "Professor Dashboard",
-      img: "/professor.png",
-      desc: "Propose schedule changes, conduct class polls, and manage academic events seamlessly.",
-      features: ["Schedule Proposals", "Class Polls", "Event Management", "Student Analytics"],
+      icon: Zap,
+      title: "Real-time Updates",
+      description: "Instant notifications for schedule changes and conflicts",
+    },
+    {
+      icon: Users,
+      title: "Role-based Access",
+      description: "Customized dashboards for students, professors, and admins",
+    },
+    {
+      icon: Bell,
+      title: "Smart Notifications",
+      description: "Email alerts and push notifications for important updates",
+    },
+    {
+      icon: Calendar,
+      title: "Calendar Integration",
+      description: "Sync with Google Calendar and other popular calendar apps",
+    },
+    {
+      icon: Shield,
+      title: "Secure & Reliable",
+      description: "Enterprise-grade security with 99.9% uptime guarantee",
+    },
+    {
+      icon: CheckCircle,
+      title: "Conflict Detection",
+      description: "Automatic detection and resolution of scheduling conflicts",
     },
   ]
 
@@ -225,7 +258,6 @@ export default function EnhancedLandingPage() {
         </motion.div>
       </section>
 
-      {/* Stats Section */}
       
 
       {/* Enhanced Dashboards Section */}
@@ -295,6 +327,46 @@ export default function EnhancedLandingPage() {
             <CarouselPrevious className="left-4 bg-white/80 backdrop-blur-xl border-gray-200 text-gray-700 hover:bg-white" />
             <CarouselNext className="right-4 bg-white/80 backdrop-blur-xl border-gray-200 text-gray-700 hover:bg-white" />
           </Carousel>
+        </div>
+      </section>
+
+      <section id="features" className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              Everything You Need
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Comprehensive features designed to streamline your academic scheduling experience
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+                viewport={{ once: true }}
+                className="group"
+              >
+                <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 hover:border-blue-300 transition-all duration-300 group-hover:scale-105 h-full shadow-lg hover:shadow-xl">
+                  <div className="bg-gradient-to-r from-blue-500 to-sky-500 w-12 h-12 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <feature.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -13,12 +13,12 @@ const timeSlots = [
   { id: "slot2", label: "9:30-10:30", start: "09:30", end: "10:30" },
   { id: "slot3", label: "10:30-11:30", start: "10:30", end: "11:30" },
   { id: "slot4", label: "11:30-12:30", start: "11:30", end: "12:30" },
-  { id: "lunch", label: "12:30-13:30", start: "12:30", end: "13:30" },
-  { id: "slot5", label: "13:30-14:30", start: "13:30", end: "14:30" },
-  { id: "slot6", label: "14:30-15:30", start: "14:30", end: "15:30" },
-  { id: "slot7", label: "15:30-16:30", start: "15:30", end: "16:30" },
-  { id: "slot8", label: "16:30-17:30", start: "16:30", end: "17:30" },
-  { id: "slot9", label: "17:30-18:30", start: "17:30", end: "18:30" },
+  { id: "slot5", label: "12:30-13:30", start: "12:30", end: "13:30" },
+  { id: "slot6", label: "13:30-14:30", start: "13:30", end: "14:30" },
+  { id: "slot7", label: "14:30-15:30", start: "14:30", end: "15:30" },
+  { id: "slot8", label: "15:30-16:30", start: "15:30", end: "16:30" },
+  { id: "slot9", label: "16:30-17:30", start: "16:30", end: "17:30" },
+  { id: "slot10", label: "17:30-18:30", start: "17:30", end: "18:30" },
 ]
 
 const daysOfWeek = [
@@ -32,7 +32,7 @@ const daysOfWeek = [
 
 const FreeslotCell = ({ value, index, isLunchBreak }) => {
   const getCellContent = () => {
-    if (isLunchBreak) return { text: "Lunch Break", style: "text-orange-600 bg-orange-50 border-orange-200" }
+    // if (isLunchBreak) return { text: "Lunch Break", style: "text-orange-600 bg-orange-50 border-orange-200" }
     if (value) return { text: "A", style: "text-green-600 bg-green-50 border-green-200 font-bold text-lg" }
     return { text: "NA", style: "text-red-600 bg-red-50 border-red-200 font-bold text-lg" }
   }
@@ -276,7 +276,7 @@ export default function FreeslotsPage() {
                           key={`${day.id}-${slot.id}`}
                           value={gridData[dayIndex]?.[slotIndex] ?? true}
                           index={dayIndex * timeSlots.length + slotIndex}
-                          isLunchBreak={slot.id === "lunch"}
+                          // isLunchBreak={slot.id === "lunch"}
                         />
                       ))}
                     </motion.div>
