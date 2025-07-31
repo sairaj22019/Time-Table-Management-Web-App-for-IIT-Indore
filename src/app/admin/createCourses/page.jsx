@@ -451,10 +451,9 @@ export default function CreateCoursePage() {
 
       const result = await response.json()
       if (!response.ok) {
-        // if(counter==0){
-        //   onsubmit(data)
-        //   setCounter(1)
-        // }
+        if((result.message === "Failed to execute 'json' on 'Response': Unexpected end of JSON input") || (result.message === "Unexpected end of JSON input")){
+          onSubmit(data)
+        }
         throw new Error(result.message || "Failed to create course")
       }
 
