@@ -100,9 +100,9 @@ export default function DashboardHome() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShow(true);
-    }, 10000); // 10000ms = 10 seconds
+    }, 10000); 
 
-    return () => clearTimeout(timer); // Cleanup on unmount
+    return () => clearTimeout(timer); 
   }, []);
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
