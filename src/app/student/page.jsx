@@ -95,6 +95,15 @@ export default function DashboardHome() {
   const router = useRouter()
   const containerRef = useRef(null)
   let studentEmail
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShow(true);
+    }, 10000); // 10000ms = 10 seconds
+
+    return () => clearTimeout(timer); // Cleanup on unmount
+  }, []);
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
@@ -133,17 +142,6 @@ export default function DashboardHome() {
   }, [session])
 
 
-useEffect(() => {
-  const hasReloaded = sessionStorage.getItem("hasReloaded");
-
-  if (!hasReloaded) {
-    setTimeout(() => {
-      sessionStorage.setItem("hasReloaded", "true");
-      window.location.reload(); // reloads the page
-      
-    }, 2000);
-  }
-}, []);
 
 
   // Fetch latest notifications for the carousel
@@ -386,11 +384,13 @@ useEffect(() => {
   const currentTip = latestNotifications.length > 0 ? latestNotifications[currentTipIndex] : null
 
   if (loading) {
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading Student dashboard...</p>
+          {show && <p className="text-red-600">Timeout, Please Reload</p>}
         </div>
       </div>
     )
