@@ -132,6 +132,20 @@ export default function DashboardHome() {
     studentEmail=session.user.email;
   }, [session])
 
+
+useEffect(() => {
+  const hasReloaded = sessionStorage.getItem("hasReloaded");
+
+  if (!hasReloaded) {
+    setTimeout(() => {
+      sessionStorage.setItem("hasReloaded", "true");
+      window.location.reload(); // reloads the page
+      
+    }, 2000);
+  }
+}, []);
+
+
   // Fetch latest notifications for the carousel
   const fetchLatestNotifications = async () => {
     if (!studentEmail) return []

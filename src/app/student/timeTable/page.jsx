@@ -150,7 +150,7 @@ export default function StudentTimetable() {
   }
 
   const handleCourseClick = (course) => {
-    if (course === "LUNCH") return // Don't open dialog for lunch
+    if (course === "LUNCH" || !course) return // Don't open dialog for lunch 
     setSelectedCourse(course)
     setIsDialogOpen(true)
   }
