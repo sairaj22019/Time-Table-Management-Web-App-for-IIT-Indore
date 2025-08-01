@@ -14,8 +14,8 @@ function generateTimeSlots() {
 
   for (const day of days) {
     for (let i = 0; i < slotCount; i++) {
-      const start = new Date(0, 0, 0, startHour + i, startMinute);
-      const end = new Date(0, 0, 0, startHour + i + 1, startMinute);
+      const start = new Date(2000, 0, 0, startHour + i, startMinute);
+      const end = new Date(2000, 0, 0, startHour + i + 1, startMinute);
 
       const formatTime = (date) =>
         date.toLocaleTimeString("en-US", {

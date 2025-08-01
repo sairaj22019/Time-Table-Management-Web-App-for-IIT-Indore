@@ -184,7 +184,7 @@ export default function ViewAllCoursesPage() {
   const formatTime = (dateString) => {
     if (!dateString) return "Time TBD"
     const date = new Date(dateString)
-    return date.toLocaleTimeString("en-US", {
+    return date.toLocaleTimeString("en-IN", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,

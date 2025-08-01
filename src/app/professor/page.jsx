@@ -95,6 +95,15 @@ export default function ProfessorDashboardHome() {
   const containerRef = useRef(null)
   const { data: session, status } = useSession()
   let profEmail
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShow(true);
+    }, 10000); 
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
@@ -375,6 +384,7 @@ export default function ProfessorDashboardHome() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading Professor dashboard...</p>
+          {show && <p className="text-red-600">Timeout, Please Reload</p>}
         </div>
       </div>
     )
@@ -498,7 +508,6 @@ export default function ProfessorDashboardHome() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
             >
-              {professorData.department} Department •{" "}
               {currentTime.toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",

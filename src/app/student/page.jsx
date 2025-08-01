@@ -1,5 +1,6 @@
 
 
+
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { motion, useSpring } from "framer-motion"
@@ -94,6 +95,15 @@ export default function DashboardHome() {
   const router = useRouter()
   const containerRef = useRef(null)
   let studentEmail
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShow(true);
+    }, 10000); 
+
+    return () => clearTimeout(timer); 
+  }, []);
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 }
   const x = useSpring(0, springConfig)
@@ -128,8 +138,11 @@ export default function DashboardHome() {
 
   useEffect(() => {
     if (!session) return
-    studentEmail = session.user.email
+    studentEmail=session.user.email;
   }, [session])
+
+
+
 
   // Fetch latest notifications for the carousel
   const fetchLatestNotifications = async () => {
@@ -284,6 +297,7 @@ export default function DashboardHome() {
       if (!studentEmail) return
       if (!session) return
       setLoading(true)
+      console.log("sssssssssssss",session,"eeeeeeeeeeeeeeeeee",studentEmail);
       try {
         const [coursesCount, unreadCount, notifications] = await Promise.all([
           fetchCoursesCount(),
@@ -370,11 +384,13 @@ export default function DashboardHome() {
   const currentTip = latestNotifications.length > 0 ? latestNotifications[currentTipIndex] : null
 
   if (loading) {
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-100 via-white to-sky-200 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading Student dashboard...</p>
+          {show && <p className="text-red-600">Timeout, Please Reload</p>}
         </div>
       </div>
     )

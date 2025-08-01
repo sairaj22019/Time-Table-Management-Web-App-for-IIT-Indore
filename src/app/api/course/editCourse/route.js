@@ -5,17 +5,16 @@ import { connectDB } from "@/dbConnection/ConnectDB";
 import User from "@/models/User.model";
 import Student from "@/models/Student.model";
 import Professor from "@/models/Professor.model";
-
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
   let hours = parseInt(hourStr, 10);
   let minutes = parseInt(minuteStr, 10);
-
   if (meridian === "pm" && hours !== 12) hours += 12;
   if (meridian === "am" && hours === 12) hours = 0;
-
-  return new Date(2000, 0, 1, hours, minutes, 0, 0);
+  const istDate = new Date(2000, 0, 1, hours, minutes, 0, 0);
+  return new Date(istDate.getTime()-(5.5*60*60*1000));
 }
+
 
 export async function POST(req) {
   try {

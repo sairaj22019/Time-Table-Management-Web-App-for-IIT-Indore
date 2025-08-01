@@ -7,15 +7,16 @@ const toDay = (day) => {
     const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     return days[day]
 }
-
 function saveTime(timeString) {
   let [hourStr, minuteStr, meridian] = timeString.toLowerCase().split(":");
   let hours = parseInt(hourStr, 10);
   let minutes = parseInt(minuteStr, 10);
   if (meridian === "pm" && hours !== 12) hours += 12;
   if (meridian === "am" && hours === 12) hours = 0;
-  return new Date(2000, 0, 1, hours, minutes, 0, 0);
+  const istDate = new Date(2000, 0, 1, hours, minutes, 0, 0);
+  return new Date(istDate.getTime()-(5.5*60*60*1000));
 }
+
 
 const getStart = (slot) => {
     const startTime=["8:30:AM","9:30:AM","10:30:AM","11:30:AM","12:30:PM","1:30:PM","2:30:PM","3:30:PM","4:30:PM","5:30:PM"];

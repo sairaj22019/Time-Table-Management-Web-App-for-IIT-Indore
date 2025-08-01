@@ -16,7 +16,8 @@ function saveTime(timeString) {
   let minutes = parseInt(minuteStr, 10);
   if (meridian === "pm" && hours !== 12) hours += 12;
   if (meridian === "am" && hours === 12) hours = 0;
-  return new Date(2000, 0, 1, hours, minutes, 0, 0);
+  const istDate = new Date(2000, 0, 1, hours, minutes, 0, 0);
+  return new Date(istDate.getTime()-(5.5*60*60*1000));
 }
 
 function isOverlap(scheduleA, scheduleB) {
@@ -350,3 +351,7 @@ export async function POST(req) {
     );
   }
 }
+
+
+
+

@@ -354,6 +354,9 @@ export default function CreateCoursePage() {
     }
   }
 
+  // const [counter,setCounter]=useState(0)
+
+
   const onSubmit = async (data) => {
     setErrorMsg("")
     setGeneralError("")
@@ -448,7 +451,7 @@ export default function CreateCoursePage() {
 
       const result = await response.json()
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create course")
+          throw new Error("Failed to create course, Try Resubmitting the form, if the error persists please check the data provide")
       }
 
       setLoading(false)
