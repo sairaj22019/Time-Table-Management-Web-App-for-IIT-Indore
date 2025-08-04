@@ -38,7 +38,7 @@ export default function EnhancedLandingPage() {
   const dashboards = [
     {
       title: "Admin Dashboard",
-      img: "/pic.png",
+      img: "/bg_admin.png",
       desc: "Manage courses, assign rooms, resolve conflicts, and approve change requests with powerful analytics.",
       features: ["Course Management", "Room Assignment", "Conflict Resolution", "Analytics Dashboard"],
     },
@@ -167,10 +167,14 @@ export default function EnhancedLandingPage() {
             Access all timetable services and course management in one place. Manage your schedules, polls, messages,
             and stay informed about important updates with our intuitive platform.
           </p>
+
+          <Link href="/signup">
+                
           <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 text-sm sm:text-base">
             Get Started
             <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
+          </Link>
         </div>
         {/* Right Side - Features Grid */}
         <div className="flex-shrink-0 w-full lg:w-auto flex justify-center">
