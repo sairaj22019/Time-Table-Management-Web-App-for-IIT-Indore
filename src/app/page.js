@@ -6,29 +6,23 @@ import Link from "next/link"
 import { useRef, useEffect, useState } from "react"
 import Autoplay from "embla-carousel-autoplay"
 import { motion, useScroll, useTransform } from "framer-motion"
-import {
-  Calendar,
-  Users,
-  Bell,
-  Shield,
-  Zap,
-  Clock,
-  CheckCircle,
-  Star,
-  ArrowRight,
-  Play,
-  ChevronDown,
-} from "lucide-react"
+import { Calendar, Users, Bell, Shield, Zap, Clock, CheckCircle, ArrowRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  CarouselIndicators,
+} from "@/components/ui/carousel"
 import { Card, CardTitle } from "@/components/ui/card"
 
 export default function EnhancedLandingPage() {
   const plugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true }))
   const { scrollYProgress } = useScroll()
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "200%"])
 
@@ -43,29 +37,22 @@ export default function EnhancedLandingPage() {
   const dashboards = [
     {
       title: "Admin Dashboard",
-      img: "/bg.jpeg",
+      img: "/pic.png",
       desc: "Manage courses, assign rooms, resolve conflicts, and approve change requests with powerful analytics.",
       features: ["Course Management", "Room Assignment", "Conflict Resolution", "Analytics Dashboard"],
     },
     {
-      title: "Student Dashboard",
-      img: "/bg.jpeg",
-      desc: "View personalized schedules, receive live updates, and participate in interactive polls.",
-      features: ["Personal Schedule", "Live Updates", "Interactive Polls", "Mobile Sync"],
-    },
-    {
       title: "Professor Dashboard",
-      img: "/bg.jpeg",
+      img: "/bg_prof.png",
       desc: "Propose schedule changes, conduct class polls, and manage academic events seamlessly.",
       features: ["Schedule Proposals", "Class Polls", "Event Management", "Student Analytics"],
     },
-  ]
-
-  const stats = [
-    { number: "2000+", label: "Active Users", icon: Users },
-    { number: "50+", label: "Departments", icon: Calendar },
-    { number: "99.9%", label: "Uptime", icon: Shield },
-    { number: "24/7", label: "Support", icon: Clock },
+    {
+      title: "Student Dashboard",
+      img: "/bg_student.png",
+      desc: "View personalized schedules, receive live updates, and participate in interactive polls.",
+      features: ["Personal Schedule", "Live Updates", "Interactive Polls", "Mobile Sync"],
+    },
   ]
 
   const features = [
@@ -101,26 +88,11 @@ export default function EnhancedLandingPage() {
     },
   ]
 
-  const testimonials = [
-    {
-      quote:
-        "CampusSync revolutionized how we manage our academic schedules. The real-time updates are a game-changer!",
-      author: "Dr. Sarah Johnson",
-      role: "Professor, Computer Science",
-      rating: 5,
-    },
-    {
-      quote: "As a student, I love how easy it is to stay updated with my classes. No more missed lectures!",
-      author: "Rahul Sharma",
-      role: "B.Tech Student",
-      rating: 5,
-    },
-    {
-      quote: "The admin dashboard gives us complete control over scheduling. Conflicts are resolved automatically!",
-      author: "Prof. Michael Chen",
-      role: "Academic Coordinator",
-      rating: 5,
-    },
+  const stats = [
+    { number: "2000+", label: "Active Users", icon: Users },
+    { number: "50+", label: "Departments", icon: Calendar },
+    { number: "99.9%", label: "Uptime", icon: Shield },
+    { number: "24/7", label: "Support", icon: Clock },
   ]
 
   return (
@@ -156,19 +128,15 @@ export default function EnhancedLandingPage() {
                 CampusSync
               </span>
             </motion.div>
-
             <div className="hidden md:flex items-center space-x-8 text-gray-600">
+              <Link href="#dashboard" className="hover:text-blue-600 transition-colors">
+                Dashboards
+              </Link>
               <Link href="#features" className="hover:text-blue-600 transition-colors">
                 Features
               </Link>
-              <Link href="#testimonials" className="hover:text-blue-600 transition-colors">
-                Reviews
-              </Link>
-              <Link href="#pricing" className="hover:text-blue-600 transition-colors">
-                Pricing
-              </Link>
+              
             </div>
-
             <div className="flex gap-3">
               <Link href="/login">
                 <Button variant="ghost" className="text-gray-600 hover:bg-gray-100 rounded-xl">
@@ -177,7 +145,7 @@ export default function EnhancedLandingPage() {
               </Link>
               <Link href="/signup">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                  Get Started
+                  Register
                 </Button>
               </Link>
             </div>
@@ -196,7 +164,7 @@ export default function EnhancedLandingPage() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="text-center lg:text-left"
           >
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
@@ -204,8 +172,7 @@ export default function EnhancedLandingPage() {
             >
               <Zap className="w-4 h-4 mr-2" />
               Trusted by 2000+ Students & Faculty
-            </motion.div>
-
+            </motion.div> */}
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -220,7 +187,6 @@ export default function EnhancedLandingPage() {
                 Made Simple
               </span>
             </motion.h1>
-
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -230,31 +196,24 @@ export default function EnhancedLandingPage() {
               Transform your academic scheduling experience with AI-powered conflict detection, real-time updates, and
               seamless collaboration across your entire campus.
             </motion.p>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
+              <Link href="/signup">
               <Button
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 group"
-              >
-                Start Now
+                
+                >
+                Get Started
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl px-8 py-4 text-lg group"
-              >
-                <Play className="mr-2 w-5 h-5" />
-                Watch Demo
-              </Button>
+          </Link>
             </motion.div>
           </motion.div>
-
           <motion.div
             initial={{ opacity: 0, scale: 0.8, rotateY: -30 }}
             animate={{ opacity: 1, scale: 1, rotateY: 0 }}
@@ -278,42 +237,10 @@ export default function EnhancedLandingPage() {
             </div>
           </motion.div>
         </div>
-
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-gray-400"
-        >
-          <ChevronDown className="w-8 h-8" />
-        </motion.div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.6 }}
-                viewport={{ once: true }}
-                className="text-center group"
-              >
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-gray-200 hover:border-blue-300 transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-xl">
-                  <stat.icon className="w-8 h-8 text-blue-600 mx-auto mb-4" />
-                  <div className="text-3xl font-bold text-gray-800 mb-2">{stat.number}</div>
-                  <div className="text-gray-600">{stat.label}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* Enhanced Dashboards Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 relative">
         <div className="max-w-7xl mx-auto text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
@@ -330,59 +257,109 @@ export default function EnhancedLandingPage() {
             transition={{ delay: 0.2, duration: 0.8 }}
             viewport={{ once: true }}
             className="text-xl text-gray-600 max-w-3xl mx-auto"
+            id="dashboard"
           >
             Experience tailored interfaces designed specifically for students, professors, and administrators
           </motion.p>
         </div>
 
-        <div className="relative max-w-6xl mx-auto">
-          <Carousel plugins={[plugin.current]} className="w-full">
-            <CarouselContent>
-              {dashboards.map((dashboard, index) => (
-                <CarouselItem key={index} className="p-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    viewport={{ once: true }}
-                    className="group"
-                  >
-                    <Card className="relative overflow-hidden rounded-3xl bg-white/80 backdrop-blur-xl border border-gray-200 hover:border-blue-300 transition-all duration-500 group-hover:scale-[1.02] shadow-xl hover:shadow-2xl">
-                      <div className="relative h-96 lg:h-[500px]">
-                        <Image
-                          src={dashboard.img || "/placeholder.svg"}
-                          alt={dashboard.title}
-                          fill
-                          className="object-cover rounded-3xl"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        {/* Enhanced Carousel Container */}
+        <div className="relative max-w-7xl mx-auto px-4 md:px-16">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="relative"
+          >
+            <Carousel
+              plugins={[plugin.current]}
+              className="w-full overflow-visible"
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              
+            >
+              <CarouselContent className="-ml-2 md:-ml-4 overflow-visible">
+                {dashboards.map((dashboard, index) => (
+                  <CarouselItem key={index} className="pl-2 md:pl-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      className="group h-full"
+                    >
+                      <Card className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-xl border-2 border-gray-200/50 hover:border-blue-300/50 transition-all duration-500 shadow-xl hover:shadow-2xl h-full z-50 py-0">
+                        <div className="relative h-[500px] lg:h-[600px]">
+                          <Image
+                            src={dashboard.img || "/placeholder.svg?height=600&width=800"}
+                            alt={dashboard.title}
+                            fill
+                            className="object-cover rounded-3xl transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                        <div className="absolute bottom-0 left-0 right-0 p-8">
-                          <CardTitle className="text-3xl font-bold text-white mb-4">{dashboard.title}</CardTitle>
-                          <p className="text-gray-200 text-lg mb-6 max-w-2xl">{dashboard.desc}</p>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            {dashboard.features.map((feature, idx) => (
-                              <div key={idx} className="flex items-center text-sm text-gray-300">
-                                <CheckCircle className="w-4 h-4 text-green-400 mr-2" />
-                                {feature}
+                          {/* Enhanced Content Overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-10">
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3, duration: 0.6 }}
+                              viewport={{ once: true }}
+                            >
+                              <CardTitle className="text-3xl lg:text-4xl font-bold text-white mb-4 drop-shadow-lg">
+                                {dashboard.title}
+                              </CardTitle>
+                              <p className="text-gray-200 text-lg lg:text-xl mb-6 max-w-2xl leading-relaxed drop-shadow-md">
+                                {dashboard.desc}
+                              </p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
+                                {dashboard.features.map((feature, idx) => (
+                                  <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.4 + idx * 0.1, duration: 0.5 }}
+                                    viewport={{ once: true }}
+                                    className="flex items-center text-sm lg:text-base text-gray-300 bg-black/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10"
+                                  >
+                                    <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 mr-2 flex-shrink-0" />
+                                    <span className="font-medium">{feature}</span>
+                                  </motion.div>
+                                ))}
                               </div>
-                            ))}
+                            </motion.div>
+                          </div>
+
+                          {/* Decorative Elements */}
+                          <div className="absolute top-6 right-6 bg-white/10 backdrop-blur-sm rounded-full p-3 border border-white/20">
+                            <Calendar className="w-6 h-6 text-white" />
                           </div>
                         </div>
-                      </div>
-                    </Card>
-                  </motion.div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-4 bg-white/80 backdrop-blur-xl border-gray-200 text-gray-700 hover:bg-white" />
-            <CarouselNext className="right-4 bg-white/80 backdrop-blur-xl border-gray-200 text-gray-700 hover:bg-white" />
-          </Carousel>
+                      </Card>
+                    </motion.div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Desktop Navigation Buttons */}
+              <CarouselPrevious />
+              <CarouselNext />
+
+              {/* Mobile Indicators */}
+              <CarouselIndicators />
+            </Carousel>
+          </motion.div>
         </div>
+
+        {/* Background Decorations */}
+        <div className="absolute top-1/2 left-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-10 w-40 h-40 bg-sky-500/5 rounded-full blur-3xl animate-bounce" />
       </section>
 
-      {/* Enhanced Features Section */}
+      {/* Features Section */}
       <section id="features" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -399,7 +376,6 @@ export default function EnhancedLandingPage() {
               Comprehensive features designed to streamline your academic scheduling experience
             </p>
           </motion.div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div
@@ -421,89 +397,6 @@ export default function EnhancedLandingPage() {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* Enhanced Testimonials */}
-      <section id="testimonials" className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Loved by Thousands
-            </h2>
-            <p className="text-xl text-gray-600">See what our users have to say about CampusSync</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2, duration: 0.6 }}
-                viewport={{ once: true }}
-                className="group"
-              >
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 hover:border-blue-300 transition-all duration-300 group-hover:scale-105 h-full shadow-lg hover:shadow-xl">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-6 italic">{testimonial.quote}</p>
-                  <div>
-                    <div className="font-semibold text-gray-800">{testimonial.author}</div>
-                    <div className="text-gray-600 text-sm">{testimonial.role}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced CTA Section */}
-      <section className="py-20 px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center"
-        >
-          <div className="bg-gradient-to-r from-blue-50 to-sky-50 backdrop-blur-xl rounded-3xl p-12 border border-blue-200 relative overflow-hidden shadow-xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-sky-500/5 animate-pulse" />
-            <div className="relative z-10">
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                Ready to Transform Your Campus?
-              </h2>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                Join thousands of students and faculty who have already revolutionized their scheduling experience
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 group"
-                >
-                  Start Your Free Trial
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl px-8 py-4 text-lg"
-                >
-                  Schedule a Demo
-                </Button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </section>
 
       {/* Footer */}
@@ -528,11 +421,9 @@ export default function EnhancedLandingPage() {
             <Link href="/contact" className="hover:text-blue-600 transition-colors">
               Contact Support
             </Link>
-            
           </div>
         </div>
       </footer>
     </div>
   )
 }
-
