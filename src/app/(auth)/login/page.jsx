@@ -44,7 +44,7 @@ export default function LoginPage() {
 
       if (result?.error) {
         if(result.error === "Configuration")
-          setErrorMsg("Incorrect Password")
+          setErrorMsg("Invalid Email or Password")
         else setErrorMsg(result.error)
       } else {
         const res = await fetch(`/api/auth/profile?email=${encodeURIComponent(data.email)}`)

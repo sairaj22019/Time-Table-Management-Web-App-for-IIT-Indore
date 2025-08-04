@@ -18,6 +18,7 @@ import {
   CarouselIndicators,
 } from "@/components/ui/carousel"
 import { Card, CardTitle } from "@/components/ui/card"
+import { FeaturesGrid } from "@/components/FeaturesGrid"
 
 export default function EnhancedLandingPage() {
   const plugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true }))
@@ -37,7 +38,7 @@ export default function EnhancedLandingPage() {
   const dashboards = [
     {
       title: "Admin Dashboard",
-      img: "/bg_admin.png",
+      img: "/pic.png",
       desc: "Manage courses, assign rooms, resolve conflicts, and approve change requests with powerful analytics.",
       features: ["Course Management", "Room Assignment", "Conflict Resolution", "Analytics Dashboard"],
     },
@@ -153,89 +154,29 @@ export default function EnhancedLandingPage() {
         </div>
       </motion.nav>
 
-      <div className="pt-48" />
+      <div className="pt-36" />
 
-      {/* Enhanced Hero Section */}
-      <section className="relative min-h-screen flex items-start justify-center px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="text-center lg:text-left"
-          >
-            {/* <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              className="inline-flex items-center px-4 py-2 bg-blue-50 rounded-full text-blue-600 text-sm mb-6 border border-blue-200"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              Trusted by 2000+ Students & Faculty
-            </motion.div> */}
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-5xl lg:text-7xl font-bold mb-6 leading-tight"
-            >
-              <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                Smart Scheduling
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-transparent">
-                Made Simple
-              </span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="text-xl text-gray-600 mb-8 max-w-2xl"
-            >
-              Transform your academic scheduling experience with AI-powered conflict detection, real-time updates, and
-              seamless collaboration across your entire campus.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-            >
-              <Link href="/signup">
-              <Button
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 group"
-                
-                >
-                Get Started
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-          </Link>
-            </motion.div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotateY: -30 }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-            transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
-            className="relative"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-200/30 to-sky-200/30 rounded-3xl blur-3xl transform rotate-6" />
-              
-                <Image
-                  src="/bg.jpeg"
-                  alt="CampusSync Dashboard Preview"
-                  width={600}
-                  height={500}
-                  className="rounded-2xl shadow-lg"
-                />
-                
-              
-            </div>
-          </motion.div>
+      
+      <main className="flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 gap-8 lg:gap-32">
+        {/* Left Side - Text Content */}
+        <div className="flex-1 max-w-2xl text-center lg:text-left">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4 sm:mb-6">
+            Welcome to <span className="text-blue-600 block sm:inline">Campus Sync</span>
+          </h1>
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 leading-relaxed px-2 sm:px-0">
+            Access all timetable services and course management in one place. Manage your schedules, polls, messages,
+            and stay informed about important updates with our intuitive platform.
+          </p>
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 text-sm sm:text-base">
+            Get Started
+            <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
         </div>
-      </section>
+        {/* Right Side - Features Grid */}
+        <div className="flex-shrink-0 w-full lg:w-auto flex justify-center">
+          <FeaturesGrid />
+        </div>
+      </main>
 
       {/* Enhanced Dashboards Section */}
       <section className="py-20 px-4 relative">
@@ -289,13 +230,13 @@ export default function EnhancedLandingPage() {
                       viewport={{ once: true }}
                       className="group h-full"
                     >
-                      <Card className="relative overflow-hidden rounded-md bg-white/90 backdrop-blur-xl border-2 border-gray-200/50 hover:border-blue-300/50 transition-all duration-500 shadow-xl hover:shadow-2xl h-full z-50 py-0">
+                      <Card className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-xl border-2 border-gray-200/50 hover:border-blue-300/50 transition-all duration-500 shadow-xl hover:shadow-2xl h-full z-50 py-0">
                         <div className="relative h-[500px] lg:h-[600px]">
                           <Image
                             src={dashboard.img || "/placeholder.svg?height=600&width=800"}
                             alt={dashboard.title}
                             fill
-                            className="object-cover rounded-sm transition-transform duration-700 "
+                            className="object-cover rounded-3xl transition-transform duration-700"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
