@@ -222,7 +222,7 @@ export default function EnhancedLandingPage() {
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-200/30 to-sky-200/30 rounded-3xl blur-3xl transform rotate-6" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-2xl">
+              
                 <Image
                   src="/bg.jpeg"
                   alt="CampusSync Dashboard Preview"
@@ -230,10 +230,8 @@ export default function EnhancedLandingPage() {
                   height={500}
                   className="rounded-2xl shadow-lg"
                 />
-                <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold animate-pulse">
-                  Live Updates
-                </div>
-              </div>
+                
+              
             </div>
           </motion.div>
         </div>
@@ -291,13 +289,13 @@ export default function EnhancedLandingPage() {
                       viewport={{ once: true }}
                       className="group h-full"
                     >
-                      <Card className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-xl border-2 border-gray-200/50 hover:border-blue-300/50 transition-all duration-500 shadow-xl hover:shadow-2xl h-full z-50 py-0">
+                      <Card className="relative overflow-hidden rounded-md bg-white/90 backdrop-blur-xl border-2 border-gray-200/50 hover:border-blue-300/50 transition-all duration-500 shadow-xl hover:shadow-2xl h-full z-50 py-0">
                         <div className="relative h-[500px] lg:h-[600px]">
                           <Image
                             src={dashboard.img || "/placeholder.svg?height=600&width=800"}
                             alt={dashboard.title}
                             fill
-                            className="object-cover rounded-3xl transition-transform duration-700"
+                            className="object-cover rounded-sm transition-transform duration-700 "
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
