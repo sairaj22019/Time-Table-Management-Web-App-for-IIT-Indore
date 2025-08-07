@@ -285,28 +285,7 @@ export default function StudentTimetable() {
                 
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={exportAsImage}
-                variant="outline"
-                size="lg"
-                className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-sky-200 hover:bg-sky-50 hover:border-sky-300 transition-all duration-300"
-              >
-                <FileImage className="w-4 h-4 text-sky-600" />
-                <span className="hidden sm:inline text-sky-700">Export PNG</span>
-                <span className="sm:hidden text-sky-700">PNG</span>
-              </Button>
-              <Button
-                onClick={exportAsPDF}
-                variant="outline"
-                size="lg"
-                className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-sky-200 hover:bg-sky-50 hover:border-sky-300 transition-all duration-300"
-              >
-                <FileText className="w-4 h-4 text-sky-600" />
-                <span className="hidden sm:inline text-sky-700">Export PDF</span>
-                <span className="sm:hidden text-sky-700">PDF</span>
-              </Button>
-            </div>
+            
           </div>
         </motion.div>
 
