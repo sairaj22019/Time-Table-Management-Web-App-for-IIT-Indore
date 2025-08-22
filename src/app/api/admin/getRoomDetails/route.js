@@ -18,7 +18,7 @@ function generateTimeSlots() {
       const end = new Date(2000, 0, 0, startHour + i + 1, startMinute);
 
       const formatTime = (date) =>
-        date.toLocaleTimeString("en-US", {
+        date.toLocaleTimeString("en-IN", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,
@@ -33,14 +33,14 @@ function generateTimeSlots() {
       });
     }
   }
-
+  console.log(slots);
   return slots;
 }
 
 // Match slot with schedule or slot entry
 function isSameSlot(slotA, entry) {
   const startDate = new Date(entry.start);
-  const formattedStart = startDate.toLocaleTimeString("en-US", {
+  const formattedStart = startDate.toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -91,11 +91,11 @@ export async function POST(req) {
     }
 
     // Update based on Slot model
-    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); // format: "YYYY-MM-DD"
+    const today = new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" }); // format: "YYYY-MM-DD"
 
 for (const entry of allSlots) {
   if (entry.room === room) {
-    const entryDate = new Date(entry.date).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const entryDate = new Date(entry.date).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
 
     if (entryDate === today) {
       fullSlotGrid.forEach((slot) => {
@@ -122,3 +122,4 @@ for (const entry of allSlots) {
     }, { status: 500 });
   }
 }
+
